@@ -1,0 +1,55 @@
+{
+  "name": "feathers-websocket-client",
+  "version": "0.1.0",
+  "description": "A Feathers service client for NodeJS and the browser that can use SocketIO or Primus sockets.",
+  "homepage": "https://github.com/feathersjs/feathers-websocket-client",
+  "keywords": [
+    "feathers-plugin",
+    "feathers",
+    "socketio",
+    "websockets"
+  ],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/feathersjs/feathers-websocket-client/blob/master/LICENSE"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/feathersjs/feathers-websocket-client.git"
+  },
+  "author": {
+    "name": "David Luecke",
+    "email": "daff@neyeon.com",
+    "url": "https://feathersjs.com"
+  },
+  "contributors": [],
+  "bugs": {
+    "url": "https://github.com/feathersjs/feathers-websocket-client/issues"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "body-parser": "^1.9.0",
+    "feathers": "^1.0.0",
+    "feathers-memory": "^0.3.4",
+    "grunt": "~0.4.1",
+    "grunt-cli": "~0.1.7",
+    "grunt-contrib-jshint": "~0.x",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-release": "~0.5.1",
+    "grunt-simple-mocha": "~0.4.0",
+    "mocha": "^2.0.1",
+    "socket.io-client": "^1.1.0"
+  }
+}
