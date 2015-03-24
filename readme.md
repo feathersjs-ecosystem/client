@@ -21,7 +21,7 @@ Or a module loader like RequireJS. Also remember to load the SocketIO or Primus 
 ```js
 var socket = io();
 
-var service = Feathers.Websocket.client('/todos', socket);
+var todos = Feathers.Websocket.client('/todos', socket);
 
 todos.on('created', function(todo) {
  console.log('Someone created a Todo', todo);
