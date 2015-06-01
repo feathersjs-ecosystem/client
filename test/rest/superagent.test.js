@@ -17,5 +17,5 @@ describe('Superagent REST connector', function() {
     this.server.close(done);
   });
 
-  baseTests(service)
+  baseTests(service);
 });

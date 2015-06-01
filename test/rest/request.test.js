@@ -17,5 +17,5 @@ describe('node-request REST connector', function() {
     this.server.close(done);
   });
 
-  baseTests(service)
+  baseTests(service);
 });
