@@ -1,55 +1,55 @@
 {
-  "name": "feathers-websocket-client",
+  "name": "feathers-client",
+  "description": "Feathers service clients for REST (jQuery, Request, Superagent) and Websocket (Socket.io, Primus) connections",
   "version": "0.1.0",
-  "description": "A Feathers service client for NodeJS and the browser that can use SocketIO or Primus sockets.",
-  "homepage": "https://github.com/feathersjs/feathers-websocket-client",
-  "keywords": [
-    "feathers-plugin",
-    "feathers",
-    "socketio",
-    "websockets"
-  ],
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/feathersjs/feathers-websocket-client/blob/master/LICENSE"
-    }
-  ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/feathersjs/feathers-websocket-client.git"
+    "url": "https://github.com/feathersjs/feathers-client.git"
   },
-  "author": {
-    "name": "David Luecke",
-    "email": "daff@neyeon.com",
-    "url": "https://feathersjs.com"
-  },
-  "contributors": [],
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/feathersjs/feathers-websocket-client/issues"
+    "url": "https://github.com/feathersjs/feathers-client/issues"
   },
+  "homepage": "https://github.com/feathersjs/feathers-client",
+  "keywords": [
+    "feathers",
+    "feathers-plugin",
+    "batch",
+    "rest",
+    "api"
+  ],
+  "author": "David Luecke <daff@neyeon.com> (https://feathersjs.com)",
+  "contributors": [],
   "engines": {
     "node": ">=0.10.0"
   },
-  "main": "lib/index.js",
+  "main": "lib/client.js",
   "scripts": {
-    "test": "grunt test"
+    "publish": "git push origin --tags",
+    "build": "mkdir -p dist && browserify lib/client.js --standalone feathers > dist/client.js",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish",
+    "jshint": "node_modules/.bin/jshint src/. test/. --config",
+    "mocha": "node_modules/.bin/mocha test/ --recursive",
+    "test": "npm run jshint && npm run mocha"
   },
   "directories": {
     "lib": "lib"
   },
-  "dependencies": {},
+  "dependencies": {
+    "uberproto": "^1.1.2"
+  },
   "devDependencies": {
-    "body-parser": "^1.9.0",
-    "feathers": "^1.0.0",
+    "body-parser": "^1.12.4",
+    "browserify": "^10.2.3",
+    "feathers": "^1.1.0-pre.0",
     "feathers-memory": "^0.3.4",
-    "grunt": "~0.4.1",
-    "grunt-cli": "~0.1.7",
-    "grunt-contrib-jshint": "~0.x",
-    "grunt-contrib-watch": "~0.5.3",
-    "grunt-release": "~0.5.1",
-    "grunt-simple-mocha": "~0.4.0",
-    "mocha": "^2.0.1",
-    "socket.io-client": "^1.1.0"
+    "jquery": "^2.1.4",
+    "jsdom": "^5.4.3",
+    "jshint": "^2.6.3",
+    "mocha": "^2.1.0",
+    "request": "^2.56.0",
+    "superagent": "^1.2.0"
   }
 }

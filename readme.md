@@ -1,53 +1,71 @@
-# Feathers Websocket Client
+# feathers-client
 
-[![Build Status](https://travis-ci.org/feathersjs/feathers-passport.png?branch=master)](https://travis-ci.org/feathersjs/feathers-websocket-client)
+[![Build Status](https://travis-ci.org/feathersjs/feathers-client.png?branch=master)](https://travis-ci.org/feathersjs/feathers-client)
 
-A Feathers service client for NodeJS and the browser that can use SocketIO or Primus sockets.
+> Feathers service clients for SocketIO, Primus, jQuery and node-request with batching support
 
-## Use
+## Usage
 
-### In the browser
-
-Download the distributable or install via Bower
-
-> bower install feathers-websocket-client
-
-You can include it via a script tag like
-
-  <script src="bower_components/feathers-websocket-client/dist/client.js" type="text/javascript"></script>
-  
-Or a module loader like RequireJS. Also remember to load the SocketIO or Primus client libraries. Then:
 
 ```js
-var socket = io();
+// Load with your dependency loader of choice.
+// Will be available as global `feathers` variable otherwise
+var feathers = require('feathers-client');
+var app = feathers('http://todos.feathersjs.com')
+  .configure(feathers.socketio(io));
 
-var todos = Feathers.Websocket.client('/todos', socket);
+var todoService = app.service('todos');
 
-todos.on('created', function(todo) {
- console.log('Someone created a Todo', todo);
+todoService.on('created', function(todo) {
+  console.log('Todo created', todo);
 });
 
-todos.create({
- text: 'A new Todo'
+todoService.create({
+  text: 'A todo',
+  complete: false
 }, function(error, todo) {
+  console.log('Success');
+});
+
+todoService.find(function(error, todos) {
+  console.log('Todos on the server', todos);
 });
 ```
 
-### With NodeJS
+## REST
 
-```js
-var io = require('socket.io-client');
-var socket = io('http://host.com');
+Connecting to a Feathers service via the REST API is possible using jQuery, Request or Superagent.
 
-var service = require('feathers-websocket-service');
-var todos = service('/todos', socket);
+__Important__: REST client services emit `created`, `updated`, `patched` and `removed` events but only _locally for their own instance_. Real-time events from other clients can only be received by using a websocket service.
 
-todos.on('created', function(todo) {
-  console.log('Someone created a Todo', todo);
-});
+### jQuery
 
-todos.create({
-  text: 'A new Todo'
-}, function(error, todo) {
-});
-```
+### Request
+
+### Superagent
+
+## Websockets
+
+Websocket real-time connections can be established via Socket.io or Primus.
+
+### Socket.io
+
+### Primus
+
+## Authentication
+
+## Changelog
+
+__0.1.0__
+
+- Initial release
+
+## Author
+
+- [David Luecke](https://github.com/daffl)
+
+## License
+
+Copyright (c) 2015 David Luecke
+
+Licensed under the [MIT license](LICENSE).
