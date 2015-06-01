@@ -36,7 +36,7 @@ todoService.find(function(error, todos) {
 
 Connecting to a Feathers service via the REST API is possible using jQuery, Request or Superagent.
 
-__Important__: REST client services emit `created`, `updated`, `patched` and `removed` events but only _locally for their own instance_. Real-time events from other clients can only be received by using a websocket service.
+__Important__: REST client services emit `created`, `updated`, `patched` and `removed` events but only _locally for their own instance_. Real-time events from other clients can only be received by using a websocket connection.
 
 ### jQuery
 
