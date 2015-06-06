@@ -117,7 +117,7 @@ var app = feathers('http://todos.feathersjs.com')
 
 #### Between NodeJS applications
 
-SWebsocket connections are also very efficient for real-time communication between different NodeJS servers. First install `socket.io-client`:
+Websocket connections are also very efficient for real-time communication between different NodeJS servers. First install `socket.io-client`:
 
 > npm install socket.io-client
 
