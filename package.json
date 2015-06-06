@@ -25,23 +25,24 @@
   },
   "main": "lib/client.js",
   "scripts": {
+    "prepublish": "npm run build",
     "publish": "git push origin --tags",
-    "build": "mkdir -p dist && browserify lib/client.js --standalone feathers > dist/client.js",
+    "build": "rm -rf dist/ && mkdir -p dist && browserify lib/client.js --standalone feathers --outfile dist/feathers.js",
     "release:patch": "npm version patch && npm publish",
     "release:minor": "npm version minor && npm publish",
     "release:major": "npm version major && npm publish",
     "jshint": "jshint lib/. test/. --config",
-    "mocha": "mocha test/ --recursive",
+    "mocha": "mocha test/ --recursive --timeout 5000",
     "test": "npm run jshint && npm run mocha"
   },
   "directories": {
     "lib": "lib"
   },
   "dependencies": {
-    "jsdom": "^3.1.2",
     "uberproto": "^1.1.2"
   },
   "devDependencies": {
+    "jsdom": "^3.1.2",
     "body-parser": "^1.12.4",
     "browserify": "^10.2.3",
     "feathers": "^1.1.0-pre.0",

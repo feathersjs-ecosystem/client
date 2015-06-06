@@ -3,7 +3,7 @@ var assert = require('assert');
 module.exports = function(service) {
   describe('Service base tests', function() {
     it('.find', function(done) {
-      service.find({}, function(error, todos) {
+      service.find(function(error, todos) {
         assert.deepEqual(todos, [ { text: 'some todo', complete: false, id: 0 } ]);
         done();
       });
@@ -33,7 +33,7 @@ module.exports = function(service) {
         done();
       });
 
-      service.create({ text: 'created todo', complete: true }, {}, function() {});
+      service.create({ text: 'created todo', complete: true });
     });
 
     it('.update and updated event', function(done) {
@@ -43,11 +43,9 @@ module.exports = function(service) {
         done();
       });
 
-      service.create({ text: 'todo to update', complete: false }, {},
-        function(error, todo) {
-          service.update(todo.id, { text: 'updated todo', complete: true }, {},
-            function() {});
-        });
+      service.create({ text: 'todo to update', complete: false }, function(error, todo) {
+        service.update(todo.id, { text: 'updated todo', complete: true });
+      });
     });
 
     it('.patch and patched event', function(done) {
@@ -57,8 +55,7 @@ module.exports = function(service) {
         done();
       });
 
-      service.create({ text: 'todo to patch', complete: false }, {},
-        function(error, todo) {
+      service.create({ text: 'todo to patch', complete: false }, function(error, todo) {
           service.patch(todo.id, { complete: true }, {},
             function() {});
         });
@@ -71,8 +68,7 @@ module.exports = function(service) {
         done();
       });
 
-      service.create({ text: 'todo to remove', complete: false }, {},
-        function(error, todo) {
+      service.create({ text: 'todo to remove', complete: false }, function(error, todo) {
           service.remove(todo.id, {},
             function() {});
         });
