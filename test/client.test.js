@@ -16,7 +16,10 @@ describe('app functionality tests', function() {
     var app = feathers('http://localhost:7575')
       .configure(feathers.request(request));
 
-    app.service('todos').get(0, { some: 'test' }, function(error, todo) {
+    var service = app.service('todos');
+    assert.deepEqual(service.events, [ 'created', 'updated', 'patched', 'removed' ]);
+
+    service.get(0, { some: 'test' }, function(error, todo) {
       assert.deepEqual(todo, {
         query: { some: 'test' },
         text: 'some todo',
