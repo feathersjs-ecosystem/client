@@ -25,12 +25,12 @@
   },
   "main": "lib/client.js",
   "scripts": {
-    "prepublish": "npm run build",
-    "publish": "git push origin --tags",
     "build": "rm -rf dist/ && mkdir -p dist && browserify lib/client.js --standalone feathers --outfile dist/feathers.js",
-    "release:patch": "npm version patch && npm publish",
-    "release:minor": "npm version minor && npm publish",
-    "release:major": "npm version major && npm publish",
+    "add-dist": "npm run build && git add dist/ --force && git commit -am \"Updating dist\"",
+    "publish": "git push origin && git push origin --tags",
+    "release:patch": "npm run add-dist && npm version patch && npm publish",
+    "release:minor": "npm run add-dist && npm version minor && npm publish",
+    "release:major": "npm run add-dist && npm version major && npm publish",
     "jshint": "jshint lib/. test/. --config",
     "mocha": "mocha test/ --recursive --timeout 5000",
     "test": "npm run jshint && npm run mocha"
