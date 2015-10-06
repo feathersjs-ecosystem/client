@@ -40,16 +40,17 @@
   },
   "dependencies": {
     "events": "^1.0.2",
+    "feathers-commons": "^0.2.8",
     "querystring": "^0.2.0",
     "uberproto": "^1.1.2"
   },
   "devDependencies": {
-    "jsdom": "^3.1.2",
     "body-parser": "^1.12.4",
     "browserify": "^10.2.3",
     "feathers": "^1.1.0-pre.0",
     "feathers-memory": "^0.3.4",
     "jquery": "^2.1.4",
+    "jsdom": "^6.5.1",
     "jshint": "^2.6.3",
     "mocha": "^2.1.0",
     "request": "^2.56.0",
