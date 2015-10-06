@@ -1,101 +1,4 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.feathers = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-function noop() {}
-
-function getCallback(args) {
-  var last = args[args.length - 1];
-  return typeof last === 'function' ? last : noop;
-}
-
-function getParams(args, position) {
-  var arg = args[position];
-  return typeof arg === 'object' ? arg : {};
-}
-
-function updateOrPatch(name) {
-  return function(args) {
-    var id = args[0];
-    var data = args[1];
-    var callback = getCallback(args);
-    var params = getParams(args, 2);
-
-    if(typeof id === 'function') {
-      throw new Error('First parameter for \'' + name + '\' can not be a function');
-    }
-
-    if(typeof data !== 'object') {
-      throw new Error('No data provided for \'' + name + '\'');
-    }
-
-    if(args.length > 4) {
-      throw new Error('Too many arguments for \'' + name + '\' service method');
-    }
-
-    return [ id, data, params, callback ];
-  };
-}
-
-function getOrRemove(name) {
-  return function(args) {
-    var id = args[0];
-    var params = getParams(args, 1);
-    var callback = getCallback(args);
-
-    if(args.length > 3) {
-      throw new Error('Too many arguments for \'' + name + '\' service method');
-    }
-
-    if(id === 'function') {
-      throw new Error('First parameter for \'' + name + '\' can not be a function');
-    }
-
-    return [ id, params, callback ];
-  };
-}
-
-var converters = {
-  find: function(args) {
-    var callback = getCallback(args);
-    var params = getParams(args, 0);
-
-    if(args.length > 2) {
-      throw new Error('Too many arguments for \'find\' service method');
-    }
-
-    return [ params, callback ];
-  },
-
-  create: function(args) {
-    var data = args[0];
-    var params = getParams(args, 1);
-    var callback = getCallback(args);
-
-    if(typeof data !== 'object') {
-      throw new Error('First parameter for \'create\' must be an object');
-    }
-
-    if(args.length > 3) {
-      throw new Error('Too many arguments for \'create\' service method');
-    }
-
-    return [ data, params, callback ];
-  },
-
-  update: updateOrPatch('update'),
-
-  patch: updateOrPatch('patch'),
-
-  get: getOrRemove('get'),
-
-  remove: getOrRemove('remove')
-};
-
-module.exports = function getArguments(method, args) {
-  return converters[method](args);
-};
-
-module.exports.noop = noop;
-
-},{}],2:[function(require,module,exports){
 var utils = require('./utils');
 function app(base) {
   if (typeof base !== 'string') {
@@ -126,9 +29,9 @@ utils.extend(app, require('./rest/index'));
 utils.extend(app, require('./sockets/index'));
 
 module.exports = app;
-},{"./rest/index":6,"./sockets/index":11,"./utils":12}],3:[function(require,module,exports){
+},{"./rest/index":5,"./sockets/index":10,"./utils":11}],2:[function(require,module,exports){
 var utils = require('./utils');
-var getArguments = require('./arguments');
+var getArguments = require('feathers-commons/lib/arguments').default;
 var result = {};
 
 utils.methods.forEach(function(method) {
@@ -140,7 +43,7 @@ utils.methods.forEach(function(method) {
 
 module.exports = result;
 
-},{"./arguments":1,"./utils":12}],4:[function(require,module,exports){
+},{"./utils":11,"feathers-commons/lib/arguments":16}],3:[function(require,module,exports){
 var query = require('querystring');
 var Proto = require('uberproto');
 var eventMixin = require('./events');
@@ -219,7 +122,7 @@ module.exports = Proto.extend({
   }
 }).mixin(eventMixin);
 
-},{"../utils":12,"./events":5,"querystring":16,"uberproto":17}],5:[function(require,module,exports){
+},{"../utils":11,"./events":4,"querystring":15,"uberproto":17}],4:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var utils = require('../utils');
 var makeEmitting = function(name) {
@@ -246,14 +149,14 @@ module.exports = utils.extend({
   remove: makeEmitting('removed')
 }, EventEmitter.prototype);
 
-},{"../utils":12,"events":13}],6:[function(require,module,exports){
+},{"../utils":11,"events":12}],5:[function(require,module,exports){
 module.exports = {
   jquery: require('./jquery'),
   request: require('./request'),
   superagent: require('./superagent')
 };
 
-},{"./jquery":7,"./request":8,"./superagent":9}],7:[function(require,module,exports){
+},{"./jquery":6,"./request":7,"./superagent":8}],6:[function(require,module,exports){
 var utils = require('../utils');
 var Base = require('./base');
 var normalizer = require('../normalizer');
@@ -296,7 +199,7 @@ module.exports = function(jQuery) {
 
 module.exports.Service = Service;
 
-},{"../normalizer":3,"../utils":12,"./base":4}],8:[function(require,module,exports){
+},{"../normalizer":2,"../utils":11,"./base":3}],7:[function(require,module,exports){
 var utils = require('../utils');
 var Base = require('./base');
 var normalizer = require('../normalizer');
@@ -326,7 +229,7 @@ module.exports = function(request) {
 };
 
 module.exports.Service = Service;
-},{"../normalizer":3,"../utils":12,"./base":4}],9:[function(require,module,exports){
+},{"../normalizer":2,"../utils":11,"./base":3}],8:[function(require,module,exports){
 var Base = require('./base');
 var normalizer = require('../normalizer');
 var Service = Base.extend({
@@ -357,7 +260,7 @@ module.exports = function(superagent) {
 
 module.exports.Service = Service;
 
-},{"../normalizer":3,"./base":4}],10:[function(require,module,exports){
+},{"../normalizer":2,"./base":3}],9:[function(require,module,exports){
 var utils = require('../utils');
 var Proto = require('uberproto');
 var normalizer = require('../normalizer');
@@ -412,7 +315,7 @@ module.exports = function(socket) {
 
 module.exports.Service = Service;
 
-},{"../normalizer":3,"../utils":12,"uberproto":17}],11:[function(require,module,exports){
+},{"../normalizer":2,"../utils":11,"uberproto":17}],10:[function(require,module,exports){
 var init = require('./base');
 
 function socketio(socket) {
@@ -430,7 +333,7 @@ module.exports = {
   primus: init
 };
 
-},{"./base":10}],12:[function(require,module,exports){
+},{"./base":9}],11:[function(require,module,exports){
 exports.stripSlashes = function (name) {
   return name.replace(/^\/|\/$/g, '');
 };
@@ -454,7 +357,7 @@ exports.extend = function() {
 exports.methods = [ 'find', 'get', 'create', 'update', 'patch', 'remove' ];
 
 exports.events = [ 'created', 'updated', 'patched', 'removed' ];
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -757,7 +660,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -843,7 +746,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -930,13 +833,113 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":14,"./encode":15}],17:[function(require,module,exports){
+},{"./decode":13,"./encode":14}],16:[function(require,module,exports){
+"use strict";
+
+exports["default"] = getArguments;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var noop = function () {};
+exports.noop = noop;
+var getCallback = function (args) {
+  var last = args[args.length - 1];
+  return typeof last === "function" ? last : noop;
+};
+var getParams = function (args, position) {
+  return typeof args[position] === "object" ? args[position] : {};
+};
+
+var updateOrPatch = function (name) {
+  return function (args) {
+    var id = args[0];
+    var data = args[1];
+    var callback = getCallback(args);
+    var params = getParams(args, 2);
+
+    if (typeof id === "function") {
+      throw new Error("First parameter for '" + name + "' can not be a function");
+    }
+
+    if (typeof data !== "object") {
+      throw new Error("No data provided for '" + name + "'");
+    }
+
+    if (args.length > 4) {
+      throw new Error("Too many arguments for '" + name + "' service method");
+    }
+
+    return [id, data, params, callback];
+  };
+};
+
+var getOrRemove = function (name) {
+  return function (args) {
+    var id = args[0];
+    var params = getParams(args, 1);
+    var callback = getCallback(args);
+
+    if (args.length > 3) {
+      throw new Error("Too many arguments for '" + name + "' service method");
+    }
+
+    if (id === "function") {
+      throw new Error("First parameter for '" + name + "' can not be a function");
+    }
+
+    return [id, params, callback];
+  };
+};
+
+var converters = {
+  find: function find(args) {
+    var callback = getCallback(args);
+    var params = getParams(args, 0);
+
+    if (args.length > 2) {
+      throw new Error("Too many arguments for 'find' service method");
+    }
+
+    return [params, callback];
+  },
+
+  create: function create(args) {
+    var data = args[0];
+    var params = getParams(args, 1);
+    var callback = getCallback(args);
+
+    if (typeof data !== "object") {
+      throw new Error("First parameter for 'create' must be an object");
+    }
+
+    if (args.length > 3) {
+      throw new Error("Too many arguments for 'create' service method");
+    }
+
+    return [data, params, callback];
+  },
+
+  update: updateOrPatch("update"),
+
+  patch: updateOrPatch("patch"),
+
+  get: getOrRemove("get"),
+
+  remove: getOrRemove("remove")
+};
+
+exports.converters = converters;
+
+function getArguments(method, args) {
+  return converters[method](args);
+}
+},{}],17:[function(require,module,exports){
 /* global define, exports, module */
 /**
  * A base object for ECMAScript 5 style prototypal inheritance.
@@ -1032,5 +1035,5 @@ exports.encode = exports.stringify = require('./encode');
 	};
 }));
 
-},{}]},{},[2])(2)
+},{}]},{},[1])(1)
 });
