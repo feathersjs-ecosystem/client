@@ -4,3 +4,5 @@
 *.md
 .idea
 !dist/
+!lib/
+src/

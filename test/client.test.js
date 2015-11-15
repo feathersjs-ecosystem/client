@@ -1,7 +1,8 @@
-var assert = require('assert');
-var request = require('request');
-var feathers = require('../lib/client');
-var app = require('./resources/fixture');
+import assert from 'assert';
+import request from 'request';
+
+import feathers from '../src/client';
+import app from './fixture';
 
 describe('app functionality tests', function() {
   before(function(done) {
@@ -13,20 +14,18 @@ describe('app functionality tests', function() {
   });
 
   it('initializes and connects to a service', function(done) {
-    var app = feathers('http://localhost:7575')
+    let app = feathers('http://localhost:7575')
       .configure(feathers.request(request));
 
-    var service = app.service('todos');
-    assert.deepEqual(service.events, [ 'created', 'updated', 'patched', 'removed' ]);
+    let service = app.service('todos');
 
-    service.get(0, { some: 'test' }, function(error, todo) {
+    service.get(0, { some: 'test' }).then(todo => {
       assert.deepEqual(todo, {
         query: { some: 'test' },
         text: 'some todo',
         complete: false,
         id: 0
       });
-      done();
-    });
+    }).then(done);
   });
 });

@@ -1,9 +1,8 @@
-var utils = require('../utils');
-var Base = require('./base');
-var normalizer = require('../normalizer');
-var Service = Base.extend({
-  request: function (options, callback) {
-    var opts = utils.extend({
+import { Base } from './base';
+
+export class Service extends Base {
+  request(options) {
+    let opts = Object.assign({
       dataType: options.type || 'json'
     }, options);
 
@@ -15,15 +14,16 @@ var Service = Base.extend({
     delete opts.type;
     delete opts.body;
 
-    this.connection.ajax(opts).then(function (data) {
-      callback(null, data);
-    }, function (xhr) {
-      callback(new Error(xhr.responseText));
-    });
+    return new Promise((resolve, reject) =>
+      this.connection.ajax(opts).then(resolve, xhr => {
+        let error = new Error(xhr.responseText);
+        error.xhr = xhr;
+        reject(error);
+      }));
   }
-}).mixin(normalizer);
+}
 
-module.exports = function(jQuery) {
+export default function(jQuery) {
   if(!jQuery && typeof window !== 'undefined') {
     jQuery = window.jQuery;
   }
@@ -36,6 +36,4 @@ module.exports = function(jQuery) {
     this.Service = Service;
     this.connection = jQuery;
   };
-};
-
-module.exports.Service = Service;
+}
