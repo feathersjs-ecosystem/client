@@ -1,10 +1,11 @@
-var superagent = require('superagent');
-var app = require('../resources/fixture');
-var baseTests = require('../resources/base');
-var SuperAgentService = require('../../lib/rest/superagent').Service;
+import superagent from 'superagent';
+
+import app from '../fixture';
+import baseTests from '../base';
+import { Service } from '../../src/rest/superagent';
 
 describe('Superagent REST connector', function() {
-  var service = SuperAgentService._create('todos',  {
+  let service = new Service('todos',  {
     base: 'http://localhost:8889',
     connection: superagent
   });

@@ -1,8 +1,6 @@
-var feathers = require('feathers');
-var bodyParser = require('body-parser');
-var utils = require('../../lib/utils');
-// An in-memory service implementation
-var memory = require('feathers-memory');
+import feathers from 'feathers';
+import bodyParser from 'body-parser';
+import memory from 'feathers-memory';
 
 Object.defineProperty(Error.prototype, 'toJSON', {
   value: function () {
@@ -26,7 +24,7 @@ module.exports = function(configurer) {
       }
 
       this._super(id, params, function(error, data) {
-        callback(error, utils.extend({ query: params.query }, data));
+        callback(error, Object.assign({ query: params.query }, data));
       });
     }
   });
