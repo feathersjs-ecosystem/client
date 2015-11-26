@@ -27,6 +27,7 @@
   "scripts": {
     "build": "rm -rf dist/ && mkdir -p dist && browserify src/client.js -t babelify --standalone feathers --outfile dist/feathers.js",
     "add-dist": "npm run build && git add dist/ --force && git commit -am \"Updating dist\"",
+    "prepublish": "npm run compile",
     "publish": "git push origin && git push origin --tags",
     "release:patch": "npm run add-dist && npm version patch && npm publish",
     "release:minor": "npm run add-dist && npm version minor && npm publish",
