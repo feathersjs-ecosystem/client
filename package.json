@@ -1,7 +1,7 @@
 {
   "name": "feathers-client",
   "description": "Feathers service clients for REST (jQuery, Request, Superagent) and Websocket (Socket.io, Primus) connections",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/feathersjs/feathers-client.git"
