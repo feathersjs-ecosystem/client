@@ -42,7 +42,6 @@
   },
   "dependencies": {
     "feathers-commons": "^0.2.8",
-    "jshint": "^2.8.0",
     "uberproto": "^1.1.2"
   },
   "devDependencies": {
@@ -57,6 +56,7 @@
     "feathers-memory": "^0.3.4",
     "jquery": "^2.1.4",
     "jsdom": "^6.5.1",
+    "jshint": "^2.8.0",
     "mocha": "^2.1.0",
     "request": "^2.56.0",
     "socket.io-client": "^1.3.5",
