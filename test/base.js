@@ -78,5 +78,13 @@ module.exports = function(service) {
         done();
       });
     });
+
+    it('is built correctly', () => {
+      assert.equal(typeof require('../lib/client'), 'function');
+      assert.equal(typeof require('../lib/client').jquery, 'function');
+      assert.equal(typeof require('../lib/client').request, 'function');
+      assert.equal(typeof require('../lib/client').socketio, 'function');
+      assert.equal(typeof require('../lib/client').primus, 'function');
+    });
   });
 };
