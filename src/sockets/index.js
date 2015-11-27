@@ -19,4 +19,7 @@ function socketio(socket) {
   return base(socket);
 }
 
-export { socketio, base as primus };
+export default {
+  socketio,
+  primus: base
+};
