@@ -1065,7 +1065,6 @@ _utils.methods.forEach(function (method) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.primus = exports.socketio = undefined;
 
 var _base = require('./base');
 
@@ -1088,8 +1087,10 @@ function socketio(socket) {
   return base(socket);
 }
 
-exports.socketio = socketio;
-exports.primus = base;
+exports.default = {
+  socketio: socketio,
+  primus: base
+};
 
 },{"./base":12}],14:[function(require,module,exports){
 'use strict';
