@@ -1,10 +1,11 @@
-var request = require('request');
-var app = require('../resources/fixture');
-var baseTests = require('../resources/base');
-var RequestService = require('../../lib/rest/request').Service;
+import request from 'request';
+
+import app from '../fixture';
+import baseTests from '../base';
+import { Service } from '../../src/rest/request';
 
 describe('node-request REST connector', function() {
-  var service = RequestService._create('todos', {
+  let service = new Service('todos', {
     base: 'http://localhost:6777',
     connection: request
   });

@@ -1,10 +1,11 @@
-var feathers = require('feathers');
-var app = require('../resources/fixture');
-var baseTests = require('../resources/base');
-var PrimusService = require('../../lib/sockets').primus.Service;
+import feathers from 'feathers';
+
+import baseTests from '../base';
+import app from '../fixture';
+import { Service } from '../../src/sockets/base';
 
 describe('Primus connector', function() {
-  var service = PrimusService._create('todos',  {});
+  var service = new Service('todos', {});
   var socket;
 
   before(function(done) {

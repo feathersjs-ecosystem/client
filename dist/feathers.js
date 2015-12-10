@@ -1,363 +1,4 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.feathers = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var utils = require('./utils');
-function app(base) {
-  if (typeof base !== 'string') {
-    base = '/';
-  }
-
-  return {
-    services: {},
-
-    base: base,
-
-    configure: function (cb) {
-      cb.call(this);
-      return this;
-    },
-
-    service: function (name) {
-      name = utils.stripSlashes(name);
-      if (!this.services[name]) {
-        this.services[name] = this.Service._create(name, this);
-      }
-      return this.services[name];
-    }
-  };
-}
-
-utils.extend(app, require('./rest/index'));
-utils.extend(app, require('./sockets/index'));
-
-module.exports = app;
-},{"./rest/index":5,"./sockets/index":10,"./utils":11}],2:[function(require,module,exports){
-var utils = require('./utils');
-var getArguments = require('feathers-commons/lib/arguments').default;
-var result = {};
-
-utils.methods.forEach(function(method) {
-  result[method] = function() {
-    var args = getArguments(method, arguments);
-    this._super.apply(this, args);
-  };
-});
-
-module.exports = result;
-
-},{"./utils":11,"feathers-commons/lib/arguments":16}],3:[function(require,module,exports){
-var query = require('querystring');
-var Proto = require('uberproto');
-var eventMixin = require('./events');
-var utils = require('../utils');
-
-module.exports = Proto.extend({
-  events: utils.events,
-
-  _create: Proto.create,
-
-  init: function(name, options) {
-    this.name = utils.stripSlashes(name);
-    this.options = utils.extend({}, options);
-    this.connection = options.connection;
-    this.base = options.base + '/' + name;
-    delete this.options.base;
-  },
-
-  makeUrl: function (params, id) {
-    var url = this.base;
-
-    if (typeof id !== 'undefined') {
-      url += '/' + id;
-    }
-
-    if(Object.keys(params).length !== 0) {
-      url += '?' + query.stringify(params);
-    }
-
-    return url;
-  },
-
-  find: function (params, callback) {
-    this.request({
-      url: this.makeUrl(params),
-      method: 'GET'
-    }, callback);
-  },
-
-  get: function(id, params, callback) {
-    this.request({
-      url: this.makeUrl(params, id),
-      method: 'GET'
-    }, callback);
-  },
-
-  create: function (data, params, callback) {
-    this.request({
-      url: this.makeUrl(params),
-      body: data,
-      method: 'POST'
-    }, callback);
-  },
-
-  update: function (id, data, params, callback) {
-    this.request({
-      url: this.makeUrl(params, id),
-      body: data,
-      method: 'PUT'
-    }, callback);
-  },
-
-  patch: function (id, data, params, callback) {
-    this.request({
-      url: this.makeUrl(params, id),
-      body: data,
-      method: 'PATCH'
-    }, callback);
-  },
-
-  remove: function (id, params, callback) {
-    this.request({
-      url: this.makeUrl(params, id),
-      method: 'DELETE'
-    }, callback);
-  }
-}).mixin(eventMixin);
-
-},{"../utils":11,"./events":4,"querystring":15,"uberproto":17}],4:[function(require,module,exports){
-var EventEmitter = require('events').EventEmitter;
-var utils = require('../utils');
-var makeEmitting = function(name) {
-  return function() {
-    var args = Array.prototype.slice.call(arguments, 0);
-    var callback = args[args.length - 1];
-    var _emit = this.emit.bind(this);
-    if(typeof callback === 'function') {
-      args[args.length - 1] = function(error, data) {
-        if(!error) {
-          _emit(name, data);
-        }
-        callback(error, data);
-      };
-    }
-    return this._super.apply(this, args);
-  };
-};
-
-module.exports = utils.extend({
-  create: makeEmitting('created'),
-  update: makeEmitting('updated'),
-  patch: makeEmitting('patched'),
-  remove: makeEmitting('removed')
-}, EventEmitter.prototype);
-
-},{"../utils":11,"events":12}],5:[function(require,module,exports){
-module.exports = {
-  jquery: require('./jquery'),
-  request: require('./request'),
-  superagent: require('./superagent')
-};
-
-},{"./jquery":6,"./request":7,"./superagent":8}],6:[function(require,module,exports){
-var utils = require('../utils');
-var Base = require('./base');
-var normalizer = require('../normalizer');
-var Service = Base.extend({
-  request: function (options, callback) {
-    var opts = utils.extend({
-      dataType: options.type || 'json'
-    }, options);
-
-    if(options.body) {
-      opts.data = JSON.stringify(options.body);
-      opts.contentType = 'application/json';
-    }
-
-    delete opts.type;
-    delete opts.body;
-
-    this.connection.ajax(opts).then(function (data) {
-      callback(null, data);
-    }, function (xhr) {
-      callback(new Error(xhr.responseText));
-    });
-  }
-}).mixin(normalizer);
-
-module.exports = function(jQuery) {
-  if(!jQuery && typeof window !== 'undefined') {
-    jQuery = window.jQuery;
-  }
-
-  if(typeof jQuery !== 'function') {
-    throw new Error('jQuery instance needs to be provided');
-  }
-
-  return function() {
-    this.Service = Service;
-    this.connection = jQuery;
-  };
-};
-
-module.exports.Service = Service;
-
-},{"../normalizer":2,"../utils":11,"./base":3}],7:[function(require,module,exports){
-var utils = require('../utils');
-var Base = require('./base');
-var normalizer = require('../normalizer');
-var Service = Base.extend({
-  request: function (options, callback) {
-    this.connection(utils.extend({
-      json: true
-    }, options), function(error, res, data) {
-      if(!error && res.statusCode >= 400) {
-        return callback(new Error(data));
-      }
-
-      callback(error, data);
-    });
-  }
-}).mixin(normalizer);
-
-module.exports = function(request) {
-  if(!request) {
-    throw new Error('request instance needs to be provided');
-  }
-
-  return function() {
-    this.Service = Service;
-    this.connection = request;
-  };
-};
-
-module.exports.Service = Service;
-},{"../normalizer":2,"../utils":11,"./base":3}],8:[function(require,module,exports){
-var Base = require('./base');
-var normalizer = require('../normalizer');
-var Service = Base.extend({
-  request: function (options, callback) {
-    var superagent = this.connection(options.method, options.url)
-      .type(options.type || 'json');
-
-    if(options.body) {
-      superagent.send(options.body);
-    }
-
-    superagent.end(function(error, res) {
-      callback(error, res && res.body);
-    });
-  }
-}).mixin(normalizer);
-
-module.exports = function(superagent) {
-  if(!superagent) {
-    throw new Error('Superagent needs to be provided');
-  }
-
-  return function() {
-    this.Service = Service;
-    this.connection = superagent;
-  };
-};
-
-module.exports.Service = Service;
-
-},{"../normalizer":2,"./base":3}],9:[function(require,module,exports){
-var utils = require('../utils');
-var Proto = require('uberproto');
-var normalizer = require('../normalizer');
-var toSocket = function(method) {
-  return function(name, callback) {
-    this.connection[method](this.path + ' ' + name, callback);
-  };
-};
-var Service = Proto.extend({
-  events: utils.events,
-
-  _create: Proto.create,
-
-  init: function(name, options) {
-    this.path = utils.stripSlashes(name);
-    this.connection = options.connection;
-  },
-
-  emit: function() {
-    var method = this.connection.io ? 'emit' : 'send';
-
-    this.connection[method].apply(this, arguments);
-  }
-});
-
-['on', 'once', 'off'].forEach(function(name) {
-  Service[name] = toSocket(name);
-});
-
-utils.methods.forEach(function(name) {
-  Service[name] = function() {
-    var args = Array.prototype.slice.call(arguments, 0);
-    var method = this.connection.io ? 'emit' : 'send';
-
-    args.unshift(this.path + '::' + name);
-    this.connection[method].apply(this.connection, args);
-  };
-});
-
-Service.mixin(normalizer);
-
-module.exports = function(socket) {
-  if(!socket) {
-    throw new Error('No socket provided');
-  }
-
-  return function() {
-    this.Service = Service;
-    this.connection = socket;
-  };
-};
-
-module.exports.Service = Service;
-
-},{"../normalizer":2,"../utils":11,"uberproto":17}],10:[function(require,module,exports){
-var init = require('./base');
-
-function socketio(socket) {
-  if(typeof window !== 'undefined' && window.io && typeof socket === 'string'){
-    socket = window.io(socket);
-  }
-
-  return init(socket);
-}
-
-socketio.Service = init.Service;
-
-module.exports = {
-  socketio: socketio,
-  primus: init
-};
-
-},{"./base":9}],11:[function(require,module,exports){
-exports.stripSlashes = function (name) {
-  return name.replace(/^\/|\/$/g, '');
-};
-
-exports.extend = function() {
-  var first = arguments[0];
-  var assign = function(current) {
-    Object.keys(current).forEach(function(key) {
-      first[key] = current[key];
-    });
-  };
-  var current;
-
-  for(var i = 1; i < arguments.length; i++) {
-    current = arguments[i];
-    assign(current);
-  }
-  return first;
-};
-
-exports.methods = [ 'find', 'get', 'create', 'update', 'patch', 'remove' ];
-
-exports.events = [ 'created', 'updated', 'patched', 'removed' ];
-},{}],12:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -660,7 +301,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],13:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -746,7 +387,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],14:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -833,13 +474,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],15:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":13,"./encode":14}],16:[function(require,module,exports){
+},{"./decode":2,"./encode":3}],5:[function(require,module,exports){
 "use strict";
 
 exports["default"] = getArguments;
@@ -939,101 +580,593 @@ exports.converters = converters;
 function getArguments(method, args) {
   return converters[method](args);
 }
-},{}],17:[function(require,module,exports){
-/* global define, exports, module */
-/**
- * A base object for ECMAScript 5 style prototypal inheritance.
- *
- * @see https://github.com/rauschma/proto-js/
- * @see http://ejohn.org/blog/simple-javascript-inheritance/
- * @see http://uxebu.com/blog/2011/02/23/object-based-inheritance-for-ecmascript-5/
- */
-(function (root, factory) {
-	if (typeof define === 'function' && define.amd) {
-		define([], factory);
-	} else if (typeof exports === 'object') {
-		module.exports = factory();
-	} else {
-		root.Proto = factory();
-	}
-}(this, function () {
-	return {
-		/**
-		 * Create a new object using Object.create. The arguments will be
-		 * passed to the new instances init method or to a method name set in
-		 * __init.
-		 */
-		create: function () {
-			var instance = Object.create(this),
-				init = typeof instance.__init === 'string' ? instance.__init : 'init';
-			if (typeof instance[init] === "function") {
-				instance[init].apply(instance, arguments);
-			}
-			return instance;
-		},
-		/**
-		 * Mixin a given set of properties
-		 * @param prop The properties to mix in
-		 * @param obj [optional] The object to add the mixin
-		 */
-		mixin: function (prop, obj) {
-			var self = obj || this,
-				fnTest = /\b_super\b/,
-				_super = Object.getPrototypeOf(self) || self.prototype,
-				_old;
+},{}],6:[function(require,module,exports){
+'use strict';
 
-			// Copy the properties over
-			for (var name in prop) {
-				// store the old function which would be overwritten
-				_old = self[name];
-				// Check if we're overwriting an existing function
-				self[name] = (typeof prop[name] === "function" && typeof _super[name] === "function" && fnTest.test(prop[name])) ||
-					(typeof _old === "function" && typeof prop[name] === "function") ? //
-					(function (old, name, fn) {
-						return function () {
-							var tmp = this._super;
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-							// Add a new ._super() method that is the same method
-							// but either pointing to the prototype method
-							// or to the overwritten method
-							this._super = (typeof old === 'function') ? old : _super[name];
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-							// The method only need to be bound temporarily, so we
-							// remove it when we're done executing
-							var ret = fn.apply(this, arguments);
-							this._super = tmp;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Client = undefined;
 
-							return ret;
-						};
-					})(_old, name, prop[name]) : prop[name];
-			}
+var _utils = require('./utils');
 
-			return self;
-		},
-		/**
-		 * Extend the current or a given object with the given property
-		 * and return the extended object.
-		 * @param prop The properties to extend with
-		 * @param obj [optional] The object to extend from
-		 * @returns The extended object
-		 */
-		extend: function (prop, obj) {
-			return this.mixin(prop, Object.create(obj || this));
-		},
-		/**
-		 * Return a callback function with this set to the current or a given context object.
-		 * @param name Name of the method to proxy
-		 * @param args... [optional] Arguments to use for partial application
-		 */
-		proxy: function (name) {
-			var fn = this[name],
-				args = Array.prototype.slice.call(arguments, 1);
+var _rest = require('./rest');
 
-			args.unshift(this);
-			return fn.bind.apply(fn, args);
-		}
-	};
-}));
+var _rest2 = _interopRequireDefault(_rest);
 
-},{}]},{},[1])(1)
+var _sockets = require('./sockets');
+
+var _sockets2 = _interopRequireDefault(_sockets);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Client = exports.Client = (function () {
+  function Client(base) {
+    _classCallCheck(this, Client);
+
+    this.base = base;
+    this.services = {};
+  }
+
+  _createClass(Client, [{
+    key: 'configure',
+    value: function configure(cb) {
+      cb.call(this);
+      return this;
+    }
+  }, {
+    key: 'service',
+    value: function service(name) {
+      name = (0, _utils.stripSlashes)(name);
+      if (!this.services[name]) {
+        this.services[name] = new this.Service(name, this);
+      }
+      return this.services[name];
+    }
+  }]);
+
+  return Client;
+})();
+
+function client() {
+  var base = arguments.length <= 0 || arguments[0] === undefined ? '/' : arguments[0];
+
+  return new Client(base);
+}
+
+_extends(client, _rest2.default, _sockets2.default);
+
+exports.default = module.exports = client;
+
+},{"./rest":8,"./sockets":13,"./utils":14}],7:[function(require,module,exports){
+'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Base = undefined;
+
+var _querystring = require('querystring');
+
+var _querystring2 = _interopRequireDefault(_querystring);
+
+var _utils = require('../utils');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function callbackify(promise, callback) {
+  if (typeof callback === 'function') {
+    promise.then(function (data) {
+      return callback(null, data);
+    }, callback);
+  }
+  return promise;
+}
+
+var Base = exports.Base = (function () {
+  function Base(name, options) {
+    _classCallCheck(this, Base);
+
+    this.name = (0, _utils.stripSlashes)(name);
+    this.options = _extends({}, options);
+    this.connection = options.connection;
+    this.base = options.base + '/' + this.name;
+    delete this.options.base;
+
+    (0, _utils.normalize)(this);
+    (0, _utils.makeEmitting)(this);
+  }
+
+  _createClass(Base, [{
+    key: 'makeUrl',
+    value: function makeUrl(params, id) {
+      var url = this.base;
+
+      if (typeof id !== 'undefined') {
+        url += '/' + id;
+      }
+
+      if (Object.keys(params).length !== 0) {
+        var queryString = _querystring2.default.stringify(params);
+
+        url += '?' + queryString;
+      }
+
+      return url;
+    }
+  }, {
+    key: 'find',
+    value: function find(params, callback) {
+      return callbackify(this.request({
+        url: this.makeUrl(params),
+        method: 'GET'
+      }), callback);
+    }
+  }, {
+    key: 'get',
+    value: function get(id, params, callback) {
+      return callbackify(this.request({
+        url: this.makeUrl(params, id),
+        method: 'GET'
+      }), callback);
+    }
+  }, {
+    key: 'create',
+    value: function create(body, params, callback) {
+      return callbackify(this.request({
+        url: this.makeUrl(params),
+        body: body,
+        method: 'POST'
+      }), callback);
+    }
+  }, {
+    key: 'update',
+    value: function update(id, body, params, callback) {
+      return callbackify(this.request({
+        url: this.makeUrl(params, id),
+        body: body,
+        method: 'PUT'
+      }), callback);
+    }
+  }, {
+    key: 'patch',
+    value: function patch(id, body, params, callback) {
+      return callbackify(this.request({
+        url: this.makeUrl(params, id),
+        body: body,
+        method: 'PATCH'
+      }), callback);
+    }
+  }, {
+    key: 'remove',
+    value: function remove(id, params, callback) {
+      return callbackify(this.request({
+        url: this.makeUrl(params, id),
+        method: 'DELETE'
+      }), callback);
+    }
+  }]);
+
+  return Base;
+})();
+
+},{"../utils":14,"querystring":4}],8:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _jquery = require('./jquery');
+
+var _jquery2 = _interopRequireDefault(_jquery);
+
+var _request = require('./request');
+
+var _request2 = _interopRequireDefault(_request);
+
+var _superagent = require('./superagent');
+
+var _superagent2 = _interopRequireDefault(_superagent);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = { jquery: _jquery2.default, request: _request2.default, superagent: _superagent2.default };
+
+},{"./jquery":9,"./request":10,"./superagent":11}],9:[function(require,module,exports){
+'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Service = undefined;
+
+exports.default = function (jQuery) {
+  if (!jQuery && typeof window !== 'undefined') {
+    jQuery = window.jQuery;
+  }
+
+  if (typeof jQuery !== 'function') {
+    throw new Error('jQuery instance needs to be provided');
+  }
+
+  return function () {
+    this.Service = Service;
+    this.connection = jQuery;
+  };
+};
+
+var _base = require('./base');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Service = exports.Service = (function (_Base) {
+  _inherits(Service, _Base);
+
+  function Service() {
+    _classCallCheck(this, Service);
+
+    return _possibleConstructorReturn(this, Object.getPrototypeOf(Service).apply(this, arguments));
+  }
+
+  _createClass(Service, [{
+    key: 'request',
+    value: function request(options) {
+      var _this2 = this;
+
+      var opts = _extends({
+        dataType: options.type || 'json'
+      }, options);
+
+      if (options.body) {
+        opts.data = JSON.stringify(options.body);
+        opts.contentType = 'application/json';
+      }
+
+      delete opts.type;
+      delete opts.body;
+
+      return new Promise(function (resolve, reject) {
+        return _this2.connection.ajax(opts).then(resolve, function (xhr) {
+          var error = new Error(xhr.responseText);
+          error.xhr = xhr;
+          reject(error);
+        });
+      });
+    }
+  }]);
+
+  return Service;
+})(_base.Base);
+
+},{"./base":7}],10:[function(require,module,exports){
+'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Service = undefined;
+
+exports.default = function (request) {
+  if (!request) {
+    throw new Error('request instance needs to be provided');
+  }
+
+  return function () {
+    this.Service = Service;
+    this.connection = request;
+  };
+};
+
+var _base = require('./base');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Service = exports.Service = (function (_Base) {
+  _inherits(Service, _Base);
+
+  function Service() {
+    _classCallCheck(this, Service);
+
+    return _possibleConstructorReturn(this, Object.getPrototypeOf(Service).apply(this, arguments));
+  }
+
+  _createClass(Service, [{
+    key: 'request',
+    value: function request(options) {
+      var _this2 = this;
+
+      return new Promise(function (resolve, reject) {
+        _this2.connection(_extends({
+          json: true
+        }, options), function (error, res, data) {
+          if (!error && res.statusCode >= 400) {
+            return reject(new Error(data));
+          }
+
+          resolve(data);
+        });
+      });
+    }
+  }]);
+
+  return Service;
+})(_base.Base);
+
+},{"./base":7}],11:[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Service = undefined;
+
+exports.default = function (superagent) {
+  if (!superagent) {
+    throw new Error('Superagent needs to be provided');
+  }
+
+  return function () {
+    this.Service = Service;
+    this.connection = superagent;
+  };
+};
+
+var _base = require('./base');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Service = exports.Service = (function (_Base) {
+  _inherits(Service, _Base);
+
+  function Service() {
+    _classCallCheck(this, Service);
+
+    return _possibleConstructorReturn(this, Object.getPrototypeOf(Service).apply(this, arguments));
+  }
+
+  _createClass(Service, [{
+    key: 'request',
+    value: function request(options) {
+      var superagent = this.connection(options.method, options.url).type(options.type || 'json');
+
+      return new Promise(function (resolve, reject) {
+        if (options.body) {
+          superagent.send(options.body);
+        }
+
+        superagent.end(function (error, res) {
+          if (error) {
+            return reject(error);
+          }
+
+          resolve(res && res.body);
+        });
+      });
+    }
+  }]);
+
+  return Service;
+})(_base.Base);
+
+},{"./base":7}],12:[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Service = undefined;
+
+var _utils = require('../utils');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Service = exports.Service = (function () {
+  function Service(name, app) {
+    _classCallCheck(this, Service);
+
+    this.events = _utils.events;
+    this.path = (0, _utils.stripSlashes)(name);
+    this.connection = app.connection;
+    this.method = this.connection && this.connection.io ? 'emit' : 'send';
+
+    (0, _utils.normalize)(this);
+  }
+
+  _createClass(Service, [{
+    key: 'emit',
+    value: function emit() {
+      var _connection;
+
+      (_connection = this.connection)[this.method].apply(_connection, arguments);
+    }
+  }]);
+
+  return Service;
+})();
+
+var emitterMethods = ['on', 'once', 'off'];
+
+emitterMethods.forEach(function (method) {
+  Service.prototype[method] = function (name, callback) {
+    this.connection[method](this.path + ' ' + name, callback);
+  };
+});
+
+_utils.methods.forEach(function (method) {
+  Service.prototype[method] = function () {
+    var _this = this;
+
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    var callback = null;
+    if (typeof args[args.length - 1] === 'function') {
+      callback = args.pop();
+    }
+
+    return new Promise(function (resolve, reject) {
+      var _connection2;
+
+      args.unshift(_this.path + '::' + method);
+      args.push(function (error, data) {
+        if (callback) {
+          callback(error, data);
+        }
+
+        return error ? reject(error) : resolve(data);
+      });
+
+      (_connection2 = _this.connection)[_this.method].apply(_connection2, args);
+    });
+  };
+});
+
+},{"../utils":14}],13:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.primus = exports.socketio = undefined;
+
+var _base = require('./base');
+
+function base(socket) {
+  if (!socket) {
+    throw new Error('No socket provided');
+  }
+
+  return function () {
+    this.Service = _base.Service;
+    this.connection = socket;
+  };
+}
+
+function socketio(socket) {
+  if (typeof window !== 'undefined' && window.io && typeof socket === 'string') {
+    socket = window.io(socket);
+  }
+
+  return base(socket);
+}
+
+exports.socketio = socketio;
+exports.primus = base;
+
+},{"./base":12}],14:[function(require,module,exports){
+'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.events = exports.eventMappings = exports.methods = undefined;
+exports.stripSlashes = stripSlashes;
+exports.makeEmitting = makeEmitting;
+exports.normalize = normalize;
+
+var _events = require('events');
+
+var _arguments = require('feathers-commons/lib/arguments');
+
+var _arguments2 = _interopRequireDefault(_arguments);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function stripSlashes(name) {
+  return name.replace(/^\/|\/$/g, '');
+}
+
+var methods = exports.methods = ['find', 'get', 'create', 'update', 'patch', 'remove'];
+
+var eventMappings = exports.eventMappings = {
+  create: 'created',
+  update: 'updated',
+  patch: 'patched',
+  remove: 'removed'
+};
+
+var events = exports.events = Object.keys(eventMappings).map(function (method) {
+  return eventMappings[method];
+});
+
+function makeEmitting(target) {
+  _extends(target, _events.EventEmitter.prototype);
+  Object.keys(eventMappings).forEach(function (method) {
+    var old = target[method];
+    var eventName = eventMappings[method];
+
+    if (typeof old === 'function') {
+      target[method] = function () {
+        var _this = this;
+
+        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+          args[_key] = arguments[_key];
+        }
+
+        var result = old.apply(this, args);
+        return result.then(function (data) {
+          _this.emit(eventName, data);
+          return data;
+        });
+      };
+    }
+  });
+}
+
+function normalize(target) {
+  methods.forEach(function (method) {
+    var old = target[method];
+    if (typeof old === 'function') {
+      target[method] = function () {
+        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+          args[_key2] = arguments[_key2];
+        }
+
+        return old.apply(this, (0, _arguments2.default)(method, args));
+      };
+    }
+  });
+}
+
+},{"events":1,"feathers-commons/lib/arguments":5}]},{},[6])(6)
 });

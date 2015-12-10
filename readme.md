@@ -33,8 +33,9 @@ The `dist/feathers.js` file also provides a UMD version that works with most mod
 ```
 
 ```js
-var app = feathers('http://todos.feathersjs.com')
-  .configure(feathers.socketio());
+var socket = io('http://example.com');
+var app = feathers()
+  .configure(feathers.socketio(socket));
 
 var todoService = app.service('todos');
 
@@ -45,11 +46,11 @@ todoService.on('created', function(todo) {
 todoService.create({
   text: 'A todo',
   complete: false
-}, function(error, todo) {
-  console.log('Success');
+}).then(function(todo) {
+  console.log('Success!');
 });
 
-todoService.find(function(error, todos) {
+todoService.find().then(function(todos) {
   console.log('Got the following Todos', todos);
 });
 ```
@@ -65,7 +66,7 @@ __Important__: REST client services do emit `created`, `updated`, `patched` and 
 jQuery [$.ajax](http://api.jquery.com/jquery.ajax/) needs the API base URL and an instance of jQuery passed to `feathers.jquery`. If no jQuery instance is passed the global `jQuery` will be used.
 
 ```js
-var app = feathers('http://todos.feathersjs.com')
+var app = feathers()
   .configure(feathers.jquery());
 ```
 
@@ -112,7 +113,7 @@ var socket = io('http://todos.feathersjs.com');
 var app = feathers('http://todos.feathersjs.com')
   .configure(feathers.socketio(socket))
   // or
-  .configure(feathers.socketio('http://todos.feathersjs.com'))
+  .configure(feathers.socketio('http://todos.feathersjs.com'));
 ```
 
 #### Between NodeJS applications
@@ -139,12 +140,19 @@ var app = feathers('http://todos.feathersjs.com')
 <script type="text/javascript" src="primus/primus.js"></script>
 <script type="text/javascript">
   var primus = new Primus('http://todos.feathersjs.com');
-  var app = feathers('http://todos.feathersjs.com')
-    .configure(feathers.primus(primus));
+  var app = feathers().configure(feathers.primus(primus));
 </script>
 ```
 
 ## Changelog
+
+__0.3.0__
+
+- Migrating to ES6 and use with Promises ([#7](https://github.com/feathersjs/feathers-client/issues/7))
+
+__0.2.0__
+
+- Make client use feathers-commons
 
 __0.1.0__
 

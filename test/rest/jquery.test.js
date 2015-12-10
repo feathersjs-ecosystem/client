@@ -1,10 +1,11 @@
-var jsdom = require('jsdom');
-var app = require('../resources/fixture');
-var baseTests = require('../resources/base');
-var jQueryService = require('../../lib/rest/jquery').Service;
+import jsdom from 'jsdom';
+
+import app from '../fixture';
+import baseTests from '../base';
+import { Service } from '../../src/rest/jquery';
 
 describe('jQuery REST connector', function() {
-  var service = jQueryService._create('todos', {
+  var service = new Service('todos', {
     base: 'http://localhost:7676'
   });
 

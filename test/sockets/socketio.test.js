@@ -1,12 +1,13 @@
-var io = require('socket.io-client');
-var feathers = require('feathers');
-var app = require('../resources/fixture');
-var baseTests = require('../resources/base');
-var SocketIOService = require('../../lib/sockets').socketio.Service;
+import feathers from 'feathers';
+import io from 'socket.io-client';
+
+import app from '../fixture';
+import baseTests from '../base';
+import { Service } from '../../src/sockets/base';
 
 describe('Socket.io connector', function() {
-  var socket = io('http://localhost:9988');
-  var service = SocketIOService._create('todos',  {
+  let socket = io('http://localhost:9988');
+  let service = new Service('todos',  {
     connection: socket
   });
 
