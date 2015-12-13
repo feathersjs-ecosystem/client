@@ -42,7 +42,9 @@
     "lib": "lib"
   },
   "dependencies": {
+    "events": "^1.1.0",
     "feathers-commons": "^0.3.0",
+    "querystring": "^0.2.0",
     "uberproto": "^1.1.2"
   },
   "devDependencies": {
