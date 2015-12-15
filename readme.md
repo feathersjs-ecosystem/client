@@ -110,7 +110,7 @@ Provide either a connected socket or the URL of the websocket endpoint:
 
 ```js
 var socket = io('http://todos.feathersjs.com');
-var app = feathers('http://todos.feathersjs.com')
+var app = feathers()
   .configure(feathers.socketio(socket))
   // or
   .configure(feathers.socketio('http://todos.feathersjs.com'));
@@ -127,7 +127,7 @@ Then pass the connection just like in the browser:
 ```js
 var io = require('socket.io-client');
 var socket = io('http://todos.feathersjs.com');
-var app = feathers('http://todos.feathersjs.com')
+var app = feathers()
   .configure(feathers.socketio(socket));
 ```
 
