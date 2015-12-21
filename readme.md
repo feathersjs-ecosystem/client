@@ -12,6 +12,7 @@
   - [jQuery](https://jquery.com/)
   - [Superagent](http://visionmedia.github.io/superagent/)
   - [request](https://github.com/request/request)
+  - Fetch: works in supported browsers, React Native or modules like [node-fetch](https://github.com/bitinn/node-fetch).
 - Websockets (with real-time updates)
   - [Socket.io](http://socket.io/)
   - [Primus](https://github.com/primus/primus)
@@ -57,7 +58,7 @@ todoService.find().then(function(todos) {
 
 ## REST
 
-Connecting to a Feathers service via the REST API is possible using [jQuery](https://jquery.com/), [request](https://github.com/request/request) or [Superagent](http://visionmedia.github.io/superagent/):
+Connecting to a Feathers service via the REST API is possible using [jQuery](https://jquery.com/), [request](https://github.com/request/request), [Superagent](http://visionmedia.github.io/superagent/) or Fetch:
 
 __Important__: REST client services do emit `created`, `updated`, `patched` and `removed` events but only _locally for their own instance_. Real-time events from other clients can only be received by using a websocket connection.
 
@@ -98,6 +99,15 @@ var app = feathers('http://todos.feathersjs.com')
   .configure(feathers.superagent(superagent));
 ```
 
+### Fetch
+
+Fetch currently works with a default configuration:
+
+```js
+var app = feathers('http://todos.feathersjs.com')
+  .configure(feathers.fetch(fetch));
+```
+
 ## Websockets
 
 Websocket real-time connections can be established via [Socket.io](http://socket.io/) or [Primus](https://github.com/primus/primus). Websocket services emit all events that they receive allowing you to implement real-time functionality.
@@ -129,6 +139,17 @@ var io = require('socket.io-client');
 var socket = io('http://todos.feathersjs.com');
 var app = feathers()
   .configure(feathers.socketio(socket));
+```
+
+#### React Native
+
+Fetch is included in React Native so you don't have to install any additional dependencies
+
+Then pass in fetch:
+
+```js
+var app = feathers('http://todos.feathersjs.com')
+  .configure(feathers.fetch(fetch));
 ```
 
 ### Primus
