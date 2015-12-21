@@ -61,6 +61,7 @@
     "jsdom": "^6.5.1",
     "jshint": "^2.8.0",
     "mocha": "^2.1.0",
+    "node-fetch": "^1.3.3",
     "request": "^2.56.0",
     "socket.io-client": "^1.3.5",
     "superagent": "^1.2.0",
