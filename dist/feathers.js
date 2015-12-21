@@ -302,6 +302,105 @@ function isUndefined(arg) {
 }
 
 },{}],2:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = getArguments;
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
+var noop = exports.noop = function noop() {};
+var getCallback = function getCallback(args) {
+  var last = args[args.length - 1];
+  return typeof last === 'function' ? last : noop;
+};
+var getParams = function getParams(args, position) {
+  return _typeof(args[position]) === 'object' ? args[position] : {};
+};
+
+var updateOrPatch = function updateOrPatch(name) {
+  return function (args) {
+    var id = args[0];
+    var data = args[1];
+    var callback = getCallback(args);
+    var params = getParams(args, 2);
+
+    if (typeof id === 'function') {
+      throw new Error('First parameter for \'' + name + '\' can not be a function');
+    }
+
+    if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) !== 'object') {
+      throw new Error('No data provided for \'' + name + '\'');
+    }
+
+    if (args.length > 4) {
+      throw new Error('Too many arguments for \'' + name + '\' service method');
+    }
+
+    return [id, data, params, callback];
+  };
+};
+
+var getOrRemove = function getOrRemove(name) {
+  return function (args) {
+    var id = args[0];
+    var params = getParams(args, 1);
+    var callback = getCallback(args);
+
+    if (args.length > 3) {
+      throw new Error('Too many arguments for \'' + name + '\' service method');
+    }
+
+    if (typeof id === 'function') {
+      throw new Error('First parameter for \'' + name + '\' can not be a function');
+    }
+
+    return [id, params, callback];
+  };
+};
+
+var converters = exports.converters = {
+  find: function find(args) {
+    var callback = getCallback(args);
+    var params = getParams(args, 0);
+
+    if (args.length > 2) {
+      throw new Error('Too many arguments for \'find\' service method');
+    }
+
+    return [params, callback];
+  },
+  create: function create(args) {
+    var data = args[0];
+    var params = getParams(args, 1);
+    var callback = getCallback(args);
+
+    if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) !== 'object') {
+      throw new Error('First parameter for \'create\' must be an object');
+    }
+
+    if (args.length > 3) {
+      throw new Error('Too many arguments for \'create\' service method');
+    }
+
+    return [data, params, callback];
+  },
+
+  update: updateOrPatch('update'),
+
+  patch: updateOrPatch('patch'),
+
+  get: getOrRemove('get'),
+
+  remove: getOrRemove('remove')
+};
+
+function getArguments(method, args) {
+  return converters[method](args);
+}
+},{}],3:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -387,7 +486,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -474,113 +573,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":2,"./encode":3}],5:[function(require,module,exports){
-"use strict";
-
-exports["default"] = getArguments;
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var noop = function () {};
-exports.noop = noop;
-var getCallback = function (args) {
-  var last = args[args.length - 1];
-  return typeof last === "function" ? last : noop;
-};
-var getParams = function (args, position) {
-  return typeof args[position] === "object" ? args[position] : {};
-};
-
-var updateOrPatch = function (name) {
-  return function (args) {
-    var id = args[0];
-    var data = args[1];
-    var callback = getCallback(args);
-    var params = getParams(args, 2);
-
-    if (typeof id === "function") {
-      throw new Error("First parameter for '" + name + "' can not be a function");
-    }
-
-    if (typeof data !== "object") {
-      throw new Error("No data provided for '" + name + "'");
-    }
-
-    if (args.length > 4) {
-      throw new Error("Too many arguments for '" + name + "' service method");
-    }
-
-    return [id, data, params, callback];
-  };
-};
-
-var getOrRemove = function (name) {
-  return function (args) {
-    var id = args[0];
-    var params = getParams(args, 1);
-    var callback = getCallback(args);
-
-    if (args.length > 3) {
-      throw new Error("Too many arguments for '" + name + "' service method");
-    }
-
-    if (id === "function") {
-      throw new Error("First parameter for '" + name + "' can not be a function");
-    }
-
-    return [id, params, callback];
-  };
-};
-
-var converters = {
-  find: function find(args) {
-    var callback = getCallback(args);
-    var params = getParams(args, 0);
-
-    if (args.length > 2) {
-      throw new Error("Too many arguments for 'find' service method");
-    }
-
-    return [params, callback];
-  },
-
-  create: function create(args) {
-    var data = args[0];
-    var params = getParams(args, 1);
-    var callback = getCallback(args);
-
-    if (typeof data !== "object") {
-      throw new Error("First parameter for 'create' must be an object");
-    }
-
-    if (args.length > 3) {
-      throw new Error("Too many arguments for 'create' service method");
-    }
-
-    return [data, params, callback];
-  },
-
-  update: updateOrPatch("update"),
-
-  patch: updateOrPatch("patch"),
-
-  get: getOrRemove("get"),
-
-  remove: getOrRemove("remove")
-};
-
-exports.converters = converters;
-
-function getArguments(method, args) {
-  return converters[method](args);
-}
-},{}],6:[function(require,module,exports){
+},{"./decode":3,"./encode":4}],6:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -762,7 +761,7 @@ var Base = exports.Base = (function () {
   return Base;
 })();
 
-},{"../utils":14,"querystring":4}],8:[function(require,module,exports){
+},{"../utils":14,"querystring":5}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1065,7 +1064,6 @@ _utils.methods.forEach(function (method) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.primus = exports.socketio = undefined;
 
 var _base = require('./base');
 
@@ -1088,8 +1086,10 @@ function socketio(socket) {
   return base(socket);
 }
 
-exports.socketio = socketio;
-exports.primus = base;
+exports.default = {
+  socketio: socketio,
+  primus: base
+};
 
 },{"./base":12}],14:[function(require,module,exports){
 'use strict';
@@ -1168,5 +1168,5 @@ function normalize(target) {
   });
 }
 
-},{"events":1,"feathers-commons/lib/arguments":5}]},{},[6])(6)
+},{"events":1,"feathers-commons/lib/arguments":2}]},{},[6])(6)
 });
