@@ -643,7 +643,7 @@ _extends(client, _rest2.default, _sockets2.default);
 
 exports.default = module.exports = client;
 
-},{"./rest":8,"./sockets":13,"./utils":14}],7:[function(require,module,exports){
+},{"./rest":9,"./sockets":14,"./utils":15}],7:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -761,7 +761,76 @@ var Base = exports.Base = (function () {
   return Base;
 })();
 
-},{"../utils":14,"querystring":5}],8:[function(require,module,exports){
+},{"../utils":15,"querystring":5}],8:[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Service = undefined;
+
+exports.default = function (fetch) {
+  if (!fetch) {
+    throw new Error('fetch needs to be provided');
+  }
+
+  return function () {
+    this.Service = Service;
+    this.connection = fetch;
+  };
+};
+
+var _base = require('./base');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Service = exports.Service = (function (_Base) {
+  _inherits(Service, _Base);
+
+  function Service() {
+    _classCallCheck(this, Service);
+
+    return _possibleConstructorReturn(this, Object.getPrototypeOf(Service).apply(this, arguments));
+  }
+
+  _createClass(Service, [{
+    key: 'request',
+    value: function request(options) {
+      var _this2 = this;
+
+      var fetchOptions = {
+        method: options.method,
+        headers: {
+          'Accept': 'application/json'
+        }
+      };
+
+      return new Promise(function (resolve, reject) {
+        if (options.body) {
+          fetchOptions.body = JSON.stringify(options.body);
+          fetchOptions.headers['Content-Type'] = 'application/json';
+        }
+        _this2.connection(options.url, fetchOptions).then(function (response) {
+          return response.json();
+        }).then(function (result) {
+          resolve(result);
+        }).catch(function (e) {
+          reject(e);
+        });
+      });
+    }
+  }]);
+
+  return Service;
+})(_base.Base);
+
+},{"./base":7}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -780,11 +849,15 @@ var _superagent = require('./superagent');
 
 var _superagent2 = _interopRequireDefault(_superagent);
 
+var _fetch = require('./fetch');
+
+var _fetch2 = _interopRequireDefault(_fetch);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-exports.default = { jquery: _jquery2.default, request: _request2.default, superagent: _superagent2.default };
+exports.default = { jquery: _jquery2.default, request: _request2.default, superagent: _superagent2.default, fetch: _fetch2.default };
 
-},{"./jquery":9,"./request":10,"./superagent":11}],9:[function(require,module,exports){
+},{"./fetch":8,"./jquery":10,"./request":11,"./superagent":12}],10:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -858,7 +931,7 @@ var Service = exports.Service = (function (_Base) {
   return Service;
 })(_base.Base);
 
-},{"./base":7}],10:[function(require,module,exports){
+},{"./base":7}],11:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -920,7 +993,7 @@ var Service = exports.Service = (function (_Base) {
   return Service;
 })(_base.Base);
 
-},{"./base":7}],11:[function(require,module,exports){
+},{"./base":7}],12:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -982,7 +1055,7 @@ var Service = exports.Service = (function (_Base) {
   return Service;
 })(_base.Base);
 
-},{"./base":7}],12:[function(require,module,exports){
+},{"./base":7}],13:[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -1058,7 +1131,7 @@ _utils.methods.forEach(function (method) {
   };
 });
 
-},{"../utils":14}],13:[function(require,module,exports){
+},{"../utils":15}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1091,7 +1164,7 @@ exports.default = {
   primus: base
 };
 
-},{"./base":12}],14:[function(require,module,exports){
+},{"./base":13}],15:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };

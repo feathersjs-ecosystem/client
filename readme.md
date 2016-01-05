@@ -167,6 +167,14 @@ var app = feathers('http://todos.feathersjs.com')
 
 ## Changelog
 
+__0.5.0__
+
+- Adding React Native fetch plugin
+
+__0.4.0__
+
+- updating dependencies
+
 __0.3.0__
 
 - Migrating to ES6 and use with Promises ([#7](https://github.com/feathersjs/feathers-client/issues/7))
