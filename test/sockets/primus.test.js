@@ -1,27 +1,29 @@
-import feathers from 'feathers';
+import primus from 'feathers-primus';
 
 import baseTests from '../base';
 import app from '../fixture';
-import { Service } from '../../src/sockets/base';
+import feathers from '../../src/client';
 
 describe('Primus connector', function() {
-  var service = new Service('todos', {});
-  var socket;
+  const client = feathers();
+
+  let socket;
 
   before(function(done) {
     this.server = app(function() {
-      this.configure(feathers.primus({
+      this.configure(primus({
         transformer: 'websockets'
       }, function(primus) {
-        service.connection = socket = new primus.Socket('http://localhost:12012');
+        socket = new primus.Socket('http://localhost:12012');
+        client.configure(feathers.primus(socket));
       }));
     }).listen(12012, done);
   });
 
-  after(function(done) {
+  after(function() {
     socket.socket.close();
-    this.server.close(done);
+    this.server.close();
   });
 
-  baseTests(service);
+  baseTests(client);
 });

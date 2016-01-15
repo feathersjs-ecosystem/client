@@ -1,31 +1,9 @@
-import { stripSlashes } from './utils';
-import rest from './rest';
-import sockets from './sockets';
+import feathers from 'feathers/client';
+import socketio from 'feathers-socketio/client';
+import primus from 'feathers-primus/client';
+import rest from 'feathers-rest/client';
+import hooks from 'feathers-hooks';
 
-export class Client {
-  constructor(base) {
-    this.base = base;
-    this.services = {};
-  }
+Object.assign(feathers, { socketio, primus, rest, hooks });
 
-  configure(cb) {
-    cb.call(this);
-    return this;
-  }
-
-  service(name) {
-    name = stripSlashes(name);
-    if (!this.services[name]) {
-      this.services[name] = new this.Service(name, this);
-    }
-    return this.services[name];
-  }
-}
-
-function client(base = '/') {
-  return new Client(base);
-}
-
-Object.assign(client, rest, sockets);
-
-export default module.exports = client;
+export default feathers;

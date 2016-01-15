@@ -2,13 +2,12 @@ import superagent from 'superagent';
 
 import app from '../fixture';
 import baseTests from '../base';
-import { Service } from '../../src/rest/superagent';
+import feathers from '../../src/client';
 
 describe('Superagent REST connector', function() {
-  let service = new Service('todos',  {
-    base: 'http://localhost:8889',
-    connection: superagent
-  });
+  const rest = feathers.rest('http://localhost:8889');
+  const client = feathers()
+    .configure(rest.superagent(superagent));
 
   before(function(done) {
     this.server = app().listen(8889, done);
@@ -18,5 +17,5 @@ describe('Superagent REST connector', function() {
     this.server.close(done);
   });
 
-  baseTests(service);
+  baseTests(client);
 });

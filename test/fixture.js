@@ -1,4 +1,5 @@
 import feathers from 'feathers';
+import rest from 'feathers-rest';
 import bodyParser from 'body-parser';
 import memory from 'feathers-memory';
 
@@ -31,9 +32,14 @@ module.exports = function(configurer) {
 
   var app = feathers()
     // Set up REST and SocketIO APIs
-    .configure(feathers.rest())
-    // Parse HTTP bodies
-    .use(bodyParser.json())
+    .configure(rest());
+
+  if(typeof configurer === 'function') {
+    configurer.call(app);
+  }
+
+  // Parse HTTP bodies
+  app.use(bodyParser.json())
     .use(bodyParser.urlencoded({ extended: true }))
     // Host the current directory (for index.html)
     .use(feathers.static(__dirname))
