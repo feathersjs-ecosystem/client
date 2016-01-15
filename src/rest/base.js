@@ -13,9 +13,14 @@ export class Base {
     this.name = stripSlashes(name);
     this.options = Object.assign({}, options);
     this.connection = options.connection;
-    this.base = `${options.base}/${this.name}`;
-    delete this.options.base;
-
+    
+    if(options.base) {
+      this.base = `${options.base}/${this.name}`;
+      delete this.options.base;
+    } else {
+      this.base = this.name;
+    }
+    
     normalize(this);
     makeEmitting(this);
   }
