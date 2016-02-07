@@ -2,12 +2,11 @@ import jsdom from 'jsdom';
 
 import app from '../fixture';
 import baseTests from '../base';
-import { Service } from '../../src/rest/jquery';
+import feathers from '../../src/client';
 
 describe('jQuery REST connector', function() {
-  var service = new Service('todos', {
-    base: 'http://localhost:7676'
-  });
+  const rest = feathers.rest('http://localhost:7676');
+  const client = feathers();
 
   before(function(done) {
     this.server = app().listen(7676, function() {
@@ -18,7 +17,7 @@ describe('jQuery REST connector', function() {
         ],
         done: function (err, window) {
           window.jQuery.support.cors = true;
-          service.connection = window.jQuery;
+          client.configure(rest.jquery(window.jQuery));
           done();
         }
       });
@@ -29,5 +28,5 @@ describe('jQuery REST connector', function() {
     this.server.close(done);
   });
 
-  baseTests(service);
+  baseTests(client);
 });

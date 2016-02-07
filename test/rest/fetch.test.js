@@ -2,13 +2,12 @@ import fetch from 'node-fetch';
 
 import app from '../fixture';
 import baseTests from '../base';
-import { Service } from '../../src/rest/fetch';
+import feathers from '../../src/client';
 
 describe('fetch REST connector', function() {
-  let service = new Service('todos',  {
-    base: 'http://localhost:8889',
-    connection: fetch
-  });
+  const rest = feathers.rest('http://localhost:8889');
+  const client = feathers()
+    .configure(rest.fetch(fetch));
 
   before(function(done) {
     this.server = app().listen(8889, done);
@@ -18,5 +17,5 @@ describe('fetch REST connector', function() {
     this.server.close(done);
   });
 
-  baseTests(service);
+  baseTests(client);
 });

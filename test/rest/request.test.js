@@ -2,13 +2,12 @@ import request from 'request';
 
 import app from '../fixture';
 import baseTests from '../base';
-import { Service } from '../../src/rest/request';
+import feathers from '../../src/client';
 
 describe('node-request REST connector', function() {
-  let service = new Service('todos', {
-    base: 'http://localhost:6777',
-    connection: request
-  });
+  const rest = feathers.rest('http://localhost:6777');
+  const client = feathers()
+    .configure(rest.request(request));
 
   before(function(done) {
     this.server = app().listen(6777, done);
@@ -18,5 +17,5 @@ describe('node-request REST connector', function() {
     this.server.close(done);
   });
 
-  baseTests(service);
+  baseTests(client);
 });
