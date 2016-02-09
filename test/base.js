@@ -13,12 +13,12 @@ module.exports = function(app) {
     });
 
     it('.get and params passing', function(done) {
-      var query = {
+      let query = {
         some: 'thing',
         other: ['one', 'two']
       };
 
-      app.service('todos').get(0, query).then(todo => assert.deepEqual(todo, {
+      app.service('todos').get(0, { query }).then(todo => assert.deepEqual(todo, {
         id: 0,
         text: 'some todo',
         complete: false,
@@ -73,7 +73,8 @@ module.exports = function(app) {
     });
 
     it('.get with error', function(done) {
-      app.service('todos').get(0, { error: true }).then(done, error => {
+      let query = { error: true };
+      app.service('todos').get(0, { query }).then(done, error => {
         assert.ok(error && error.message);
         done();
       });
