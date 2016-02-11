@@ -46,10 +46,6 @@ module.exports = function(configurer) {
     // Host our Todos service on the /todos path
     .use('/todos', todoService);
 
-  if(typeof configurer === 'function') {
-    configurer.call(app);
-  }
-
   app.service('todos').create({ text: 'some todo', complete: false }, {}, function() {});
 
   return app;
