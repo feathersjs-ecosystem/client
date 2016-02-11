@@ -66,7 +66,7 @@ __0.1.0__
 
 ## Author
 
-- [David Luecke](https://github.com/daffl)
+- [Feathers contributors](https://github.com/feathersjs/feathers-client/graphs/contributors)
 
 ## License
 
