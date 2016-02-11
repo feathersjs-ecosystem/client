@@ -1402,12 +1402,23 @@ exports.default = function (connection) {
     throw new Error('Primus connection needs to be provided');
   }
 
-  return function () {
-    this.primus = connection;
-    this.defaultService = function (name) {
-      return new _client2.default({ name: name, connection: connection, method: 'send' });
-    };
+  var defaultService = function defaultService(name) {
+    return new _client2.default({ name: name, connection: connection, method: 'send' });
   };
+
+  var initialize = function initialize() {
+    if (typeof this.defaultService === 'function') {
+      throw new Error('Only one default client provider can be configured');
+    }
+
+    this.primus = connection;
+    this.defaultService = defaultService;
+  };
+
+  initialize.Service = _client2.default;
+  initialize.service = defaultService;
+
+  return initialize;
 };
 
 var _client = require('feathers-socket-commons/client');
@@ -1637,12 +1648,23 @@ exports.default = function () {
         throw new Error(key + ' has to be provided to feathers-rest');
       }
 
-      return function () {
-        this.rest = connection;
-        this.defaultService = function (name) {
-          return new Service({ base: base, name: name, connection: connection, options: options });
-        };
+      var defaultService = function defaultService(name) {
+        return new Service({ base: base, name: name, connection: connection, options: options });
       };
+
+      var initialize = function initialize() {
+        if (typeof this.defaultService === 'function') {
+          throw new Error('Only one default client provider can be configured');
+        }
+
+        this.rest = connection;
+        this.defaultService = defaultService;
+      };
+
+      initialize.Service = Service;
+      initialize.service = defaultService;
+
+      return initialize;
     };
   });
 
@@ -2732,12 +2754,23 @@ exports.default = function (connection) {
     throw new Error('Socket.io connection needs to be provided');
   }
 
-  return function () {
-    this.io = connection;
-    this.defaultService = function (name) {
-      return new _client2.default({ name: name, connection: connection, method: 'emit' });
-    };
+  var defaultService = function defaultService(name) {
+    return new _client2.default({ name: name, connection: connection, method: 'emit' });
   };
+
+  var initialize = function initialize() {
+    if (typeof this.defaultService === 'function') {
+      throw new Error('Only one default client provider can be configured');
+    }
+
+    this.io = connection;
+    this.defaultService = defaultService;
+  };
+
+  initialize.Service = _client2.default;
+  initialize.service = defaultService;
+
+  return initialize;
 };
 
 var _client = require('feathers-socket-commons/client');
@@ -3184,7 +3217,7 @@ module.exports={
   "_args": [
     [
       "feathers@^2.0.0-pre.1",
-      "/Users/eric/Development/feathersjs/feathers-client"
+      "/Users/daffl/Development/feathersjs/feathers-client"
     ]
   ],
   "_from": "feathers@>=2.0.0-pre.1 <3.0.0",
@@ -3214,7 +3247,7 @@ module.exports={
   "_shasum": "21fe2add83544392c86e92174d47060375827063",
   "_shrinkwrap": null,
   "_spec": "feathers@^2.0.0-pre.1",
-  "_where": "/Users/eric/Development/feathersjs/feathers-client",
+  "_where": "/Users/daffl/Development/feathersjs/feathers-client",
   "author": {
     "email": "hello@feathersjs.com",
     "name": "Feathers",
