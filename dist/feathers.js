@@ -4067,13 +4067,13 @@ var _client7 = require('feathers-rest/client');
 
 var _client8 = _interopRequireDefault(_client7);
 
-var _client9 = require('feathers-authentication/client');
-
-var _client10 = _interopRequireDefault(_client9);
-
 var _feathersHooks = require('feathers-hooks');
 
 var _feathersHooks2 = _interopRequireDefault(_feathersHooks);
+
+var _client9 = require('feathers-authentication/client');
+
+var _client10 = _interopRequireDefault(_client9);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
