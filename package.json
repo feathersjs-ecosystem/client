@@ -49,12 +49,12 @@
     "debug": false
   },
   "dependencies": {
-    "feathers": "^2.0.0-pre.1",
-    "feathers-authentication": "^0.4.1",
-    "feathers-hooks": "^1.0.0-pre.2",
-    "feathers-primus": "^1.1.0",
-    "feathers-rest": "^1.1.0",
-    "feathers-socketio": "^1.1.0"
+    "feathers": "^2.0.0",
+    "feathers-authentication": "^0.5.0",
+    "feathers-hooks": "^1.4.0",
+    "feathers-primus": "^1.3.2",
+    "feathers-rest": "^1.2.4",
+    "feathers-socketio": "^1.3.3"
   },
   "devDependencies": {
     "babel-cli": "^6.1.4",
