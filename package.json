@@ -65,7 +65,7 @@
     "body-parser": "^1.12.4",
     "browserify": "^13.0.0",
     "feathers-memory": "^0.6.3",
-    "jsdom": "^8.2.0",
+    "jsdom": "8.1.0",
     "jshint": "^2.8.0",
     "mocha": "^2.1.0",
     "nsp": "^2.2.0",
