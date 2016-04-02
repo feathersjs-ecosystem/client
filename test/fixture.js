@@ -19,14 +19,14 @@ Object.defineProperty(Error.prototype, 'toJSON', {
 module.exports = function(configurer) {
   // Create an in-memory CRUD service for our Todos
   var todoService = memory().extend({
-    get: function(id, params, callback) {
+    get: function(id, params) {
       if(params.query.error) {
-        return callback(new Error('Something went wrong'));
+        return Promise.reject(new Error('Something went wrong'));
       }
 
-      this._super(id, params, function(error, data) {
-        callback(error, Object.assign({ query: params.query }, data));
-      });
+      return this._super(id, params).then(data =>
+        Object.assign({ query: params.query }, data)
+      );
     }
   });
 
