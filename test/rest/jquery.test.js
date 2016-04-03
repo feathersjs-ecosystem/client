@@ -24,8 +24,8 @@ describe('jQuery REST connector', function() {
     });
   });
 
-  after(function(done) {
-    this.server.close(done);
+  after(function() {
+    this.server.close();
   });
 
   baseTests(client);

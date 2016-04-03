@@ -1,307 +1,4 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.feathers = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-function EventEmitter() {
-  this._events = this._events || {};
-  this._maxListeners = this._maxListeners || undefined;
-}
-module.exports = EventEmitter;
-
-// Backwards-compat with node 0.10.x
-EventEmitter.EventEmitter = EventEmitter;
-
-EventEmitter.prototype._events = undefined;
-EventEmitter.prototype._maxListeners = undefined;
-
-// By default EventEmitters will print a warning if more than 10 listeners are
-// added to it. This is a useful default which helps finding memory leaks.
-EventEmitter.defaultMaxListeners = 10;
-
-// Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-EventEmitter.prototype.setMaxListeners = function(n) {
-  if (!isNumber(n) || n < 0 || isNaN(n))
-    throw TypeError('n must be a positive number');
-  this._maxListeners = n;
-  return this;
-};
-
-EventEmitter.prototype.emit = function(type) {
-  var er, handler, len, args, i, listeners;
-
-  if (!this._events)
-    this._events = {};
-
-  // If there is no 'error' event listener then throw.
-  if (type === 'error') {
-    if (!this._events.error ||
-        (isObject(this._events.error) && !this._events.error.length)) {
-      er = arguments[1];
-      if (er instanceof Error) {
-        throw er; // Unhandled 'error' event
-      }
-      throw TypeError('Uncaught, unspecified "error" event.');
-    }
-  }
-
-  handler = this._events[type];
-
-  if (isUndefined(handler))
-    return false;
-
-  if (isFunction(handler)) {
-    switch (arguments.length) {
-      // fast cases
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      // slower
-      default:
-        len = arguments.length;
-        args = new Array(len - 1);
-        for (i = 1; i < len; i++)
-          args[i - 1] = arguments[i];
-        handler.apply(this, args);
-    }
-  } else if (isObject(handler)) {
-    len = arguments.length;
-    args = new Array(len - 1);
-    for (i = 1; i < len; i++)
-      args[i - 1] = arguments[i];
-
-    listeners = handler.slice();
-    len = listeners.length;
-    for (i = 0; i < len; i++)
-      listeners[i].apply(this, args);
-  }
-
-  return true;
-};
-
-EventEmitter.prototype.addListener = function(type, listener) {
-  var m;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events)
-    this._events = {};
-
-  // To avoid recursion in the case that type === "newListener"! Before
-  // adding it to the listeners, first emit "newListener".
-  if (this._events.newListener)
-    this.emit('newListener', type,
-              isFunction(listener.listener) ?
-              listener.listener : listener);
-
-  if (!this._events[type])
-    // Optimize the case of one listener. Don't need the extra array object.
-    this._events[type] = listener;
-  else if (isObject(this._events[type]))
-    // If we've already got an array, just append.
-    this._events[type].push(listener);
-  else
-    // Adding the second element, need to change to array.
-    this._events[type] = [this._events[type], listener];
-
-  // Check for listener leak
-  if (isObject(this._events[type]) && !this._events[type].warned) {
-    var m;
-    if (!isUndefined(this._maxListeners)) {
-      m = this._maxListeners;
-    } else {
-      m = EventEmitter.defaultMaxListeners;
-    }
-
-    if (m && m > 0 && this._events[type].length > m) {
-      this._events[type].warned = true;
-      console.error('(node) warning: possible EventEmitter memory ' +
-                    'leak detected. %d listeners added. ' +
-                    'Use emitter.setMaxListeners() to increase limit.',
-                    this._events[type].length);
-      if (typeof console.trace === 'function') {
-        // not supported in IE 10
-        console.trace();
-      }
-    }
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.once = function(type, listener) {
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  var fired = false;
-
-  function g() {
-    this.removeListener(type, g);
-
-    if (!fired) {
-      fired = true;
-      listener.apply(this, arguments);
-    }
-  }
-
-  g.listener = listener;
-  this.on(type, g);
-
-  return this;
-};
-
-// emits a 'removeListener' event iff the listener was removed
-EventEmitter.prototype.removeListener = function(type, listener) {
-  var list, position, length, i;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events || !this._events[type])
-    return this;
-
-  list = this._events[type];
-  length = list.length;
-  position = -1;
-
-  if (list === listener ||
-      (isFunction(list.listener) && list.listener === listener)) {
-    delete this._events[type];
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-
-  } else if (isObject(list)) {
-    for (i = length; i-- > 0;) {
-      if (list[i] === listener ||
-          (list[i].listener && list[i].listener === listener)) {
-        position = i;
-        break;
-      }
-    }
-
-    if (position < 0)
-      return this;
-
-    if (list.length === 1) {
-      list.length = 0;
-      delete this._events[type];
-    } else {
-      list.splice(position, 1);
-    }
-
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.removeAllListeners = function(type) {
-  var key, listeners;
-
-  if (!this._events)
-    return this;
-
-  // not listening for removeListener, no need to emit
-  if (!this._events.removeListener) {
-    if (arguments.length === 0)
-      this._events = {};
-    else if (this._events[type])
-      delete this._events[type];
-    return this;
-  }
-
-  // emit removeListener for all listeners on all events
-  if (arguments.length === 0) {
-    for (key in this._events) {
-      if (key === 'removeListener') continue;
-      this.removeAllListeners(key);
-    }
-    this.removeAllListeners('removeListener');
-    this._events = {};
-    return this;
-  }
-
-  listeners = this._events[type];
-
-  if (isFunction(listeners)) {
-    this.removeListener(type, listeners);
-  } else {
-    // LIFO order
-    while (listeners.length)
-      this.removeListener(type, listeners[listeners.length - 1]);
-  }
-  delete this._events[type];
-
-  return this;
-};
-
-EventEmitter.prototype.listeners = function(type) {
-  var ret;
-  if (!this._events || !this._events[type])
-    ret = [];
-  else if (isFunction(this._events[type]))
-    ret = [this._events[type]];
-  else
-    ret = this._events[type].slice();
-  return ret;
-};
-
-EventEmitter.listenerCount = function(emitter, type) {
-  var ret;
-  if (!emitter._events || !emitter._events[type])
-    ret = 0;
-  else if (isFunction(emitter._events[type]))
-    ret = 1;
-  else
-    ret = emitter._events[type].length;
-  return ret;
-};
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-
-},{}],2:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -471,7 +168,7 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"./debug":3}],3:[function(require,module,exports){
+},{"./debug":2}],2:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -670,7 +367,307 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":44}],4:[function(require,module,exports){
+},{"ms":44}],3:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+function EventEmitter() {
+  this._events = this._events || {};
+  this._maxListeners = this._maxListeners || undefined;
+}
+module.exports = EventEmitter;
+
+// Backwards-compat with node 0.10.x
+EventEmitter.EventEmitter = EventEmitter;
+
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._maxListeners = undefined;
+
+// By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+EventEmitter.defaultMaxListeners = 10;
+
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+EventEmitter.prototype.setMaxListeners = function(n) {
+  if (!isNumber(n) || n < 0 || isNaN(n))
+    throw TypeError('n must be a positive number');
+  this._maxListeners = n;
+  return this;
+};
+
+EventEmitter.prototype.emit = function(type) {
+  var er, handler, len, args, i, listeners;
+
+  if (!this._events)
+    this._events = {};
+
+  // If there is no 'error' event listener then throw.
+  if (type === 'error') {
+    if (!this._events.error ||
+        (isObject(this._events.error) && !this._events.error.length)) {
+      er = arguments[1];
+      if (er instanceof Error) {
+        throw er; // Unhandled 'error' event
+      }
+      throw TypeError('Uncaught, unspecified "error" event.');
+    }
+  }
+
+  handler = this._events[type];
+
+  if (isUndefined(handler))
+    return false;
+
+  if (isFunction(handler)) {
+    switch (arguments.length) {
+      // fast cases
+      case 1:
+        handler.call(this);
+        break;
+      case 2:
+        handler.call(this, arguments[1]);
+        break;
+      case 3:
+        handler.call(this, arguments[1], arguments[2]);
+        break;
+      // slower
+      default:
+        args = Array.prototype.slice.call(arguments, 1);
+        handler.apply(this, args);
+    }
+  } else if (isObject(handler)) {
+    args = Array.prototype.slice.call(arguments, 1);
+    listeners = handler.slice();
+    len = listeners.length;
+    for (i = 0; i < len; i++)
+      listeners[i].apply(this, args);
+  }
+
+  return true;
+};
+
+EventEmitter.prototype.addListener = function(type, listener) {
+  var m;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events)
+    this._events = {};
+
+  // To avoid recursion in the case that type === "newListener"! Before
+  // adding it to the listeners, first emit "newListener".
+  if (this._events.newListener)
+    this.emit('newListener', type,
+              isFunction(listener.listener) ?
+              listener.listener : listener);
+
+  if (!this._events[type])
+    // Optimize the case of one listener. Don't need the extra array object.
+    this._events[type] = listener;
+  else if (isObject(this._events[type]))
+    // If we've already got an array, just append.
+    this._events[type].push(listener);
+  else
+    // Adding the second element, need to change to array.
+    this._events[type] = [this._events[type], listener];
+
+  // Check for listener leak
+  if (isObject(this._events[type]) && !this._events[type].warned) {
+    if (!isUndefined(this._maxListeners)) {
+      m = this._maxListeners;
+    } else {
+      m = EventEmitter.defaultMaxListeners;
+    }
+
+    if (m && m > 0 && this._events[type].length > m) {
+      this._events[type].warned = true;
+      console.error('(node) warning: possible EventEmitter memory ' +
+                    'leak detected. %d listeners added. ' +
+                    'Use emitter.setMaxListeners() to increase limit.',
+                    this._events[type].length);
+      if (typeof console.trace === 'function') {
+        // not supported in IE 10
+        console.trace();
+      }
+    }
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.once = function(type, listener) {
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  var fired = false;
+
+  function g() {
+    this.removeListener(type, g);
+
+    if (!fired) {
+      fired = true;
+      listener.apply(this, arguments);
+    }
+  }
+
+  g.listener = listener;
+  this.on(type, g);
+
+  return this;
+};
+
+// emits a 'removeListener' event iff the listener was removed
+EventEmitter.prototype.removeListener = function(type, listener) {
+  var list, position, length, i;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events || !this._events[type])
+    return this;
+
+  list = this._events[type];
+  length = list.length;
+  position = -1;
+
+  if (list === listener ||
+      (isFunction(list.listener) && list.listener === listener)) {
+    delete this._events[type];
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+
+  } else if (isObject(list)) {
+    for (i = length; i-- > 0;) {
+      if (list[i] === listener ||
+          (list[i].listener && list[i].listener === listener)) {
+        position = i;
+        break;
+      }
+    }
+
+    if (position < 0)
+      return this;
+
+    if (list.length === 1) {
+      list.length = 0;
+      delete this._events[type];
+    } else {
+      list.splice(position, 1);
+    }
+
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.removeAllListeners = function(type) {
+  var key, listeners;
+
+  if (!this._events)
+    return this;
+
+  // not listening for removeListener, no need to emit
+  if (!this._events.removeListener) {
+    if (arguments.length === 0)
+      this._events = {};
+    else if (this._events[type])
+      delete this._events[type];
+    return this;
+  }
+
+  // emit removeListener for all listeners on all events
+  if (arguments.length === 0) {
+    for (key in this._events) {
+      if (key === 'removeListener') continue;
+      this.removeAllListeners(key);
+    }
+    this.removeAllListeners('removeListener');
+    this._events = {};
+    return this;
+  }
+
+  listeners = this._events[type];
+
+  if (isFunction(listeners)) {
+    this.removeListener(type, listeners);
+  } else if (listeners) {
+    // LIFO order
+    while (listeners.length)
+      this.removeListener(type, listeners[listeners.length - 1]);
+  }
+  delete this._events[type];
+
+  return this;
+};
+
+EventEmitter.prototype.listeners = function(type) {
+  var ret;
+  if (!this._events || !this._events[type])
+    ret = [];
+  else if (isFunction(this._events[type]))
+    ret = [this._events[type]];
+  else
+    ret = this._events[type].slice();
+  return ret;
+};
+
+EventEmitter.prototype.listenerCount = function(type) {
+  if (this._events) {
+    var evlistener = this._events[type];
+
+    if (isFunction(evlistener))
+      return 1;
+    else if (evlistener)
+      return evlistener.length;
+  }
+  return 0;
+};
+
+EventEmitter.listenerCount = function(emitter, type) {
+  return emitter.listenerCount(type);
+};
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+
+},{}],4:[function(require,module,exports){
 module.exports = require('./lib/client');
 },{"./lib/client":6}],5:[function(require,module,exports){
 'use strict';
@@ -730,9 +727,9 @@ exports.default = function () {
 
       // If no type was given let's try to authenticate with a stored JWT
       if (!options.type) {
-        getOptions = (0, _utils.getJWT)(config.tokenKey, this.get('storage')).then(function (token) {
+        getOptions = (0, _utils.getJWT)(config.tokenKey, config.cookie, this.get('storage')).then(function (token) {
           if (!token) {
-            return Promise.reject(new Error('Could not find stored JWT and no authentication type was given'));
+            return Promise.reject(new _feathersErrors2.default.NotAuthenticated('Could not find stored JWT and no authentication type was given'));
           }
 
           return { type: 'token', token: token };
@@ -773,12 +770,23 @@ exports.default = function () {
       });
     };
 
+    // Set our logout method with the correct socket context
     app.logout = function () {
       app.set('user', null);
       app.set('token', null);
 
-      // TODO (EK): invalidate token with server
-      return Promise.resolve(app.get('storage').setItem(config.tokenKey, null));
+      (0, _utils.clearCookie)(config.cookie);
+
+      // remove the token from localStorage
+      return Promise.resolve(app.get('storage').setItem(config.tokenKey, '')).then(function () {
+        // If using sockets de-authenticate the socket
+        if (app.io || app.primus) {
+          var method = app.io ? 'emit' : 'send';
+          var socket = app.io ? app.io : app.primus;
+
+          return (0, _utils.logoutSocket)(socket, method);
+        }
+      });
     };
 
     // Set up hook that adds adds token and user to params so that
@@ -800,6 +808,10 @@ exports.default = function () {
   };
 };
 
+var _feathersErrors = require('feathers-errors');
+
+var _feathersErrors2 = _interopRequireDefault(_feathersErrors);
+
 var _hooks = require('./hooks');
 
 var hooks = _interopRequireWildcard(_hooks);
@@ -808,14 +820,17 @@ var _utils = require('./utils');
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var defaults = {
+  cookie: 'feathers-jwt',
   tokenKey: 'feathers-jwt',
   localEndpoint: '/auth/local',
   tokenEndpoint: '/auth/token'
 };
 
 module.exports = exports['default'];
-},{"./hooks":5,"./utils":7}],7:[function(require,module,exports){
+},{"./hooks":5,"./utils":7,"feathers-errors":12}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -823,7 +838,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.connected = connected;
 exports.authenticateSocket = authenticateSocket;
+exports.logoutSocket = logoutSocket;
 exports.getCookie = getCookie;
+exports.clearCookie = clearCookie;
 exports.getJWT = getJWT;
 exports.getStorage = getStorage;
 // Returns a promise that resolves when the socket is connected
@@ -846,7 +863,8 @@ function connected(app) {
 
     // If the socket is not connected yet we have to wait for the `connect` event
     if (app.io && !socket.connected || app.primus && socket.readyState !== 3) {
-      socket.once('connect', function () {
+      var connectEvent = app.primus ? 'open' : 'connect';
+      socket.once(connectEvent, function () {
         return resolve(socket);
       });
     } else {
@@ -865,6 +883,19 @@ function authenticateSocket(options, socket, method) {
   });
 }
 
+// Returns a promise that de-authenticates a socket
+function logoutSocket(socket, method) {
+  return new Promise(function (resolve, reject) {
+    socket[method]('logout', function (error) {
+      if (error) {
+        reject(error);
+      }
+
+      resolve();
+    });
+  });
+}
+
 // Returns the value for a cookie
 function getCookie(name) {
   if (typeof document !== 'undefined') {
@@ -879,13 +910,22 @@ function getCookie(name) {
   return null;
 }
 
-// Tries the JWT from the given key either from a storage or the cookie
-function getJWT(key, storage) {
-  return Promise.resolve(storage.getItem(key)).then(function (jwt) {
-    var cookieKey = getCookie(key);
+// Returns the value for a cookie
+function clearCookie(name) {
+  if (typeof document !== 'undefined') {
+    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+  }
 
-    if (cookieKey) {
-      return cookieKey;
+  return null;
+}
+
+// Tries the JWT from the given key either from a storage or the cookie
+function getJWT(tokenKey, cookieKey, storage) {
+  return Promise.resolve(storage.getItem(tokenKey)).then(function (jwt) {
+    var cookieToken = getCookie(cookieKey);
+
+    if (cookieToken) {
+      return cookieToken;
     }
 
     return jwt;
@@ -1144,15 +1184,15 @@ function each(obj, callback) {
 },{}],12:[function(require,module,exports){
 'use strict';
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -1194,7 +1234,7 @@ var debug = require('debug')('feathers-errors');
 // http://stackoverflow.com/questions/33870684/why-doesnt-instanceof-work-on-instances-of-error-subclasses-under-babel-node
 // https://github.com/loganfsmyth/babel-plugin-transform-builtin-extend
 
-var FeathersError = (function (_extendableBuiltin2) {
+var FeathersError = function (_extendableBuiltin2) {
   _inherits(FeathersError, _extendableBuiltin2);
 
   function FeathersError(msg, name, code, className, data) {
@@ -1257,6 +1297,7 @@ var FeathersError = (function (_extendableBuiltin2) {
   // NOTE (EK): A little hack to get around `message` not
   // being included in the default toJSON call.
 
+
   _createClass(FeathersError, [{
     key: 'toJSON',
     value: function toJSON() {
@@ -1272,9 +1313,9 @@ var FeathersError = (function (_extendableBuiltin2) {
   }]);
 
   return FeathersError;
-})(_extendableBuiltin(Error));
+}(_extendableBuiltin(Error));
 
-var BadRequest = (function (_FeathersError) {
+var BadRequest = function (_FeathersError) {
   _inherits(BadRequest, _FeathersError);
 
   function BadRequest(message, data) {
@@ -1284,9 +1325,9 @@ var BadRequest = (function (_FeathersError) {
   }
 
   return BadRequest;
-})(FeathersError);
+}(FeathersError);
 
-var NotAuthenticated = (function (_FeathersError2) {
+var NotAuthenticated = function (_FeathersError2) {
   _inherits(NotAuthenticated, _FeathersError2);
 
   function NotAuthenticated(message, data) {
@@ -1296,9 +1337,9 @@ var NotAuthenticated = (function (_FeathersError2) {
   }
 
   return NotAuthenticated;
-})(FeathersError);
+}(FeathersError);
 
-var PaymentError = (function (_FeathersError3) {
+var PaymentError = function (_FeathersError3) {
   _inherits(PaymentError, _FeathersError3);
 
   function PaymentError(message, data) {
@@ -1308,9 +1349,9 @@ var PaymentError = (function (_FeathersError3) {
   }
 
   return PaymentError;
-})(FeathersError);
+}(FeathersError);
 
-var Forbidden = (function (_FeathersError4) {
+var Forbidden = function (_FeathersError4) {
   _inherits(Forbidden, _FeathersError4);
 
   function Forbidden(message, data) {
@@ -1320,9 +1361,9 @@ var Forbidden = (function (_FeathersError4) {
   }
 
   return Forbidden;
-})(FeathersError);
+}(FeathersError);
 
-var NotFound = (function (_FeathersError5) {
+var NotFound = function (_FeathersError5) {
   _inherits(NotFound, _FeathersError5);
 
   function NotFound(message, data) {
@@ -1332,9 +1373,9 @@ var NotFound = (function (_FeathersError5) {
   }
 
   return NotFound;
-})(FeathersError);
+}(FeathersError);
 
-var MethodNotAllowed = (function (_FeathersError6) {
+var MethodNotAllowed = function (_FeathersError6) {
   _inherits(MethodNotAllowed, _FeathersError6);
 
   function MethodNotAllowed(message, data) {
@@ -1344,9 +1385,9 @@ var MethodNotAllowed = (function (_FeathersError6) {
   }
 
   return MethodNotAllowed;
-})(FeathersError);
+}(FeathersError);
 
-var NotAcceptable = (function (_FeathersError7) {
+var NotAcceptable = function (_FeathersError7) {
   _inherits(NotAcceptable, _FeathersError7);
 
   function NotAcceptable(message, data) {
@@ -1356,9 +1397,9 @@ var NotAcceptable = (function (_FeathersError7) {
   }
 
   return NotAcceptable;
-})(FeathersError);
+}(FeathersError);
 
-var Timeout = (function (_FeathersError8) {
+var Timeout = function (_FeathersError8) {
   _inherits(Timeout, _FeathersError8);
 
   function Timeout(message, data) {
@@ -1368,9 +1409,9 @@ var Timeout = (function (_FeathersError8) {
   }
 
   return Timeout;
-})(FeathersError);
+}(FeathersError);
 
-var Conflict = (function (_FeathersError9) {
+var Conflict = function (_FeathersError9) {
   _inherits(Conflict, _FeathersError9);
 
   function Conflict(message, data) {
@@ -1380,9 +1421,9 @@ var Conflict = (function (_FeathersError9) {
   }
 
   return Conflict;
-})(FeathersError);
+}(FeathersError);
 
-var Unprocessable = (function (_FeathersError10) {
+var Unprocessable = function (_FeathersError10) {
   _inherits(Unprocessable, _FeathersError10);
 
   function Unprocessable(message, data) {
@@ -1392,9 +1433,9 @@ var Unprocessable = (function (_FeathersError10) {
   }
 
   return Unprocessable;
-})(FeathersError);
+}(FeathersError);
 
-var GeneralError = (function (_FeathersError11) {
+var GeneralError = function (_FeathersError11) {
   _inherits(GeneralError, _FeathersError11);
 
   function GeneralError(message, data) {
@@ -1404,9 +1445,9 @@ var GeneralError = (function (_FeathersError11) {
   }
 
   return GeneralError;
-})(FeathersError);
+}(FeathersError);
 
-var NotImplemented = (function (_FeathersError12) {
+var NotImplemented = function (_FeathersError12) {
   _inherits(NotImplemented, _FeathersError12);
 
   function NotImplemented(message, data) {
@@ -1416,9 +1457,9 @@ var NotImplemented = (function (_FeathersError12) {
   }
 
   return NotImplemented;
-})(FeathersError);
+}(FeathersError);
 
-var Unavailable = (function (_FeathersError13) {
+var Unavailable = function (_FeathersError13) {
   _inherits(Unavailable, _FeathersError13);
 
   function Unavailable(message, data) {
@@ -1428,7 +1469,7 @@ var Unavailable = (function (_FeathersError13) {
   }
 
   return Unavailable;
-})(FeathersError);
+}(FeathersError);
 
 var errors = {
   FeathersError: FeathersError,
@@ -1449,7 +1490,7 @@ var errors = {
 
 exports.default = _extends({ types: errors, errors: errors }, errors);
 module.exports = exports['default'];
-},{"debug":2}],13:[function(require,module,exports){
+},{"debug":1}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1460,7 +1501,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 exports.lowerCase = lowerCase;
 exports.remove = remove;
+exports.pluck = pluck;
 exports.disable = disable;
+exports.populate = populate;
 var errors = require('feathers-errors').errors;
 
 function lowerCase() {
@@ -1551,6 +1594,73 @@ function remove() {
       }
     }
   };
+
+  var callback = typeof fields[fields.length - 1] === 'function' ? fields.pop() : function (hook) {
+    return !!hook.params.provider;
+  };
+
+  return function (hook) {
+    var result = hook.type === 'before' ? hook.data : hook.result;
+    var next = function next(condition) {
+      if (result && condition) {
+        if (Array.isArray(result)) {
+          result.forEach(removeFields);
+        } else {
+          removeFields(result);
+
+          if (result.data) {
+            if (Array.isArray(result.data)) {
+              result.data.forEach(removeFields);
+            } else {
+              removeFields(result.data);
+            }
+          }
+        }
+      }
+      return hook;
+    };
+
+    var check = callback(hook);
+
+    return check && typeof check.then === 'function' ? check.then(next) : next(check);
+  };
+}
+
+function pluck() {
+  for (var _len3 = arguments.length, fields = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+    fields[_key3] = arguments[_key3];
+  }
+
+  var pluckFields = function pluckFields(data) {
+    var _iteratorNormalCompletion3 = true;
+    var _didIteratorError3 = false;
+    var _iteratorError3 = undefined;
+
+    try {
+      for (var _iterator3 = Object.keys(data)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+        var key = _step3.value;
+
+        if (fields.indexOf(key) === -1) {
+          data[key] = undefined;
+          delete data[key];
+        }
+      }
+    } catch (err) {
+      _didIteratorError3 = true;
+      _iteratorError3 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+          _iterator3.return();
+        }
+      } finally {
+        if (_didIteratorError3) {
+          throw _iteratorError3;
+        }
+      }
+    }
+  };
+
   var callback = typeof fields[fields.length - 1] === 'function' ? fields.pop() : function (hook) {
     return !!hook.params.provider;
   };
@@ -1561,9 +1671,9 @@ function remove() {
       if (result && condition) {
         if (hook.method === 'find' || Array.isArray(result)) {
           // data.data if the find method is paginated
-          (result.data || result).forEach(removeFields);
+          (result.data || result).forEach(pluckFields);
         } else {
-          removeFields(result);
+          pluckFields(result);
         }
       }
       return hook;
@@ -1598,11 +1708,11 @@ function disable(realm) {
       next(result);
     };
   } else {
-    var _len3, args, _key3;
+    var _len4, args, _key4;
 
     var _ret = function () {
-      for (_len3 = _arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-        args[_key3 - 1] = _arguments[_key3];
+      for (_len4 = _arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+        args[_key4 - 1] = _arguments[_key4];
       }
 
       var providers = [realm].concat(args);
@@ -1620,6 +1730,77 @@ function disable(realm) {
 
     if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
   }
+}
+
+function populate(target, options) {
+  options = Object.assign({}, options);
+
+  if (!options.service) {
+    throw new Error('You need to provide a service');
+  }
+
+  var field = options.field || target;
+
+  return function (hook) {
+    function populate(item) {
+      if (!item[field]) {
+        return Promise.resolve(item);
+      }
+
+      // Find by the field value by default or a custom query
+      var id = item[field];
+
+      // If it's a mongoose model then
+      if (typeof item.toObject === 'function') {
+        item = item.toObject(options);
+      }
+      // If it's a Sequelize model
+      else if (typeof item.toJSON === 'function') {
+          item = item.toJSON(options);
+        }
+
+      return hook.app.service(options.service).get(id, hook.params).then(function (relatedItem) {
+        if (relatedItem) {
+          item[target] = relatedItem;
+        }
+
+        return item;
+      }).catch(function () {
+        return item;
+      });
+    }
+
+    if (hook.type === 'after') {
+      var _ret2 = function () {
+        var isPaginated = hook.method === 'find' && hook.result.data;
+        var data = isPaginated ? hook.result.data : hook.result;
+
+        if (Array.isArray(data)) {
+          return {
+            v: Promise.all(data.map(populate)).then(function (results) {
+              if (isPaginated) {
+                hook.result.data = results;
+              } else {
+                hook.result = results;
+              }
+
+              return hook;
+            })
+          };
+        }
+
+        // Handle single objects.
+        return {
+          v: populate(hook.result).then(function (item) {
+            hook.result = item;
+            return hook;
+          })
+        };
+      }();
+
+      if ((typeof _ret2 === 'undefined' ? 'undefined' : _typeof(_ret2)) === "object") return _ret2.v;
+    }
+  };
 }
 },{"feathers-errors":12}],14:[function(require,module,exports){
 'use strict';
@@ -1841,7 +2022,9 @@ function configure() {
 
 configure.lowerCase = hooks.lowerCase;
 configure.remove = hooks.remove;
+configure.pluck = hooks.pluck;
 configure.disable = hooks.disable;
+configure.populate = hooks.populate;
 
 exports.default = configure;
 module.exports = exports['default'];
@@ -2936,10 +3119,11 @@ emitterMethods.forEach(function (method) {
   Service.prototype[method] = function (name, callback) {
     debug('Calling emitter method ' + method + ' with event \'' + this.path + ' ' + name + '\'');
     this.connection[method](this.path + ' ' + name, callback);
+    return this;
   };
 });
 module.exports = exports['default'];
-},{"./utils":31,"debug":2}],31:[function(require,module,exports){
+},{"./utils":31,"debug":1}],31:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3185,7 +3369,7 @@ exports.default = {
   }
 };
 module.exports = exports['default'];
-},{"./mixins/index":40,"debug":2,"feathers-commons":9,"uberproto":47}],36:[function(require,module,exports){
+},{"./mixins/index":40,"debug":1,"feathers-commons":9,"uberproto":47}],36:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3239,7 +3423,7 @@ var _uberproto2 = _interopRequireDefault(_uberproto);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"events":1,"uberproto":47}],37:[function(require,module,exports){
+},{"events":3,"uberproto":47}],37:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3369,7 +3553,7 @@ function upperCase(name) {
 }
 
 module.exports = exports['default'];
-},{"events":1,"feathers-commons":9,"rubberduck":45}],40:[function(require,module,exports){
+},{"events":3,"feathers-commons":9,"rubberduck":45}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3468,11 +3652,11 @@ module.exports = exports['default'];
 module.exports={
   "_args": [
     [
-      "feathers",
-      "/Users/eric/Development/feathersjs/feathers-client"
+      "feathers@^2.0.0",
+      "/Users/daffl/Development/feathersjs/feathers-client"
     ]
   ],
-  "_from": "feathers@latest",
+  "_from": "feathers@>=2.0.0 <3.0.0",
   "_id": "feathers@2.0.0",
   "_inCache": true,
   "_installable": true,
@@ -3490,11 +3674,11 @@ module.exports={
   "_phantomChildren": {},
   "_requested": {
     "name": "feathers",
-    "raw": "feathers",
-    "rawSpec": "",
+    "raw": "feathers@^2.0.0",
+    "rawSpec": "^2.0.0",
     "scope": null,
-    "spec": "latest",
-    "type": "tag"
+    "spec": ">=2.0.0 <3.0.0",
+    "type": "range"
   },
   "_requiredBy": [
     "/"
@@ -3502,8 +3686,8 @@ module.exports={
   "_resolved": "https://registry.npmjs.org/feathers/-/feathers-2.0.0.tgz",
   "_shasum": "0ff06df8fd72271c25e6d1b4117b9e7721cfe370",
   "_shrinkwrap": null,
-  "_spec": "feathers",
-  "_where": "/Users/eric/Development/feathersjs/feathers-client",
+  "_spec": "feathers@^2.0.0",
+  "_where": "/Users/daffl/Development/feathersjs/feathers-client",
   "author": {
     "email": "hello@feathersjs.com",
     "name": "Feathers",
@@ -3848,7 +4032,7 @@ exports.emitter = function(obj) {
   return new Emitter(obj);
 };
 
-},{"./utils":46,"events":1}],46:[function(require,module,exports){
+},{"./utils":46,"events":3}],46:[function(require,module,exports){
 exports.toBase26 = function(num) {
   var outString = '';
   var letters = 'abcdefghijklmnopqrstuvwxyz';
