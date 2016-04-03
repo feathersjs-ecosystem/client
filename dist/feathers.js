@@ -4223,29 +4223,29 @@ var _client = require('feathers/client');
 
 var _client2 = _interopRequireDefault(_client);
 
-var _client3 = require('feathers-socketio/client');
-
-var _client4 = _interopRequireDefault(_client3);
-
-var _client5 = require('feathers-primus/client');
-
-var _client6 = _interopRequireDefault(_client5);
-
-var _client7 = require('feathers-rest/client');
-
-var _client8 = _interopRequireDefault(_client7);
-
 var _feathersHooks = require('feathers-hooks');
 
 var _feathersHooks2 = _interopRequireDefault(_feathersHooks);
 
-var _client9 = require('feathers-authentication/client');
+var _client3 = require('feathers-authentication/client');
+
+var _client4 = _interopRequireDefault(_client3);
+
+var _client5 = require('feathers-socketio/client');
+
+var _client6 = _interopRequireDefault(_client5);
+
+var _client7 = require('feathers-primus/client');
+
+var _client8 = _interopRequireDefault(_client7);
+
+var _client9 = require('feathers-rest/client');
 
 var _client10 = _interopRequireDefault(_client9);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-Object.assign(_client2.default, { socketio: _client4.default, primus: _client6.default, rest: _client8.default, hooks: _feathersHooks2.default, authentication: _client10.default });
+Object.assign(_client2.default, { socketio: _client6.default, primus: _client8.default, rest: _client10.default, hooks: _feathersHooks2.default, authentication: _client4.default });
 
 exports.default = _client2.default;
 module.exports = exports['default'];
