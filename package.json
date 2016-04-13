@@ -73,7 +73,6 @@
     "request": "^2.56.0",
     "socket.io-client": "^1.3.5",
     "superagent": "^1.2.0",
-    "testee": "^0.2.5",
-    "ws": "^1.0.1"
+    "testee": "^0.2.5"
   }
 }
