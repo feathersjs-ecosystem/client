@@ -52,7 +52,7 @@
     "feathers": "^2.0.0",
     "feathers-authentication": "^0.7.0",
     "feathers-hooks": "^1.4.0",
-    "feathers-primus": "^1.3.2",
+    "feathers-primus": "^1.3.3",
     "feathers-rest": "^1.2.4",
     "feathers-socketio": "^1.3.3"
   },
