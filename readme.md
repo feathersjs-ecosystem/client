@@ -10,7 +10,7 @@ While Feathers and its modules can be used on the client with an NPM compatible 
 
 - [feathers](https://github.com/feathersjs/feathers) as `feathers` (or the default module export)
 - [feathers-hooks](https://github.com/feathersjs/feathers-hooks) as `feathers.hooks`
-- [feathers-authentication](https://github.com/feathersjs/feathers-hooks) as `feathers.authentication`
+- [feathers-authentication](https://github.com/feathersjs/feathers-authentication) as `feathers.authentication`
 - [feathers-rest](https://github.com/feathersjs/feathers-rest) as `feathers.rest`
 - [feathers-socketio](https://github.com/feathersjs/feathers-socketio) as `feathers.socketio`
 - [feathers-primus](https://github.com/feathersjs/feathers-primus) as `feathers.primus`
