@@ -367,7 +367,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":44}],3:[function(require,module,exports){
+},{"ms":43}],3:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -668,8 +668,9 @@ function isUndefined(arg) {
 }
 
 },{}],4:[function(require,module,exports){
-module.exports = require('./lib/client');
-},{"./lib/client":6}],5:[function(require,module,exports){
+module.exports = require('./lib/client/index');
+
+},{"./lib/client/index":6}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -789,7 +790,7 @@ exports.default = function () {
       });
     };
 
-    // Set up hook that adds adds token and user to params so that
+    // Set up hook that adds token and user to params so that
     // it they can be accessed by client side hooks and services
     app.mixins.push(function (service) {
       if (typeof service.before !== 'function' || typeof service.after !== 'function') {
@@ -954,10 +955,10 @@ function getStorage(storage) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 exports.default = getArguments;
-
-function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
-
 var noop = exports.noop = function noop() {};
 var getCallback = function getCallback(args) {
   var last = args[args.length - 1];
@@ -1035,6 +1036,7 @@ var converters = exports.converters = {
     return [data, params, callback];
   },
 
+
   update: updateOrPatch('update'),
 
   patch: updateOrPatch('patch'),
@@ -1070,15 +1072,17 @@ exports.default = {
   getArguments: _arguments2.default,
   stripSlashes: _utils.stripSlashes,
   each: _utils.each,
-  hooks: _hooks2.default
+  hooks: _hooks2.default,
+  matcher: _utils.matcher,
+  sorter: _utils.sorter
 };
 module.exports = exports['default'];
 },{"./arguments":8,"./hooks":10,"./utils":11}],10:[function(require,module,exports){
 'use strict';
 
-var _utils = require('./utils');
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+var _utils = require('./utils');
 
 function getOrRemove(args) {
   return {
@@ -1163,10 +1167,17 @@ exports.convertHookData = function (obj) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 exports.stripSlashes = stripSlashes;
 exports.each = each;
+exports.matcher = matcher;
+exports.sorter = sorter;
 
-function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function stripSlashes(name) {
   return name.replace(/^(\/*)|(\/*)$/g, '');
@@ -1180,6 +1191,147 @@ function each(obj, callback) {
       return callback(obj[key], key);
     });
   }
+}
+
+var _ = exports._ = {
+  some: function some(value, callback) {
+    return Object.keys(value).map(function (key) {
+      return [value[key], key];
+    }).some(function (current) {
+      return callback.apply(undefined, _toConsumableArray(current));
+    });
+  },
+  every: function every(value, callback) {
+    return Object.keys(value).map(function (key) {
+      return [value[key], key];
+    }).every(function (current) {
+      return callback.apply(undefined, _toConsumableArray(current));
+    });
+  },
+  isMatch: function isMatch(obj, item) {
+    return Object.keys(item).every(function (key) {
+      return obj[key] === item[key];
+    });
+  },
+  omit: function omit(obj) {
+    var result = _extends({}, obj);
+
+    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      keys[_key - 1] = arguments[_key];
+    }
+
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = keys[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var key = _step.value;
+
+        delete result[key];
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+
+    return result;
+  }
+};
+
+var specialFilters = exports.specialFilters = {
+  $in: function $in(key, ins) {
+    return function (current) {
+      return ins.indexOf(current[key]) !== -1;
+    };
+  },
+  $nin: function $nin(key, nins) {
+    return function (current) {
+      return nins.indexOf(current[key]) === -1;
+    };
+  },
+  $lt: function $lt(key, value) {
+    return function (current) {
+      return current[key] < value;
+    };
+  },
+  $lte: function $lte(key, value) {
+    return function (current) {
+      return current[key] <= value;
+    };
+  },
+  $gt: function $gt(key, value) {
+    return function (current) {
+      return current[key] > value;
+    };
+  },
+  $gte: function $gte(key, value) {
+    return function (current) {
+      return current[key] >= value;
+    };
+  },
+  $ne: function $ne(key, value) {
+    return function (current) {
+      return current[key] !== value;
+    };
+  }
+};
+
+function matcher(originalQuery) {
+  var query = _.omit(originalQuery, '$limit', '$skip', '$sort');
+
+  return function (item) {
+    if (query.$or && _.some(query.$or, function (or) {
+      return _.isMatch(item, or);
+    })) {
+      return true;
+    }
+
+    return _.every(query, function (value, key) {
+      if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
+        return _.every(value, function (target, filterType) {
+          if (specialFilters[filterType]) {
+            var filter = specialFilters[filterType](key, target);
+            return filter(item);
+          }
+
+          return false;
+        });
+      } else if (typeof item[key] !== 'undefined') {
+        return item[key] === query[key];
+      }
+
+      return false;
+    });
+  };
+}
+
+function sorter($sort) {
+  return function (first, second) {
+    var comparator = 0;
+    each($sort, function (modifier, key) {
+      modifier = parseInt(modifier, 10);
+
+      if (first[key] < second[key]) {
+        comparator -= 1 * modifier;
+      }
+
+      if (first[key] > second[key]) {
+        comparator += 1 * modifier;
+      }
+    });
+    return comparator;
+  };
 }
 },{}],12:[function(require,module,exports){
 'use strict';
@@ -1500,6 +1652,8 @@ Object.defineProperty(exports, "__esModule", {
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports.lowerCase = lowerCase;
+exports.removeQuery = removeQuery;
+exports.pluckQuery = pluckQuery;
 exports.remove = remove;
 exports.pluck = pluck;
 exports.disable = disable;
@@ -1520,7 +1674,13 @@ function lowerCase() {
       for (var _iterator = fields[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
         var field = _step.value;
 
-        data[field] = data[field].toLowerCase();
+        if (data[field]) {
+          if (typeof data[field] !== 'string') {
+            throw new errors.BadRequest('Expected string');
+          } else {
+            data[field] = data[field].toLowerCase();
+          }
+        }
       }
     } catch (err) {
       _didIteratorError = true;
@@ -1562,12 +1722,12 @@ function lowerCase() {
   };
 }
 
-function remove() {
+function removeQuery() {
   for (var _len2 = arguments.length, fields = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
     fields[_key2] = arguments[_key2];
   }
 
-  var removeFields = function removeFields(data) {
+  var removeQueries = function removeQueries(data) {
     var _iteratorNormalCompletion2 = true;
     var _didIteratorError2 = false;
     var _iteratorError2 = undefined;
@@ -1590,6 +1750,120 @@ function remove() {
       } finally {
         if (_didIteratorError2) {
           throw _iteratorError2;
+        }
+      }
+    }
+  };
+
+  var callback = typeof fields[fields.length - 1] === 'function' ? fields.pop() : function () {
+    return true;
+  };
+
+  return function (hook) {
+    if (hook.type === 'after') {
+      throw new errors.GeneralError('Provider \'' + hook.params.provider + '\' can not remove query params on after hook.');
+    }
+    var result = hook.params.query;
+    var next = function next(condition) {
+      if (result && condition) {
+        removeQueries(result);
+      }
+      return hook;
+    };
+
+    var check = callback(hook);
+
+    return check && typeof check.then === 'function' ? check.then(next) : next(check);
+  };
+}
+
+function pluckQuery() {
+  for (var _len3 = arguments.length, fields = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+    fields[_key3] = arguments[_key3];
+  }
+
+  var pluckQueries = function pluckQueries(data) {
+    // admin, name
+    var _iteratorNormalCompletion3 = true;
+    var _didIteratorError3 = false;
+    var _iteratorError3 = undefined;
+
+    try {
+      for (var _iterator3 = Object.keys(data)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+        var key = _step3.value;
+
+        if (fields.indexOf(key) === -1) {
+          console.log(key);
+          data[key] = undefined;
+          delete data[key];
+        }
+      }
+    } catch (err) {
+      _didIteratorError3 = true;
+      _iteratorError3 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+          _iterator3.return();
+        }
+      } finally {
+        if (_didIteratorError3) {
+          throw _iteratorError3;
+        }
+      }
+    }
+  };
+
+  var callback = typeof fields[fields.length - 1] === 'function' ? fields.pop() : function () {
+    return true;
+  };
+
+  return function (hook) {
+    if (hook.type === 'after') {
+      throw new errors.GeneralError('Provider \'' + hook.params.provider + '\' can not pluck query params on after hook.');
+    }
+    var result = hook.params.query;
+    var next = function next(condition) {
+      if (result && condition) {
+        pluckQueries(result);
+      }
+      return hook;
+    };
+
+    var check = callback(hook);
+
+    return check && typeof check.then === 'function' ? check.then(next) : next(check);
+  };
+}
+
+function remove() {
+  for (var _len4 = arguments.length, fields = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+    fields[_key4] = arguments[_key4];
+  }
+
+  var removeFields = function removeFields(data) {
+    var _iteratorNormalCompletion4 = true;
+    var _didIteratorError4 = false;
+    var _iteratorError4 = undefined;
+
+    try {
+      for (var _iterator4 = fields[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+        var field = _step4.value;
+
+        data[field] = undefined;
+        delete data[field];
+      }
+    } catch (err) {
+      _didIteratorError4 = true;
+      _iteratorError4 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+          _iterator4.return();
+        }
+      } finally {
+        if (_didIteratorError4) {
+          throw _iteratorError4;
         }
       }
     }
@@ -1627,18 +1901,18 @@ function remove() {
 }
 
 function pluck() {
-  for (var _len3 = arguments.length, fields = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-    fields[_key3] = arguments[_key3];
+  for (var _len5 = arguments.length, fields = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+    fields[_key5] = arguments[_key5];
   }
 
   var pluckFields = function pluckFields(data) {
-    var _iteratorNormalCompletion3 = true;
-    var _didIteratorError3 = false;
-    var _iteratorError3 = undefined;
+    var _iteratorNormalCompletion5 = true;
+    var _didIteratorError5 = false;
+    var _iteratorError5 = undefined;
 
     try {
-      for (var _iterator3 = Object.keys(data)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-        var key = _step3.value;
+      for (var _iterator5 = Object.keys(data)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+        var key = _step5.value;
 
         if (fields.indexOf(key) === -1) {
           data[key] = undefined;
@@ -1646,16 +1920,16 @@ function pluck() {
         }
       }
     } catch (err) {
-      _didIteratorError3 = true;
-      _iteratorError3 = err;
+      _didIteratorError5 = true;
+      _iteratorError5 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion3 && _iterator3.return) {
-          _iterator3.return();
+        if (!_iteratorNormalCompletion5 && _iterator5.return) {
+          _iterator5.return();
         }
       } finally {
-        if (_didIteratorError3) {
-          throw _iteratorError3;
+        if (_didIteratorError5) {
+          throw _iteratorError5;
         }
       }
     }
@@ -1708,11 +1982,11 @@ function disable(realm) {
       next(result);
     };
   } else {
-    var _len4, args, _key4;
+    var _len6, args, _key6;
 
     var _ret = function () {
-      for (_len4 = _arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-        args[_key4 - 1] = _arguments[_key4];
+      for (_len6 = _arguments.length, args = Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
+        args[_key6 - 1] = _arguments[_key6];
       }
 
       var providers = [realm].concat(args);
@@ -2020,6 +2294,8 @@ function configure() {
   };
 }
 
+configure.removeQuery = hooks.removeQuery;
+configure.pluckQuery = hooks.pluckQuery;
 configure.lowerCase = hooks.lowerCase;
 configure.remove = hooks.remove;
 configure.pluck = hooks.pluck;
@@ -2038,13 +2314,17 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-exports.default = function (connection) {
+exports.default = function (connection, options) {
   if (!connection) {
     throw new Error('Primus connection needs to be provided');
   }
 
   var defaultService = function defaultService(name) {
-    return new _client2.default({ name: name, connection: connection, method: 'send' });
+    return new _client2.default(Object.assign({}, options, {
+      name: name,
+      connection: connection,
+      method: 'send'
+    }));
   };
 
   var initialize = function initialize() {
@@ -2070,8 +2350,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 module.exports = exports['default'];
 },{"feathers-socket-commons/client":29}],18:[function(require,module,exports){
-arguments[4][16][0].apply(exports,arguments)
-},{"./lib/client":21,"dup":16}],19:[function(require,module,exports){
+arguments[4][4][0].apply(exports,arguments)
+},{"./lib/client/index":21,"dup":4}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2108,7 +2388,7 @@ var Base = function () {
       params = params || {};
       var url = this.base;
 
-      if (typeof id !== 'undefined') {
+      if (typeof id !== 'undefined' && id !== null) {
         url += '/' + id;
       }
 
@@ -2234,6 +2514,10 @@ var Service = function (_Base) {
       var _this2 = this;
 
       var fetchOptions = _extends({}, options);
+
+      fetchOptions.headers = _extends({
+        Accept: 'application/json'
+      }, fetchOptions.headers);
 
       if (options.body) {
         fetchOptions.body = JSON.stringify(options.body);
@@ -2499,7 +2783,7 @@ var Service = function (_Base) {
   _createClass(Service, [{
     key: 'request',
     value: function request(options) {
-      var superagent = this.connection(options.method, options.url).type(options.type || 'json');
+      var superagent = this.connection(options.method, options.url).set('Accept', 'application/json').type(options.type || 'json');
 
       return new Promise(function (resolve, reject) {
         superagent.set(options.headers);
@@ -3023,6 +3307,7 @@ var Service = function () {
     this.path = options.name;
     this.connection = options.connection;
     this.method = options.method;
+    this.timeout = options.timeout || 5000;
   }
 
   _createClass(Service, [{
@@ -3049,8 +3334,15 @@ var Service = function () {
       return new Promise(function (resolve, reject) {
         var _connection2;
 
-        args.unshift(_this.path + '::' + method);
+        var event = _this.path + '::' + method;
+        var timeoutId = setTimeout(function () {
+          return reject(new Error('Timeout of ' + _this.timeout + 'ms exceeded calling ' + event));
+        }, _this.timeout);
+
+        args.unshift(event);
         args.push(function (error, data) {
+          clearTimeout(timeoutId);
+
           if (callback) {
             callback(error, data);
           }
@@ -3124,6 +3416,7 @@ emitterMethods.forEach(function (method) {
 });
 module.exports = exports['default'];
 },{"./utils":31,"debug":1}],31:[function(require,module,exports){
+(function (process){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3132,7 +3425,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.events = exports.eventMappings = undefined;
 exports.convertFilterData = convertFilterData;
 exports.promisify = promisify;
-exports.errorObject = errorObject;
+exports.normalizeError = normalizeError;
 
 var _feathersCommons = require('feathers-commons');
 
@@ -3167,14 +3460,23 @@ function promisify(method, context) {
   });
 }
 
-function errorObject(e) {
+function normalizeError(e) {
   var result = {};
+
   Object.getOwnPropertyNames(e).forEach(function (key) {
     return result[key] = e[key];
   });
+
+  if (process.env.NODE_ENV === 'production') {
+    delete result.stack;
+  }
+
+  delete result.hook;
+
   return result;
 }
-},{"feathers-commons":9}],32:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"_process":44,"feathers-commons":9}],32:[function(require,module,exports){
 arguments[4][16][0].apply(exports,arguments)
 },{"./lib/client":33,"dup":16}],33:[function(require,module,exports){
 'use strict';
@@ -3183,13 +3485,21 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-exports.default = function (connection) {
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+exports.default = function (connection, options) {
   if (!connection) {
     throw new Error('Socket.io connection needs to be provided');
   }
 
   var defaultService = function defaultService(name) {
-    return new _client2.default({ name: name, connection: connection, method: 'emit' });
+    var settings = _extends({}, options, {
+      name: name,
+      connection: connection,
+      method: 'emit'
+    });
+
+    return new _client2.default(settings);
   };
 
   var initialize = function initialize() {
@@ -3215,9 +3525,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 module.exports = exports['default'];
 },{"feathers-socket-commons/client":29}],34:[function(require,module,exports){
-module.exports = require('./lib/client/index');
-
-},{"./lib/client/index":37}],35:[function(require,module,exports){
+arguments[4][4][0].apply(exports,arguments)
+},{"./lib/client/index":37,"dup":4}],35:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3300,7 +3609,7 @@ exports.default = {
     return this.services[location] = protoService;
   },
   use: function use(location) {
-    var service = undefined,
+    var service = void 0,
         middleware = Array.from(arguments).slice(1).reduce(function (middleware, arg) {
       if (typeof arg === 'function') {
         middleware[service ? 'after' : 'before'].push(arg);
@@ -3322,7 +3631,7 @@ exports.default = {
     };
 
     // Check for service (any object with at least one service method)
-    if (hasMethod(['handle', 'set']) || !hasMethod(this.methods)) {
+    if (hasMethod(['handle', 'set']) || !hasMethod(this.methods.concat('setup'))) {
       return this._super.apply(this, arguments);
     }
 
@@ -3445,9 +3754,9 @@ function createApplication() {
   return (0, _feathers2.default)(_express2.default.apply(undefined, arguments));
 }
 
-createApplication.version = require('../../package.json').version;
+createApplication.version = '2.0.1';
 module.exports = exports['default'];
-},{"../../package.json":43,"../feathers":38,"./express":36}],38:[function(require,module,exports){
+},{"../feathers":38,"./express":36}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3649,151 +3958,6 @@ function wrapper() {
 
 module.exports = exports['default'];
 },{}],43:[function(require,module,exports){
-module.exports={
-  "_args": [
-    [
-      "feathers@^2.0.0",
-      "/Users/daffl/Development/feathersjs/feathers-client"
-    ]
-  ],
-  "_from": "feathers@>=2.0.0 <3.0.0",
-  "_id": "feathers@2.0.0",
-  "_inCache": true,
-  "_installable": true,
-  "_location": "/feathers",
-  "_nodeVersion": "5.6.0",
-  "_npmOperationalInternal": {
-    "host": "packages-5-east.internal.npmjs.com",
-    "tmp": "tmp/feathers-2.0.0.tgz_1456123682541_0.35575417522341013"
-  },
-  "_npmUser": {
-    "email": "daff@neyeon.de",
-    "name": "daffl"
-  },
-  "_npmVersion": "3.6.0",
-  "_phantomChildren": {},
-  "_requested": {
-    "name": "feathers",
-    "raw": "feathers@^2.0.0",
-    "rawSpec": "^2.0.0",
-    "scope": null,
-    "spec": ">=2.0.0 <3.0.0",
-    "type": "range"
-  },
-  "_requiredBy": [
-    "/"
-  ],
-  "_resolved": "https://registry.npmjs.org/feathers/-/feathers-2.0.0.tgz",
-  "_shasum": "0ff06df8fd72271c25e6d1b4117b9e7721cfe370",
-  "_shrinkwrap": null,
-  "_spec": "feathers@^2.0.0",
-  "_where": "/Users/daffl/Development/feathersjs/feathers-client",
-  "author": {
-    "email": "hello@feathersjs.com",
-    "name": "Feathers",
-    "url": "http://feathersjs.com"
-  },
-  "browser": {
-    "./lib/index": "./lib/client/index"
-  },
-  "bugs": {
-    "url": "https://github.com/feathersjs/feathers/issues"
-  },
-  "contributors": [
-    {
-      "email": "e.kryski@gmail.com",
-      "name": "Eric Kryski",
-      "url": "http://erickryski.com"
-    },
-    {
-      "email": "daff@neyeon.de",
-      "name": "David Luecke",
-      "url": "http://neyeon.com"
-    }
-  ],
-  "dependencies": {
-    "babel-polyfill": "^6.3.14",
-    "debug": "^2.1.1",
-    "events": "^1.1.0",
-    "express": "^4.12.3",
-    "feathers-commons": "^0.7.0",
-    "rubberduck": "^1.0.0",
-    "uberproto": "^1.2.0"
-  },
-  "description": "Build Better APIs, Faster than Ever.",
-  "devDependencies": {
-    "babel-cli": "^6.3.17",
-    "babel-core": "^6.3.26",
-    "babel-plugin-add-module-exports": "^0.1.2",
-    "babel-preset-es2015": "^6.3.13",
-    "body-parser": "^1.13.2",
-    "feathers-client": "^0.5.1",
-    "feathers-rest": "^1.1.0",
-    "feathers-socketio": "^1.1.0",
-    "istanbul": "^0.4.0",
-    "jshint": "^2.6.3",
-    "mocha": "^2.2.0",
-    "nsp": "^2.2.0",
-    "q": "^1.0.1",
-    "request": "^2.x",
-    "socket.io-client": "^1.0.0"
-  },
-  "directories": {
-    "lib": "lib"
-  },
-  "dist": {
-    "shasum": "0ff06df8fd72271c25e6d1b4117b9e7721cfe370",
-    "tarball": "http://registry.npmjs.org/feathers/-/feathers-2.0.0.tgz"
-  },
-  "engines": {
-    "node": ">= 0.10.0",
-    "npm": ">= 1.3.0"
-  },
-  "gitHead": "5a05f04928c920761e00fb564a0cec6a65272359",
-  "homepage": "http://feathersjs.com",
-  "keywords": [
-    "feathers",
-    "REST",
-    "socket.io",
-    "realtime"
-  ],
-  "license": "MIT",
-  "main": "lib/index",
-  "maintainers": [
-    {
-      "email": "e.kryski@gmail.com",
-      "name": "ekryski"
-    },
-    {
-      "email": "daff@neyeon.de",
-      "name": "daffl"
-    }
-  ],
-  "name": "feathers",
-  "optionalDependencies": {},
-  "readme": "ERROR: No README data found!",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/feathersjs/feathers.git"
-  },
-  "scripts": {
-    "compile": "rm -rf lib/ && babel -d lib/ src/",
-    "coverage": "istanbul cover _mocha -- test/ --recursive",
-    "jshint": "jshint src/. test/. --config",
-    "mocha": "mocha test/ --compilers js:babel-core/register --recursive",
-    "prepublish": "npm run compile",
-    "publish": "git push origin && git push origin --tags",
-    "release:major": "npm version major && npm publish",
-    "release:minor": "npm version minor && npm publish",
-    "release:patch": "npm version patch && npm publish",
-    "release:prerelease": "npm version prerelease && npm publish --tag pegasus",
-    "test": "npm run compile && npm run jshint && npm run mocha && nsp check",
-    "watch": "babel --watch -d lib/ src/"
-  },
-  "version": "2.0.0"
-}
-
-},{}],44:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -3919,6 +4083,99 @@ function plural(ms, n, name) {
   if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
+
+},{}],44:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = setTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    clearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        setTimeout(drainQueue, 0);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
 
 },{}],45:[function(require,module,exports){
 var events = require('events');
