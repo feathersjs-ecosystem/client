@@ -45,16 +45,15 @@
     "lib": "lib"
   },
   "browser": {
-    "babel-polyfill": false,
-    "debug": false
+    "babel-polyfill": false
   },
   "dependencies": {
-    "feathers": "^2.0.0",
-    "feathers-authentication": "^0.7.0",
-    "feathers-hooks": "^1.4.0",
-    "feathers-primus": "^1.3.3",
-    "feathers-rest": "^1.2.4",
-    "feathers-socketio": "^1.3.3"
+    "feathers": "2.0.1",
+    "feathers-authentication": "0.7.7",
+    "feathers-hooks": "1.5.3",
+    "feathers-primus": "1.4.0",
+    "feathers-rest": "1.3.0",
+    "feathers-socketio": "1.4.0"
   },
   "devDependencies": {
     "babel-cli": "^6.1.4",
