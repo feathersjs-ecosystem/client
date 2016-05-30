@@ -1240,31 +1240,9 @@ var _ = exports._ = {
       keys[_key - 1] = arguments[_key];
     }
 
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = keys[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var key = _step.value;
-
-        delete result[key];
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
-    }
-
+    keys.forEach(function (key) {
+      return delete result[key];
+    });
     return result;
   }
 };
@@ -1660,7 +1638,26 @@ var errors = {
   Unavailable: Unavailable
 };
 
-exports.default = _extends({ types: errors, errors: errors }, errors);
+function convert(error) {
+  if (!error) {
+    return error;
+  }
+
+  var FeathersError = errors[error.name];
+  var result = FeathersError ? new FeathersError(error.message, error.data) : new Error(error.message || error);
+
+  if ((typeof error === 'undefined' ? 'undefined' : _typeof(error)) === 'object') {
+    _extends(result, error);
+  }
+
+  return result;
+}
+
+exports.default = _extends({
+  convert: convert,
+  types: errors,
+  errors: errors
+}, errors);
 module.exports = exports['default'];
 },{"debug":1}],13:[function(require,module,exports){
 'use strict';
@@ -2050,16 +2047,16 @@ function populate(target, options) {
       else if (typeof item.toJSON === 'function') {
           item = item.toJSON(options);
         }
+      // Remove any query from params as it's not related
+      var params = Object.assign({}, params, { query: undefined });
       // If the relationship is an array of ids, fetch and resolve an object for each, otherwise just fetch the object.
       var promise = Array.isArray(id) ? Promise.all(id.map(function (objectID) {
-        return hook.app.service(options.service).get(objectID, hook.params);
-      })) : hook.app.service(options.service).get(id, hook.params);
+        return hook.app.service(options.service).get(objectID, params);
+      })) : hook.app.service(options.service).get(id, params);
       return promise.then(function (relatedItem) {
         if (relatedItem) {
           item[target] = relatedItem;
         }
-        return item;
-      }).catch(function () {
         return item;
       });
     }
@@ -2388,9 +2385,15 @@ var _qs2 = _interopRequireDefault(_qs);
 
 var _feathersCommons = require('feathers-commons');
 
+var _feathersErrors = require('feathers-errors');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function toError(error) {
+  throw (0, _feathersErrors.convert)(error);
+}
 
 var Base = function () {
   function Base(settings) {
@@ -2429,7 +2432,7 @@ var Base = function () {
         url: this.makeUrl(params.query),
         method: 'GET',
         headers: _extends({}, params.headers)
-      });
+      }).catch(toError);
     }
   }, {
     key: 'get',
@@ -2440,7 +2443,7 @@ var Base = function () {
         url: this.makeUrl(params.query, id),
         method: 'GET',
         headers: _extends({}, params.headers)
-      });
+      }).catch(toError);
     }
   }, {
     key: 'create',
@@ -2452,7 +2455,7 @@ var Base = function () {
         body: body,
         method: 'POST',
         headers: _extends({ 'Content-Type': 'application/json' }, params.headers)
-      });
+      }).catch(toError);
     }
   }, {
     key: 'update',
@@ -2464,7 +2467,7 @@ var Base = function () {
         body: body,
         method: 'PUT',
         headers: _extends({ 'Content-Type': 'application/json' }, params.headers)
-      });
+      }).catch(toError);
     }
   }, {
     key: 'patch',
@@ -2476,7 +2479,7 @@ var Base = function () {
         body: body,
         method: 'PATCH',
         headers: _extends({ 'Content-Type': 'application/json' }, params.headers)
-      });
+      }).catch(toError);
     }
   }, {
     key: 'remove',
@@ -2487,7 +2490,7 @@ var Base = function () {
         url: this.makeUrl(params.query, id),
         method: 'DELETE',
         headers: _extends({}, params.headers)
-      });
+      }).catch(toError);
     }
   }]);
 
@@ -2496,7 +2499,7 @@ var Base = function () {
 
 exports.default = Base;
 module.exports = exports['default'];
-},{"feathers-commons":9,"qs":25}],20:[function(require,module,exports){
+},{"feathers-commons":9,"feathers-errors":12,"qs":25}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2554,10 +2557,28 @@ var Service = function (_Base) {
         return response;
       }
 
-      var error = new Error(response.statusText);
-      error.code = response.status;
-      error.response = response;
-      throw error;
+      return new Promise(function (resolve, reject) {
+        var body = response.body;
+        var buffer = '';
+
+        body.on('data', function (data) {
+          return buffer += data.toString();
+        });
+        body.on('error', reject);
+        body.on('end', function () {
+          var error = new Error(buffer);
+
+          try {
+            error = JSON.parse(buffer);
+          } catch (e) {
+            error.code = response.status;
+          }
+
+          error.response = response;
+
+          reject(error);
+        });
+      });
     }
   }, {
     key: 'parseJSON',
@@ -2693,8 +2714,16 @@ var Service = function (_Base) {
 
       return new Promise(function (resolve, reject) {
         _this2.connection.ajax(opts).then(resolve, function (xhr) {
-          var error = new Error(xhr.responseText);
-          error.xhr = xhr;
+          var error = xhr.responseText;
+
+          try {
+            error = JSON.parse(error);
+          } catch (e) {
+            error = new Error(xhr.responseText);
+          }
+
+          error.xhr = error.response = xhr;
+
           reject(error);
         });
       });
@@ -2756,6 +2785,8 @@ var Service = function (_Base) {
               return reject(new Error(data));
             }
 
+            data.response = res;
+
             return reject(_extends(new Error(data.message), data));
           }
 
@@ -2814,6 +2845,12 @@ var Service = function (_Base) {
 
         superagent.end(function (error, res) {
           if (error) {
+            try {
+              var response = error.response;
+              error = JSON.parse(error.response.text);
+              error.response = response;
+            } catch (e) {}
+
             return reject(error);
           }
 
@@ -3326,6 +3363,8 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _utils = require('./utils');
 
+var _feathersErrors = require('feathers-errors');
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var debug = require('debug')('feathers-socket-commons:client');
@@ -3372,6 +3411,7 @@ var Service = function () {
 
         args.unshift(event);
         args.push(function (error, data) {
+          error = (0, _feathersErrors.convert)(error);
           clearTimeout(timeoutId);
 
           if (callback) {
@@ -3446,7 +3486,7 @@ emitterMethods.forEach(function (method) {
   };
 });
 module.exports = exports['default'];
-},{"./utils":31,"debug":1}],31:[function(require,module,exports){
+},{"./utils":31,"debug":1,"feathers-errors":12}],31:[function(require,module,exports){
 (function (process){
 'use strict';
 
