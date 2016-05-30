@@ -39,42 +39,8 @@ In the browser a client that connects to the local server via websockets can be 
 
 For the full documentation see [the Feathers documentation](http://docs.feathersjs.com/clients/feathers.html).
 
-## Changelog
-
-__1.1.0__
-
-- feathers-authentication 0.7.0
-
-__1.0.0__
-
-- Migration to a consolidation module for universal Feathers and its plugins
-
-__0.5.0__
-
-- Adding React Native fetch plugin
-
-__0.4.0__
-
-- updating dependencies
-
-__0.3.0__
-
-- Migrating to ES6 and use with Promises ([#7](https://github.com/feathersjs/feathers-client/issues/7))
-
-__0.2.0__
-
-- Make client use feathers-commons
-
-__0.1.0__
-
-- Initial release
-
-## Author
-
-- [Feathers contributors](https://github.com/feathersjs/feathers-client/graphs/contributors)
-
 ## License
 
-Copyright (c) 2015 David Luecke
+Copyright (c) 2015 [Feathers contributors](https://github.com/feathersjs/feathers-client/graphs/contributors)
 
 Licensed under the [MIT license](LICENSE).
