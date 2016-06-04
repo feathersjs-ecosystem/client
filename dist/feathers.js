@@ -2534,8 +2534,6 @@ var Service = function (_Base) {
   _createClass(Service, [{
     key: 'request',
     value: function request(options) {
-      var _this2 = this;
-
       var fetchOptions = _extends({}, options);
 
       fetchOptions.headers = _extends({
@@ -2546,9 +2544,9 @@ var Service = function (_Base) {
         fetchOptions.body = JSON.stringify(options.body);
       }
 
-      return new Promise(function (resolve, reject) {
-        _this2.connection(options.url, fetchOptions).then(_this2.checkStatus).then(_this2.parseJSON).then(resolve).catch(reject);
-      });
+      var fetch = this.connection;
+
+      return fetch(options.url, fetchOptions).then(this.checkStatus).then(this.parseJSON);
     }
   }, {
     key: 'checkStatus',
