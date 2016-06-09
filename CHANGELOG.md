@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.3.2](https://github.com/feathersjs/feathers-client/tree/v1.3.2) (2016-06-09)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.3.1...v1.3.2)
+
+**Merged pull requests:**
+
+- Update feathers-authentication to version 0.7.8 🚀 [\#61](https://github.com/feathersjs/feathers-client/pull/61) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+
 ## [v1.3.1](https://github.com/feathersjs/feathers-client/tree/v1.3.1) (2016-06-04)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.3.0...v1.3.1)
 
