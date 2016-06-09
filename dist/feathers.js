@@ -697,7 +697,7 @@ function populateHeader() {
 
   return function (hook) {
     if (hook.params.token) {
-      hook.params.headers = Object.assign({}, _defineProperty({}, options.header || 'Authorization', hook.params.token), hook.params.headers);
+      hook.params.headers = Object.assign({}, _defineProperty({}, options.header || 'authorization', hook.params.token), hook.params.headers);
     }
   };
 }
@@ -779,7 +779,7 @@ exports.default = function () {
       (0, _utils.clearCookie)(config.cookie);
 
       // remove the token from localStorage
-      return Promise.resolve(app.get('storage').setItem(config.tokenKey, '')).then(function () {
+      return Promise.resolve(app.get('storage').removeItem(config.tokenKey)).then(function () {
         // If using sockets de-authenticate the socket
         if (app.io || app.primus) {
           var method = app.io ? 'emit' : 'send';
@@ -946,6 +946,10 @@ function getStorage(storage) {
     },
     setItem: function setItem(key, value) {
       return this.store[key] = value;
+    },
+    removeItem: function removeItem(key) {
+      delete this.store[key];
+      return this;
     }
   };
 }
