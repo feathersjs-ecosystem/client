@@ -27,8 +27,9 @@
     "clean": "rm -rf dist/ && mkdir -p dist",
     "browserify:test": "browserify test/browser/test.js -t babelify --outfile dist/browser.test.js",
     "browserify:dist": "browserify src/client.js -t babelify --standalone feathers --outfile dist/feathers.js",
-    "browserify": "npm run browserify:dist && npm run browserify:test",
-    "add-dist": "npm run clean && npm run browserify:dist && git add dist/ --force && git commit -am \"Updating dist\"",
+    "browserify:min": "browserify src/client.js -t babelify --standalone dist/ | uglifyjs > dist/feathers.min.js",
+    "browserify": "npm run browserify:dist && npm run browserify:min && npm run browserify:test",
+    "add-dist": "npm run clean && npm run browserify:dist && npm run browserify:min && git add dist/ --force && git commit -am \"Updating dist\"",
     "prepublish": "npm run compile",
     "publish": "git push origin && git push origin --tags",
     "release:prerelease": "npm run add-dist && npm version prerelease && npm publish",
@@ -71,6 +72,7 @@
     "request": "^2.56.0",
     "socket.io-client": "^1.3.5",
     "superagent": "^2.0.0",
-    "testee": "^0.2.5"
+    "testee": "^0.2.5",
+    "uglifyjs": "^2.4.10"
   }
 }
