@@ -1,5 +1,18 @@
 # Change Log
 
+## [v1.4.0](https://github.com/feathersjs/feathers-client/tree/v1.4.0) (2016-06-24)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.3.2...v1.4.0)
+
+**Closed issues:**
+
+- feathers.min.js? [\#64](https://github.com/feathersjs/feathers-client/issues/64)
+- Facebook login [\#62](https://github.com/feathersjs/feathers-client/issues/62)
+
+**Merged pull requests:**
+
+- Add dist/feathers.min.js [\#65](https://github.com/feathersjs/feathers-client/pull/65) ([daffl](https://github.com/daffl))
+- Update feathers-authentication to version 0.7.9 🚀 [\#63](https://github.com/feathersjs/feathers-client/pull/63) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+
 ## [v1.3.2](https://github.com/feathersjs/feathers-client/tree/v1.3.2) (2016-06-09)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.3.1...v1.3.2)
 
