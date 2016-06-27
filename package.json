@@ -27,7 +27,7 @@
     "clean": "rm -rf dist/ && mkdir -p dist",
     "browserify:test": "browserify test/browser/test.js -t babelify --outfile dist/browser.test.js",
     "browserify:dist": "browserify src/client.js -t babelify --standalone feathers --outfile dist/feathers.js",
-    "browserify:min": "browserify src/client.js -t babelify --standalone dist/ | uglifyjs > dist/feathers.min.js",
+    "browserify:min": "browserify src/client.js -t babelify --standalone feathers | uglifyjs > dist/feathers.min.js",
     "browserify": "npm run browserify:dist && npm run browserify:min && npm run browserify:test",
     "add-dist": "npm run clean && npm run browserify:dist && npm run browserify:min && git add dist/ --force && git commit -am \"Updating dist\"",
     "prepublish": "npm run compile",
