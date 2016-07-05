@@ -1,5 +1,15 @@
 # Change Log
 
+## [v1.5.0](https://github.com/feathersjs/feathers-client/tree/v1.5.0) (2016-07-05)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.4.1...v1.5.0)
+
+**Closed issues:**
+
+- Refresh browser [\#68](https://github.com/feathersjs/feathers-client/issues/68)
+
+## [v1.4.1](https://github.com/feathersjs/feathers-client/tree/v1.4.1) (2016-06-27)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.4.0...v1.4.1)
+
 ## [v1.4.0](https://github.com/feathersjs/feathers-client/tree/v1.4.0) (2016-06-24)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.3.2...v1.4.0)
 
