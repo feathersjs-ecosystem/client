@@ -367,7 +367,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":43}],3:[function(require,module,exports){
+},{"ms":39}],3:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -427,8 +427,12 @@ EventEmitter.prototype.emit = function(type) {
       er = arguments[1];
       if (er instanceof Error) {
         throw er; // Unhandled 'error' event
+      } else {
+        // At least give some kind of context to the user
+        var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
+        err.context = er;
+        throw err;
       }
-      throw TypeError('Uncaught, unspecified "error" event.');
     }
   }
 
@@ -2370,7 +2374,7 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":29}],18:[function(require,module,exports){
+},{"feathers-socket-commons/client":25}],18:[function(require,module,exports){
 arguments[4][4][0].apply(exports,arguments)
 },{"./lib/client/index":21,"dup":4}],19:[function(require,module,exports){
 'use strict';
@@ -2503,7 +2507,7 @@ var Base = function () {
 
 exports.default = Base;
 module.exports = exports['default'];
-},{"feathers-commons":9,"feathers-errors":12,"qs":25}],20:[function(require,module,exports){
+},{"feathers-commons":9,"feathers-errors":12,"qs":41}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2868,6 +2872,967 @@ var Service = function (_Base) {
 exports.default = Service;
 module.exports = exports['default'];
 },{"./base":19}],25:[function(require,module,exports){
+arguments[4][16][0].apply(exports,arguments)
+},{"./lib/client":26,"dup":16}],26:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _utils = require('./utils');
+
+var _feathersErrors = require('feathers-errors');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var debug = require('debug')('feathers-socket-commons:client');
+var namespacedEmitterMethods = ['addListener', 'emit', 'listenerCount', 'listeners', 'on', 'once', 'prependListener', 'prependOnceListener', 'removeAllListeners', 'removeListener'];
+var otherEmitterMethods = ['eventNames', 'getMaxListeners', 'setMaxListeners'];
+
+var addEmitterMethods = function addEmitterMethods(service) {
+  otherEmitterMethods.forEach(function (method) {
+    service[method] = function () {
+      var _connection;
+
+      if (typeof this.connection[method] !== 'function') {
+        throw new Error('Can not call \'' + method + '\' on the client service connection.');
+      }
+
+      return (_connection = this.connection)[method].apply(_connection, arguments);
+    };
+  });
+
+  namespacedEmitterMethods.forEach(function (method) {
+    service[method] = function (name) {
+      var _connection2;
+
+      if (typeof this.connection[method] !== 'function') {
+        throw new Error('Can not call \'' + method + '\' on the client service connection.');
+      }
+
+      var eventName = this.path + ' ' + name;
+
+      debug('Calling emitter method ' + method + ' with ' + ('namespaced event \'' + eventName + '\''));
+
+      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
+
+      var result = (_connection2 = this.connection)[method].apply(_connection2, [eventName].concat(args));
+
+      return result === this.connection ? this : result;
+    };
+  });
+};
+
+var Service = function () {
+  function Service(options) {
+    _classCallCheck(this, Service);
+
+    this.events = _utils.events;
+    this.path = options.name;
+    this.connection = options.connection;
+    this.method = options.method;
+    this.timeout = options.timeout || 5000;
+
+    addEmitterMethods(this);
+  }
+
+  _createClass(Service, [{
+    key: 'send',
+    value: function send(method) {
+      var _this = this;
+
+      for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+        args[_key2 - 1] = arguments[_key2];
+      }
+
+      var callback = null;
+      if (typeof args[args.length - 1] === 'function') {
+        callback = args.pop();
+      }
+
+      return new Promise(function (resolve, reject) {
+        var _connection3;
+
+        var event = _this.path + '::' + method;
+        var timeoutId = setTimeout(function () {
+          return reject(new Error('Timeout of ' + _this.timeout + 'ms exceeded calling ' + event));
+        }, _this.timeout);
+
+        args.unshift(event);
+        args.push(function (error, data) {
+          error = (0, _feathersErrors.convert)(error);
+          clearTimeout(timeoutId);
+
+          if (callback) {
+            callback(error, data);
+          }
+
+          return error ? reject(error) : resolve(data);
+        });
+
+        debug('Sending socket.' + _this.method, args);
+
+        (_connection3 = _this.connection)[_this.method].apply(_connection3, args);
+      });
+    }
+  }, {
+    key: 'find',
+    value: function find() {
+      var params = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+      return this.send('find', params.query || {});
+    }
+  }, {
+    key: 'get',
+    value: function get(id) {
+      var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+      return this.send('get', id, params.query || {});
+    }
+  }, {
+    key: 'create',
+    value: function create(data) {
+      var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+      return this.send('create', data, params.query || {});
+    }
+  }, {
+    key: 'update',
+    value: function update(id, data) {
+      var params = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+      return this.send('update', id, data, params.query || {});
+    }
+  }, {
+    key: 'patch',
+    value: function patch(id, data) {
+      var params = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+      return this.send('patch', id, data, params.query || {});
+    }
+  }, {
+    key: 'remove',
+    value: function remove(id) {
+      var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+      return this.send('remove', id, params.query || {});
+    }
+  }, {
+    key: 'off',
+    value: function off() {
+      if (typeof this.connection.off === 'function') {
+        var _connection4;
+
+        return (_connection4 = this.connection).off.apply(_connection4, arguments);
+      } else if (arguments.length === 1) {
+        return this.removeAllListeners.apply(this, arguments);
+      }
+
+      return this.removeEventListener.apply(this, arguments);
+    }
+  }]);
+
+  return Service;
+}();
+
+exports.default = Service;
+module.exports = exports['default'];
+},{"./utils":27,"debug":1,"feathers-errors":12}],27:[function(require,module,exports){
+(function (process){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.events = exports.eventMappings = undefined;
+exports.convertFilterData = convertFilterData;
+exports.promisify = promisify;
+exports.normalizeError = normalizeError;
+
+var _feathersCommons = require('feathers-commons');
+
+var eventMappings = exports.eventMappings = {
+  create: 'created',
+  update: 'updated',
+  patch: 'patched',
+  remove: 'removed'
+};
+
+var events = exports.events = Object.keys(eventMappings).map(function (method) {
+  return eventMappings[method];
+});
+
+function convertFilterData(obj) {
+  return _feathersCommons.hooks.convertHookData(obj);
+}
+
+function promisify(method, context) {
+  for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+    args[_key - 2] = arguments[_key];
+  }
+
+  return new Promise(function (resolve, reject) {
+    method.apply(context, args.concat(function (error, result) {
+      if (error) {
+        return reject(error);
+      }
+
+      resolve(result);
+    }));
+  });
+}
+
+function normalizeError(e) {
+  var result = {};
+
+  Object.getOwnPropertyNames(e).forEach(function (key) {
+    return result[key] = e[key];
+  });
+
+  if (process.env.NODE_ENV === 'production') {
+    delete result.stack;
+  }
+
+  delete result.hook;
+
+  return result;
+}
+}).call(this,require('_process'))
+},{"_process":40,"feathers-commons":9}],28:[function(require,module,exports){
+arguments[4][16][0].apply(exports,arguments)
+},{"./lib/client":29,"dup":16}],29:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+exports.default = function (connection, options) {
+  if (!connection) {
+    throw new Error('Socket.io connection needs to be provided');
+  }
+
+  var defaultService = function defaultService(name) {
+    var settings = _extends({}, options, {
+      name: name,
+      connection: connection,
+      method: 'emit'
+    });
+
+    return new _client2.default(settings);
+  };
+
+  var initialize = function initialize() {
+    if (typeof this.defaultService === 'function') {
+      throw new Error('Only one default client provider can be configured');
+    }
+
+    this.io = connection;
+    this.defaultService = defaultService;
+  };
+
+  initialize.Service = _client2.default;
+  initialize.service = defaultService;
+
+  return initialize;
+};
+
+var _client = require('feathers-socket-commons/client');
+
+var _client2 = _interopRequireDefault(_client);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+module.exports = exports['default'];
+},{"feathers-socket-commons/client":25}],30:[function(require,module,exports){
+arguments[4][4][0].apply(exports,arguments)
+},{"./lib/client/index":33,"dup":4}],31:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
+var _feathersCommons = require('feathers-commons');
+
+var _uberproto = require('uberproto');
+
+var _uberproto2 = _interopRequireDefault(_uberproto);
+
+var _index = require('./mixins/index');
+
+var _index2 = _interopRequireDefault(_index);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var debug = (0, _debug2.default)('feathers:application');
+var methods = ['find', 'get', 'create', 'update', 'patch', 'remove'];
+var Proto = _uberproto2.default.extend({
+  create: null
+});
+
+exports.default = {
+  init: function init() {
+    Object.assign(this, {
+      methods: methods,
+      mixins: (0, _index2.default)(),
+      services: {},
+      providers: [],
+      _setup: false
+    });
+  },
+  service: function service(location, _service) {
+    var _this = this;
+
+    var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+    location = (0, _feathersCommons.stripSlashes)(location);
+
+    if (!_service) {
+      var current = this.services[location];
+
+      if (typeof current === 'undefined' && typeof this.defaultService === 'function') {
+        return this.service(location, this.defaultService(location), options);
+      }
+
+      return current;
+    }
+
+    var protoService = Proto.extend(_service);
+
+    debug('Registering new service at `' + location + '`');
+
+    // Add all the mixins
+    this.mixins.forEach(function (fn) {
+      return fn.call(_this, protoService);
+    });
+
+    if (typeof protoService._setup === 'function') {
+      protoService._setup(this, location);
+    }
+
+    // Run the provider functions to register the service
+    this.providers.forEach(function (provider) {
+      return provider.call(_this, location, protoService, options);
+    });
+
+    // If we ran setup already, set this service up explicitly
+    if (this._isSetup && typeof protoService.setup === 'function') {
+      debug('Setting up service for `' + location + '`');
+      protoService.setup(this, location);
+    }
+
+    return this.services[location] = protoService;
+  },
+  use: function use(location) {
+    var service = void 0,
+        middleware = Array.from(arguments).slice(1).reduce(function (middleware, arg) {
+      if (typeof arg === 'function') {
+        middleware[service ? 'after' : 'before'].push(arg);
+      } else if (!service) {
+        service = arg;
+      } else {
+        throw new Error('invalid arg passed to app.use');
+      }
+      return middleware;
+    }, {
+      before: [],
+      after: []
+    });
+
+    var hasMethod = function hasMethod(methods) {
+      return methods.some(function (name) {
+        return service && typeof service[name] === 'function';
+      });
+    };
+
+    // Check for service (any object with at least one service method)
+    if (hasMethod(['handle', 'set']) || !hasMethod(this.methods.concat('setup'))) {
+      return this._super.apply(this, arguments);
+    }
+
+    // Any arguments left over are other middleware that we want to pass to the providers
+    this.service(location, service, { middleware: middleware });
+
+    return this;
+  },
+  setup: function setup() {
+    var _this2 = this;
+
+    // Setup each service (pass the app so that they can look up other services etc.)
+    Object.keys(this.services).forEach(function (path) {
+      var service = _this2.services[path];
+
+      debug('Setting up service for `' + path + '`');
+      if (typeof service.setup === 'function') {
+        service.setup(_this2, path);
+      }
+    });
+
+    this._isSetup = true;
+
+    return this;
+  },
+
+
+  // Express 3.x configure is gone in 4.x but we'll keep a more basic version
+  // That just takes a function in order to keep Feathers plugin configuration easier.
+  // Environment specific configurations should be done as suggested in the 4.x migration guide:
+  // https://github.com/visionmedia/express/wiki/Migrating-from-3.x-to-4.x
+  configure: function configure(fn) {
+    fn.call(this);
+
+    return this;
+  },
+  listen: function listen() {
+    var server = this._super.apply(this, arguments);
+
+    this.setup(server);
+    debug('Feathers application listening');
+
+    return server;
+  }
+};
+module.exports = exports['default'];
+},{"./mixins/index":36,"debug":1,"feathers-commons":9,"uberproto":47}],32:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function () {
+  var app = {
+    settings: {},
+
+    get: function get(name) {
+      return this.settings[name];
+    },
+    set: function set(name, value) {
+      this.settings[name] = value;
+      return this;
+    },
+    disable: function disable(name) {
+      this.settings[name] = false;
+      return this;
+    },
+    disabled: function disabled(name) {
+      return !this.settings[name];
+    },
+    enable: function enable(name) {
+      this.settings[name] = true;
+      return this;
+    },
+    enabled: function enabled(name) {
+      return !!this.settings[name];
+    },
+    use: function use() {
+      throw new Error('Middleware functions can not be used in the Feathers client');
+    },
+    listen: function listen() {
+      return {};
+    }
+  };
+
+  _uberproto2.default.mixin(_events.EventEmitter.prototype, app);
+
+  return app;
+};
+
+var _events = require('events');
+
+var _uberproto = require('uberproto');
+
+var _uberproto2 = _interopRequireDefault(_uberproto);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+module.exports = exports['default'];
+},{"events":3,"uberproto":47}],33:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = createApplication;
+
+var _feathers = require('../feathers');
+
+var _feathers2 = _interopRequireDefault(_feathers);
+
+var _express = require('./express');
+
+var _express2 = _interopRequireDefault(_express);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function createApplication() {
+  return (0, _feathers2.default)(_express2.default.apply(undefined, arguments));
+}
+
+createApplication.version = '2.0.1';
+module.exports = exports['default'];
+},{"../feathers":34,"./express":32}],34:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = createApplication;
+
+var _uberproto = require('uberproto');
+
+var _uberproto2 = _interopRequireDefault(_uberproto);
+
+var _application = require('./application');
+
+var _application2 = _interopRequireDefault(_application);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Create a Feathers application that extends Express.
+ *
+ * @return {Function}
+ * @api public
+ */
+function createApplication(app) {
+  _uberproto2.default.mixin(_application2.default, app);
+  app.init();
+  return app;
+}
+module.exports = exports['default'];
+},{"./application":31,"uberproto":47}],35:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function (service) {
+  var isEmitter = typeof service.on === 'function' && typeof service.emit === 'function';
+  var emitter = service._rubberDuck = _rubberduck2.default.emitter(service);
+
+  if (typeof service.mixin === 'function' && !isEmitter) {
+    service.mixin(_events.EventEmitter.prototype);
+  }
+
+  service._serviceEvents = Array.isArray(service.events) ? service.events.slice() : [];
+
+  // Pass the Rubberduck error event through
+  // TODO deal with error events properly
+  emitter.on('error', function (errors) {
+    service.emit('serviceError', errors[0]);
+  });
+
+  Object.keys(eventMappings).forEach(function (method) {
+    var event = eventMappings[method];
+    var alreadyEmits = service._serviceEvents.indexOf(event) !== -1;
+
+    if (typeof service[method] === 'function' && !alreadyEmits) {
+      // The Rubberduck event name (e.g. afterCreate, afterUpdate or afterDestroy)
+      var eventName = 'after' + upperCase(method);
+      service._serviceEvents.push(event);
+      // Punch the given method
+      emitter.punch(method, -1);
+      // Pass the event and error event through
+      emitter.on(eventName, function (results, args) {
+        if (!results[0]) {
+          (function () {
+            // callback without error
+            var hook = hookObject(method, 'after', args);
+            var data = Array.isArray(results[1]) ? results[1] : [results[1]];
+
+            data.forEach(function (current) {
+              return service.emit(event, current, hook);
+            });
+          })();
+        } else {
+          service.emit('serviceError', results[0]);
+        }
+      });
+    }
+  });
+};
+
+var _rubberduck = require('rubberduck');
+
+var _rubberduck2 = _interopRequireDefault(_rubberduck);
+
+var _events = require('events');
+
+var _feathersCommons = require('feathers-commons');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var hookObject = _feathersCommons.hooks.hookObject;
+var eventMappings = {
+  create: 'created',
+  update: 'updated',
+  remove: 'removed',
+  patch: 'patched'
+};
+
+function upperCase(name) {
+  return name.charAt(0).toUpperCase() + name.substring(1);
+}
+
+module.exports = exports['default'];
+},{"events":3,"feathers-commons":9,"rubberduck":45}],36:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function () {
+  var mixins = [require('./promise'), require('./event'), require('./normalizer')];
+
+  // Override push to make sure that normalize is always the last
+  mixins.push = function () {
+    var args = [this.length - 1, 0].concat(Array.from(arguments));
+    this.splice.apply(this, args);
+    return this.length;
+  };
+
+  return mixins;
+};
+
+module.exports = exports['default'];
+},{"./event":35,"./normalizer":37,"./promise":38}],37:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function (service) {
+  var _this = this;
+
+  if (typeof service.mixin === 'function') {
+    (function () {
+      var mixin = {};
+
+      _this.methods.forEach(function (method) {
+        if (typeof service[method] === 'function') {
+          mixin[method] = function () {
+            return this._super.apply(this, (0, _feathersCommons.getArguments)(method, arguments));
+          };
+        }
+      });
+
+      service.mixin(mixin);
+    })();
+  }
+};
+
+var _feathersCommons = require('feathers-commons');
+
+module.exports = exports['default'];
+},{"feathers-commons":9}],38:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function (service) {
+  var _this = this;
+
+  if (typeof service.mixin === 'function') {
+    (function () {
+      var mixin = {};
+
+      _this.methods.forEach(function (method) {
+        if (typeof service[method] === 'function') {
+          mixin[method] = wrapper;
+        }
+      });
+
+      service.mixin(mixin);
+    })();
+  }
+};
+
+function isPromise(result) {
+  return typeof result !== 'undefined' && typeof result.then === 'function';
+}
+
+function wrapper() {
+  var result = this._super.apply(this, arguments);
+  var callback = arguments[arguments.length - 1];
+
+  if (typeof callback === 'function' && isPromise(result)) {
+    result.then(function (data) {
+      return callback(null, data);
+    }, function (error) {
+      return callback(error);
+    });
+  }
+  return result;
+}
+
+module.exports = exports['default'];
+},{}],39:[function(require,module,exports){
+/**
+ * Helpers.
+ */
+
+var s = 1000;
+var m = s * 60;
+var h = m * 60;
+var d = h * 24;
+var y = d * 365.25;
+
+/**
+ * Parse or format the given `val`.
+ *
+ * Options:
+ *
+ *  - `long` verbose formatting [false]
+ *
+ * @param {String|Number} val
+ * @param {Object} options
+ * @return {String|Number}
+ * @api public
+ */
+
+module.exports = function(val, options){
+  options = options || {};
+  if ('string' == typeof val) return parse(val);
+  return options.long
+    ? long(val)
+    : short(val);
+};
+
+/**
+ * Parse the given `str` and return milliseconds.
+ *
+ * @param {String} str
+ * @return {Number}
+ * @api private
+ */
+
+function parse(str) {
+  str = '' + str;
+  if (str.length > 10000) return;
+  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
+  if (!match) return;
+  var n = parseFloat(match[1]);
+  var type = (match[2] || 'ms').toLowerCase();
+  switch (type) {
+    case 'years':
+    case 'year':
+    case 'yrs':
+    case 'yr':
+    case 'y':
+      return n * y;
+    case 'days':
+    case 'day':
+    case 'd':
+      return n * d;
+    case 'hours':
+    case 'hour':
+    case 'hrs':
+    case 'hr':
+    case 'h':
+      return n * h;
+    case 'minutes':
+    case 'minute':
+    case 'mins':
+    case 'min':
+    case 'm':
+      return n * m;
+    case 'seconds':
+    case 'second':
+    case 'secs':
+    case 'sec':
+    case 's':
+      return n * s;
+    case 'milliseconds':
+    case 'millisecond':
+    case 'msecs':
+    case 'msec':
+    case 'ms':
+      return n;
+  }
+}
+
+/**
+ * Short format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function short(ms) {
+  if (ms >= d) return Math.round(ms / d) + 'd';
+  if (ms >= h) return Math.round(ms / h) + 'h';
+  if (ms >= m) return Math.round(ms / m) + 'm';
+  if (ms >= s) return Math.round(ms / s) + 's';
+  return ms + 'ms';
+}
+
+/**
+ * Long format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function long(ms) {
+  return plural(ms, d, 'day')
+    || plural(ms, h, 'hour')
+    || plural(ms, m, 'minute')
+    || plural(ms, s, 'second')
+    || ms + ' ms';
+}
+
+/**
+ * Pluralization helper.
+ */
+
+function plural(ms, n, name) {
+  if (ms < n) return;
+  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
+  return Math.ceil(ms / n) + ' ' + name + 's';
+}
+
+},{}],40:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+(function () {
+  try {
+    cachedSetTimeout = setTimeout;
+  } catch (e) {
+    cachedSetTimeout = function () {
+      throw new Error('setTimeout is not defined');
+    }
+  }
+  try {
+    cachedClearTimeout = clearTimeout;
+  } catch (e) {
+    cachedClearTimeout = function () {
+      throw new Error('clearTimeout is not defined');
+    }
+  }
+} ())
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = cachedSetTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    cachedClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        cachedSetTimeout(drainQueue, 0);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],41:[function(require,module,exports){
 'use strict';
 
 var Stringify = require('./stringify');
@@ -2878,7 +3843,7 @@ module.exports = {
     parse: Parse
 };
 
-},{"./parse":26,"./stringify":27}],26:[function(require,module,exports){
+},{"./parse":42,"./stringify":43}],42:[function(require,module,exports){
 'use strict';
 
 var Utils = require('./utils');
@@ -3047,7 +4012,7 @@ module.exports = function (str, opts) {
     return Utils.compact(obj);
 };
 
-},{"./utils":28}],27:[function(require,module,exports){
+},{"./utils":44}],43:[function(require,module,exports){
 'use strict';
 
 var Utils = require('./utils');
@@ -3186,7 +4151,7 @@ module.exports = function (object, opts) {
     return keys.join(delimiter);
 };
 
-},{"./utils":28}],28:[function(require,module,exports){
+},{"./utils":44}],44:[function(require,module,exports){
 'use strict';
 
 var hexTable = (function () {
@@ -3351,907 +4316,6 @@ exports.isBuffer = function (obj) {
 
     return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
 };
-
-},{}],29:[function(require,module,exports){
-arguments[4][16][0].apply(exports,arguments)
-},{"./lib/client":30,"dup":16}],30:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _utils = require('./utils');
-
-var _feathersErrors = require('feathers-errors');
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var debug = require('debug')('feathers-socket-commons:client');
-
-var Service = function () {
-  function Service(options) {
-    _classCallCheck(this, Service);
-
-    this.events = _utils.events;
-    this.path = options.name;
-    this.connection = options.connection;
-    this.method = options.method;
-    this.timeout = options.timeout || 5000;
-  }
-
-  _createClass(Service, [{
-    key: 'emit',
-    value: function emit() {
-      var _connection;
-
-      (_connection = this.connection)[this.method].apply(_connection, arguments);
-    }
-  }, {
-    key: 'send',
-    value: function send(method) {
-      var _this = this;
-
-      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-        args[_key - 1] = arguments[_key];
-      }
-
-      var callback = null;
-      if (typeof args[args.length - 1] === 'function') {
-        callback = args.pop();
-      }
-
-      return new Promise(function (resolve, reject) {
-        var _connection2;
-
-        var event = _this.path + '::' + method;
-        var timeoutId = setTimeout(function () {
-          return reject(new Error('Timeout of ' + _this.timeout + 'ms exceeded calling ' + event));
-        }, _this.timeout);
-
-        args.unshift(event);
-        args.push(function (error, data) {
-          error = (0, _feathersErrors.convert)(error);
-          clearTimeout(timeoutId);
-
-          if (callback) {
-            callback(error, data);
-          }
-
-          return error ? reject(error) : resolve(data);
-        });
-
-        debug('Sending socket.' + _this.method, args);
-
-        (_connection2 = _this.connection)[_this.method].apply(_connection2, args);
-      });
-    }
-  }, {
-    key: 'find',
-    value: function find() {
-      var params = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-      return this.send('find', params.query || {});
-    }
-  }, {
-    key: 'get',
-    value: function get(id) {
-      var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      return this.send('get', id, params.query || {});
-    }
-  }, {
-    key: 'create',
-    value: function create(data) {
-      var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      return this.send('create', data, params.query || {});
-    }
-  }, {
-    key: 'update',
-    value: function update(id, data) {
-      var params = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-      return this.send('update', id, data, params.query || {});
-    }
-  }, {
-    key: 'patch',
-    value: function patch(id, data) {
-      var params = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-      return this.send('patch', id, data, params.query || {});
-    }
-  }, {
-    key: 'remove',
-    value: function remove(id) {
-      var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      return this.send('remove', id, params.query || {});
-    }
-  }]);
-
-  return Service;
-}();
-
-exports.default = Service;
-
-
-var emitterMethods = ['on', 'once', 'off'];
-
-emitterMethods.forEach(function (method) {
-  Service.prototype[method] = function (name, callback) {
-    debug('Calling emitter method ' + method + ' with event \'' + this.path + ' ' + name + '\'');
-    this.connection[method](this.path + ' ' + name, callback);
-    return this;
-  };
-});
-module.exports = exports['default'];
-},{"./utils":31,"debug":1,"feathers-errors":12}],31:[function(require,module,exports){
-(function (process){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.events = exports.eventMappings = undefined;
-exports.convertFilterData = convertFilterData;
-exports.promisify = promisify;
-exports.normalizeError = normalizeError;
-
-var _feathersCommons = require('feathers-commons');
-
-var eventMappings = exports.eventMappings = {
-  create: 'created',
-  update: 'updated',
-  patch: 'patched',
-  remove: 'removed'
-};
-
-var events = exports.events = Object.keys(eventMappings).map(function (method) {
-  return eventMappings[method];
-});
-
-function convertFilterData(obj) {
-  return _feathersCommons.hooks.convertHookData(obj);
-}
-
-function promisify(method, context) {
-  for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-    args[_key - 2] = arguments[_key];
-  }
-
-  return new Promise(function (resolve, reject) {
-    method.apply(context, args.concat(function (error, result) {
-      if (error) {
-        return reject(error);
-      }
-
-      resolve(result);
-    }));
-  });
-}
-
-function normalizeError(e) {
-  var result = {};
-
-  Object.getOwnPropertyNames(e).forEach(function (key) {
-    return result[key] = e[key];
-  });
-
-  if (process.env.NODE_ENV === 'production') {
-    delete result.stack;
-  }
-
-  delete result.hook;
-
-  return result;
-}
-}).call(this,require('_process'))
-},{"_process":44,"feathers-commons":9}],32:[function(require,module,exports){
-arguments[4][16][0].apply(exports,arguments)
-},{"./lib/client":33,"dup":16}],33:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-exports.default = function (connection, options) {
-  if (!connection) {
-    throw new Error('Socket.io connection needs to be provided');
-  }
-
-  var defaultService = function defaultService(name) {
-    var settings = _extends({}, options, {
-      name: name,
-      connection: connection,
-      method: 'emit'
-    });
-
-    return new _client2.default(settings);
-  };
-
-  var initialize = function initialize() {
-    if (typeof this.defaultService === 'function') {
-      throw new Error('Only one default client provider can be configured');
-    }
-
-    this.io = connection;
-    this.defaultService = defaultService;
-  };
-
-  initialize.Service = _client2.default;
-  initialize.service = defaultService;
-
-  return initialize;
-};
-
-var _client = require('feathers-socket-commons/client');
-
-var _client2 = _interopRequireDefault(_client);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-module.exports = exports['default'];
-},{"feathers-socket-commons/client":29}],34:[function(require,module,exports){
-arguments[4][4][0].apply(exports,arguments)
-},{"./lib/client/index":37,"dup":4}],35:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _debug = require('debug');
-
-var _debug2 = _interopRequireDefault(_debug);
-
-var _feathersCommons = require('feathers-commons');
-
-var _uberproto = require('uberproto');
-
-var _uberproto2 = _interopRequireDefault(_uberproto);
-
-var _index = require('./mixins/index');
-
-var _index2 = _interopRequireDefault(_index);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var debug = (0, _debug2.default)('feathers:application');
-var methods = ['find', 'get', 'create', 'update', 'patch', 'remove'];
-var Proto = _uberproto2.default.extend({
-  create: null
-});
-
-exports.default = {
-  init: function init() {
-    Object.assign(this, {
-      methods: methods,
-      mixins: (0, _index2.default)(),
-      services: {},
-      providers: [],
-      _setup: false
-    });
-  },
-  service: function service(location, _service) {
-    var _this = this;
-
-    var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-    location = (0, _feathersCommons.stripSlashes)(location);
-
-    if (!_service) {
-      var current = this.services[location];
-
-      if (typeof current === 'undefined' && typeof this.defaultService === 'function') {
-        return this.service(location, this.defaultService(location), options);
-      }
-
-      return current;
-    }
-
-    var protoService = Proto.extend(_service);
-
-    debug('Registering new service at `' + location + '`');
-
-    // Add all the mixins
-    this.mixins.forEach(function (fn) {
-      return fn.call(_this, protoService);
-    });
-
-    if (typeof protoService._setup === 'function') {
-      protoService._setup(this, location);
-    }
-
-    // Run the provider functions to register the service
-    this.providers.forEach(function (provider) {
-      return provider.call(_this, location, protoService, options);
-    });
-
-    // If we ran setup already, set this service up explicitly
-    if (this._isSetup && typeof protoService.setup === 'function') {
-      debug('Setting up service for `' + location + '`');
-      protoService.setup(this, location);
-    }
-
-    return this.services[location] = protoService;
-  },
-  use: function use(location) {
-    var service = void 0,
-        middleware = Array.from(arguments).slice(1).reduce(function (middleware, arg) {
-      if (typeof arg === 'function') {
-        middleware[service ? 'after' : 'before'].push(arg);
-      } else if (!service) {
-        service = arg;
-      } else {
-        throw new Error('invalid arg passed to app.use');
-      }
-      return middleware;
-    }, {
-      before: [],
-      after: []
-    });
-
-    var hasMethod = function hasMethod(methods) {
-      return methods.some(function (name) {
-        return service && typeof service[name] === 'function';
-      });
-    };
-
-    // Check for service (any object with at least one service method)
-    if (hasMethod(['handle', 'set']) || !hasMethod(this.methods.concat('setup'))) {
-      return this._super.apply(this, arguments);
-    }
-
-    // Any arguments left over are other middleware that we want to pass to the providers
-    this.service(location, service, { middleware: middleware });
-
-    return this;
-  },
-  setup: function setup() {
-    var _this2 = this;
-
-    // Setup each service (pass the app so that they can look up other services etc.)
-    Object.keys(this.services).forEach(function (path) {
-      var service = _this2.services[path];
-
-      debug('Setting up service for `' + path + '`');
-      if (typeof service.setup === 'function') {
-        service.setup(_this2, path);
-      }
-    });
-
-    this._isSetup = true;
-
-    return this;
-  },
-
-
-  // Express 3.x configure is gone in 4.x but we'll keep a more basic version
-  // That just takes a function in order to keep Feathers plugin configuration easier.
-  // Environment specific configurations should be done as suggested in the 4.x migration guide:
-  // https://github.com/visionmedia/express/wiki/Migrating-from-3.x-to-4.x
-  configure: function configure(fn) {
-    fn.call(this);
-
-    return this;
-  },
-  listen: function listen() {
-    var server = this._super.apply(this, arguments);
-
-    this.setup(server);
-    debug('Feathers application listening');
-
-    return server;
-  }
-};
-module.exports = exports['default'];
-},{"./mixins/index":40,"debug":1,"feathers-commons":9,"uberproto":47}],36:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-exports.default = function () {
-  var app = {
-    settings: {},
-
-    get: function get(name) {
-      return this.settings[name];
-    },
-    set: function set(name, value) {
-      this.settings[name] = value;
-      return this;
-    },
-    disable: function disable(name) {
-      this.settings[name] = false;
-      return this;
-    },
-    disabled: function disabled(name) {
-      return !this.settings[name];
-    },
-    enable: function enable(name) {
-      this.settings[name] = true;
-      return this;
-    },
-    enabled: function enabled(name) {
-      return !!this.settings[name];
-    },
-    use: function use() {
-      throw new Error('Middleware functions can not be used in the Feathers client');
-    },
-    listen: function listen() {
-      return {};
-    }
-  };
-
-  _uberproto2.default.mixin(_events.EventEmitter.prototype, app);
-
-  return app;
-};
-
-var _events = require('events');
-
-var _uberproto = require('uberproto');
-
-var _uberproto2 = _interopRequireDefault(_uberproto);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-module.exports = exports['default'];
-},{"events":3,"uberproto":47}],37:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = createApplication;
-
-var _feathers = require('../feathers');
-
-var _feathers2 = _interopRequireDefault(_feathers);
-
-var _express = require('./express');
-
-var _express2 = _interopRequireDefault(_express);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function createApplication() {
-  return (0, _feathers2.default)(_express2.default.apply(undefined, arguments));
-}
-
-createApplication.version = '2.0.1';
-module.exports = exports['default'];
-},{"../feathers":38,"./express":36}],38:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = createApplication;
-
-var _uberproto = require('uberproto');
-
-var _uberproto2 = _interopRequireDefault(_uberproto);
-
-var _application = require('./application');
-
-var _application2 = _interopRequireDefault(_application);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- * Create a Feathers application that extends Express.
- *
- * @return {Function}
- * @api public
- */
-function createApplication(app) {
-  _uberproto2.default.mixin(_application2.default, app);
-  app.init();
-  return app;
-}
-module.exports = exports['default'];
-},{"./application":35,"uberproto":47}],39:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-exports.default = function (service) {
-  var isEmitter = typeof service.on === 'function' && typeof service.emit === 'function';
-  var emitter = service._rubberDuck = _rubberduck2.default.emitter(service);
-
-  if (typeof service.mixin === 'function' && !isEmitter) {
-    service.mixin(_events.EventEmitter.prototype);
-  }
-
-  service._serviceEvents = Array.isArray(service.events) ? service.events.slice() : [];
-
-  // Pass the Rubberduck error event through
-  // TODO deal with error events properly
-  emitter.on('error', function (errors) {
-    service.emit('serviceError', errors[0]);
-  });
-
-  Object.keys(eventMappings).forEach(function (method) {
-    var event = eventMappings[method];
-    var alreadyEmits = service._serviceEvents.indexOf(event) !== -1;
-
-    if (typeof service[method] === 'function' && !alreadyEmits) {
-      // The Rubberduck event name (e.g. afterCreate, afterUpdate or afterDestroy)
-      var eventName = 'after' + upperCase(method);
-      service._serviceEvents.push(event);
-      // Punch the given method
-      emitter.punch(method, -1);
-      // Pass the event and error event through
-      emitter.on(eventName, function (results, args) {
-        if (!results[0]) {
-          (function () {
-            // callback without error
-            var hook = hookObject(method, 'after', args);
-            var data = Array.isArray(results[1]) ? results[1] : [results[1]];
-
-            data.forEach(function (current) {
-              return service.emit(event, current, hook);
-            });
-          })();
-        } else {
-          service.emit('serviceError', results[0]);
-        }
-      });
-    }
-  });
-};
-
-var _rubberduck = require('rubberduck');
-
-var _rubberduck2 = _interopRequireDefault(_rubberduck);
-
-var _events = require('events');
-
-var _feathersCommons = require('feathers-commons');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var hookObject = _feathersCommons.hooks.hookObject;
-var eventMappings = {
-  create: 'created',
-  update: 'updated',
-  remove: 'removed',
-  patch: 'patched'
-};
-
-function upperCase(name) {
-  return name.charAt(0).toUpperCase() + name.substring(1);
-}
-
-module.exports = exports['default'];
-},{"events":3,"feathers-commons":9,"rubberduck":45}],40:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-exports.default = function () {
-  var mixins = [require('./promise'), require('./event'), require('./normalizer')];
-
-  // Override push to make sure that normalize is always the last
-  mixins.push = function () {
-    var args = [this.length - 1, 0].concat(Array.from(arguments));
-    this.splice.apply(this, args);
-    return this.length;
-  };
-
-  return mixins;
-};
-
-module.exports = exports['default'];
-},{"./event":39,"./normalizer":41,"./promise":42}],41:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-exports.default = function (service) {
-  var _this = this;
-
-  if (typeof service.mixin === 'function') {
-    (function () {
-      var mixin = {};
-
-      _this.methods.forEach(function (method) {
-        if (typeof service[method] === 'function') {
-          mixin[method] = function () {
-            return this._super.apply(this, (0, _feathersCommons.getArguments)(method, arguments));
-          };
-        }
-      });
-
-      service.mixin(mixin);
-    })();
-  }
-};
-
-var _feathersCommons = require('feathers-commons');
-
-module.exports = exports['default'];
-},{"feathers-commons":9}],42:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-exports.default = function (service) {
-  var _this = this;
-
-  if (typeof service.mixin === 'function') {
-    (function () {
-      var mixin = {};
-
-      _this.methods.forEach(function (method) {
-        if (typeof service[method] === 'function') {
-          mixin[method] = wrapper;
-        }
-      });
-
-      service.mixin(mixin);
-    })();
-  }
-};
-
-function isPromise(result) {
-  return typeof result !== 'undefined' && typeof result.then === 'function';
-}
-
-function wrapper() {
-  var result = this._super.apply(this, arguments);
-  var callback = arguments[arguments.length - 1];
-
-  if (typeof callback === 'function' && isPromise(result)) {
-    result.then(function (data) {
-      return callback(null, data);
-    }, function (error) {
-      return callback(error);
-    });
-  }
-  return result;
-}
-
-module.exports = exports['default'];
-},{}],43:[function(require,module,exports){
-/**
- * Helpers.
- */
-
-var s = 1000;
-var m = s * 60;
-var h = m * 60;
-var d = h * 24;
-var y = d * 365.25;
-
-/**
- * Parse or format the given `val`.
- *
- * Options:
- *
- *  - `long` verbose formatting [false]
- *
- * @param {String|Number} val
- * @param {Object} options
- * @return {String|Number}
- * @api public
- */
-
-module.exports = function(val, options){
-  options = options || {};
-  if ('string' == typeof val) return parse(val);
-  return options.long
-    ? long(val)
-    : short(val);
-};
-
-/**
- * Parse the given `str` and return milliseconds.
- *
- * @param {String} str
- * @return {Number}
- * @api private
- */
-
-function parse(str) {
-  str = '' + str;
-  if (str.length > 10000) return;
-  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
-  if (!match) return;
-  var n = parseFloat(match[1]);
-  var type = (match[2] || 'ms').toLowerCase();
-  switch (type) {
-    case 'years':
-    case 'year':
-    case 'yrs':
-    case 'yr':
-    case 'y':
-      return n * y;
-    case 'days':
-    case 'day':
-    case 'd':
-      return n * d;
-    case 'hours':
-    case 'hour':
-    case 'hrs':
-    case 'hr':
-    case 'h':
-      return n * h;
-    case 'minutes':
-    case 'minute':
-    case 'mins':
-    case 'min':
-    case 'm':
-      return n * m;
-    case 'seconds':
-    case 'second':
-    case 'secs':
-    case 'sec':
-    case 's':
-      return n * s;
-    case 'milliseconds':
-    case 'millisecond':
-    case 'msecs':
-    case 'msec':
-    case 'ms':
-      return n;
-  }
-}
-
-/**
- * Short format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function short(ms) {
-  if (ms >= d) return Math.round(ms / d) + 'd';
-  if (ms >= h) return Math.round(ms / h) + 'h';
-  if (ms >= m) return Math.round(ms / m) + 'm';
-  if (ms >= s) return Math.round(ms / s) + 's';
-  return ms + 'ms';
-}
-
-/**
- * Long format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function long(ms) {
-  return plural(ms, d, 'day')
-    || plural(ms, h, 'hour')
-    || plural(ms, m, 'minute')
-    || plural(ms, s, 'second')
-    || ms + ' ms';
-}
-
-/**
- * Pluralization helper.
- */
-
-function plural(ms, n, name) {
-  if (ms < n) return;
-  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
-  return Math.ceil(ms / n) + ' ' + name + 's';
-}
-
-},{}],44:[function(require,module,exports){
-// shim for using process in browser
-
-var process = module.exports = {};
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = setTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    clearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        setTimeout(drainQueue, 0);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
 
 },{}],45:[function(require,module,exports){
 var events = require('events');
@@ -4583,5 +4647,5 @@ Object.assign(_client2.default, { socketio: _client6.default, primus: _client8.d
 exports.default = _client2.default;
 module.exports = exports['default'];
 
-},{"feathers-authentication/client":4,"feathers-hooks":15,"feathers-primus/client":16,"feathers-rest/client":18,"feathers-socketio/client":32,"feathers/client":34}]},{},[48])(48)
+},{"feathers-authentication/client":4,"feathers-hooks":15,"feathers-primus/client":16,"feathers-rest/client":18,"feathers-socketio/client":28,"feathers/client":30}]},{},[48])(48)
 });
