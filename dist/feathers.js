@@ -2554,7 +2554,9 @@ var Service = function (_Base) {
 
       var fetch = this.connection;
 
-      return fetch(options.url, fetchOptions).then(this.checkStatus).then(this.parseJSON);
+      return fetch(options.url, fetchOptions).then(this.checkStatus).then(function (response) {
+        return response.json();
+      });
     }
   }, {
     key: 'checkStatus',
@@ -2563,33 +2565,10 @@ var Service = function (_Base) {
         return response;
       }
 
-      return new Promise(function (resolve, reject) {
-        var body = response.body;
-        var buffer = '';
-
-        body.on('data', function (data) {
-          return buffer += data.toString();
-        });
-        body.on('error', reject);
-        body.on('end', function () {
-          var error = new Error(buffer);
-
-          try {
-            error = JSON.parse(buffer);
-          } catch (e) {
-            error.code = response.status;
-          }
-
-          error.response = response;
-
-          reject(error);
-        });
+      return response.json().then(function (error) {
+        error.response = response;
+        throw error;
       });
-    }
-  }, {
-    key: 'parseJSON',
-    value: function parseJSON(response) {
-      return response.json();
     }
   }]);
 
