@@ -1,5 +1,12 @@
 # Change Log
 
+## [v1.5.1](https://github.com/feathersjs/feathers-client/tree/v1.5.1) (2016-07-14)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.5.0...v1.5.1)
+
+**Merged pull requests:**
+
+- Update feathers-rest to version 1.4.3 🚀 [\#70](https://github.com/feathersjs/feathers-client/pull/70) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+
 ## [v1.5.0](https://github.com/feathersjs/feathers-client/tree/v1.5.0) (2016-07-05)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.4.1...v1.5.0)
 
