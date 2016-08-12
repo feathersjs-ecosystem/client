@@ -1859,6 +1859,34 @@ function pluckQuery() {
   };
 }
 
+function containsField(obj, find) {
+  var args = find.split('.');
+
+  for (var i = 0; i < args.length; i++) {
+    if (!obj || !obj.hasOwnProperty(args[i])) {
+      return false;
+    }
+    obj = obj[args[i]];
+  }
+  return true;
+}
+
+function removeField(obj, find) {
+  var args = find.split('.');
+
+  for (var i = 0; i < args.length; i++) {
+    if (!obj || !obj.hasOwnProperty(args[i])) {
+      return false;
+    }
+    if (i === args.length - 1) {
+      obj[args[i]] = undefined;
+      delete obj[args[i]];
+      return true;
+    }
+    obj = obj[args[i]];
+  }
+}
+
 function remove() {
   for (var _len4 = arguments.length, fields = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
     fields[_key4] = arguments[_key4];
@@ -1873,8 +1901,9 @@ function remove() {
       for (var _iterator4 = fields[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
         var field = _step4.value;
 
-        data[field] = undefined;
-        delete data[field];
+        if (containsField(data, field)) {
+          removeField(data, field);
+        }
       }
     } catch (err) {
       _didIteratorError4 = true;
