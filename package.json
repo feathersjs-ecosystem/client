@@ -53,7 +53,7 @@
     "feathers-authentication": "0.7.9",
     "feathers-hooks": "1.5.6",
     "feathers-primus": "1.4.1",
-    "feathers-rest": "1.4.3",
+    "feathers-rest": "1.4.4",
     "feathers-socketio": "1.4.1"
   },
   "devDependencies": {
