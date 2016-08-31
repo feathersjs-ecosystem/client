@@ -753,7 +753,9 @@ exports.default = function () {
       return getOptions.then(function (options) {
         var endPoint = void 0;
 
-        if (options.type === 'local') {
+        if (options.endpoint) {
+          endPoint = options.endpoint;
+        } else if (options.type === 'local') {
           endPoint = config.localEndpoint;
         } else if (options.type === 'token') {
           endPoint = config.tokenEndpoint;
@@ -1643,7 +1645,20 @@ var errors = {
   Unprocessable: Unprocessable,
   GeneralError: GeneralError,
   NotImplemented: NotImplemented,
-  Unavailable: Unavailable
+  Unavailable: Unavailable,
+  400: BadRequest,
+  401: NotAuthenticated,
+  402: PaymentError,
+  403: Forbidden,
+  404: NotFound,
+  405: MethodNotAllowed,
+  406: NotAcceptable,
+  408: Timeout,
+  409: Conflict,
+  422: Unprocessable,
+  500: GeneralError,
+  501: NotImplemented,
+  503: Unavailable
 };
 
 function convert(error) {
@@ -1859,31 +1874,16 @@ function pluckQuery() {
   };
 }
 
-function containsField(obj, find) {
-  var args = find.split('.');
+function removeField(obj, field) {
+  var nestedFields = field.split('.');
+  var lastField = nestedFields[nestedFields.length - 1];
 
-  for (var i = 0; i < args.length; i++) {
-    if (!obj || !obj.hasOwnProperty(args[i])) {
-      return false;
-    }
-    obj = obj[args[i]];
+  for (var i = 0; obj && i < nestedFields.length - 1; i++) {
+    obj = obj[nestedFields[i]];
   }
-  return true;
-}
-
-function removeField(obj, find) {
-  var args = find.split('.');
-
-  for (var i = 0; i < args.length; i++) {
-    if (!obj || !obj.hasOwnProperty(args[i])) {
-      return false;
-    }
-    if (i === args.length - 1) {
-      obj[args[i]] = undefined;
-      delete obj[args[i]];
-      return true;
-    }
-    obj = obj[args[i]];
+  if (obj) {
+    obj[lastField] = undefined;
+    delete obj[lastField];
   }
 }
 
@@ -1901,9 +1901,7 @@ function remove() {
       for (var _iterator4 = fields[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
         var field = _step4.value;
 
-        if (containsField(data, field)) {
-          removeField(data, field);
-        }
+        removeField(data, field);
       }
     } catch (err) {
       _didIteratorError4 = true;
@@ -1927,6 +1925,24 @@ function remove() {
 
   return function (hook) {
     var result = hook.type === 'before' ? hook.data : hook.result;
+
+    // Convert Mongoose or Sequelize object into plain JavaScript object
+    if (Array.isArray(result)) {
+      result.forEach(function (element, index, result) {
+        if (typeof element.toObject === 'function') {
+          result[index] = element.toObject();
+        } else if (typeof element.toJSON === 'function') {
+          result[index] = element.toJSON();
+        }
+      });
+    } else {
+      if (typeof result.toObject === 'function') {
+        result = result.toObject();
+      } else if (typeof result.toJSON === 'function') {
+        result = result.toJSON();
+      }
+    }
+
     var next = function next(condition) {
       if (result && condition) {
         if (Array.isArray(result)) {
@@ -1943,6 +1959,13 @@ function remove() {
           }
         }
       }
+
+      if (hook.type === 'before') {
+        hook.data = result;
+      } else {
+        hook.result = result;
+      }
+
       return hook;
     };
 
@@ -3721,7 +3744,6 @@ function plural(ms, n, name) {
 
 },{}],40:[function(require,module,exports){
 // shim for using process in browser
-
 var process = module.exports = {};
 
 // cached from whatever global is present so that test runners that stub it
@@ -3732,22 +3754,84 @@ var process = module.exports = {};
 var cachedSetTimeout;
 var cachedClearTimeout;
 
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
 (function () {
-  try {
-    cachedSetTimeout = setTimeout;
-  } catch (e) {
-    cachedSetTimeout = function () {
-      throw new Error('setTimeout is not defined');
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
     }
-  }
-  try {
-    cachedClearTimeout = clearTimeout;
-  } catch (e) {
-    cachedClearTimeout = function () {
-      throw new Error('clearTimeout is not defined');
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
     }
-  }
 } ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
 var queue = [];
 var draining = false;
 var currentQueue;
@@ -3772,7 +3856,7 @@ function drainQueue() {
     if (draining) {
         return;
     }
-    var timeout = cachedSetTimeout(cleanUpNextTick);
+    var timeout = runTimeout(cleanUpNextTick);
     draining = true;
 
     var len = queue.length;
@@ -3789,7 +3873,7 @@ function drainQueue() {
     }
     currentQueue = null;
     draining = false;
-    cachedClearTimeout(timeout);
+    runClearTimeout(timeout);
 }
 
 process.nextTick = function (fun) {
@@ -3801,7 +3885,7 @@ process.nextTick = function (fun) {
     }
     queue.push(new Item(fun, args));
     if (queue.length === 1 && !draining) {
-        cachedSetTimeout(drainQueue, 0);
+        runTimeout(drainQueue);
     }
 };
 
