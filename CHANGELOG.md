@@ -1,5 +1,31 @@
 # Change Log
 
+## [v1.5.3](https://github.com/feathersjs/feathers-client/tree/v1.5.3) (2016-08-31)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.5.2...v1.5.3)
+
+**Closed issues:**
+
+- Use of feathers-client with es6 \(JSPM\) [\#78](https://github.com/feathersjs/feathers-client/issues/78)
+
+**Merged pull requests:**
+
+- Update feathers-authentication to version 0.7.10 🚀 [\#82](https://github.com/feathersjs/feathers-client/pull/82) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-hooks to version 1.5.7 🚀 [\#77](https://github.com/feathersjs/feathers-client/pull/77) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-rest to version 1.4.4 🚀 [\#76](https://github.com/feathersjs/feathers-client/pull/76) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-hooks to version 1.5.6 🚀 [\#75](https://github.com/feathersjs/feathers-client/pull/75) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+
+## [v1.5.2](https://github.com/feathersjs/feathers-client/tree/v1.5.2) (2016-08-12)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.5.1...v1.5.2)
+
+**Closed issues:**
+
+- \[Question\] Large client-side bundle filesize when requiring feathers client [\#71](https://github.com/feathersjs/feathers-client/issues/71)
+
+**Merged pull requests:**
+
+- Update feathers-hooks to version 1.5.5 🚀 [\#73](https://github.com/feathersjs/feathers-client/pull/73) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update mocha to version 3.0.0 🚀 [\#72](https://github.com/feathersjs/feathers-client/pull/72) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+
 ## [v1.5.1](https://github.com/feathersjs/feathers-client/tree/v1.5.1) (2016-07-14)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.5.0...v1.5.1)
 
