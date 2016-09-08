@@ -64,7 +64,7 @@
     "babelify": "^7.2.0",
     "body-parser": "^1.12.4",
     "browserify": "^13.0.0",
-    "feathers-memory": "^0.7.0",
+    "feathers-memory": "^0.8.0",
     "jsdom": "8.1.0",
     "jshint": "^2.8.0",
     "mocha": "^3.0.0",
