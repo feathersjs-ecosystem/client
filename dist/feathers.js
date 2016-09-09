@@ -1090,6 +1090,10 @@ module.exports = exports['default'];
 },{"./arguments":8,"./hooks":10,"./utils":11}],10:[function(require,module,exports){
 'use strict';
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 var _utils = require('./utils');
@@ -1111,7 +1115,7 @@ function updateOrPatch(args) {
   };
 }
 
-exports.converters = {
+var converters = {
   find: function find(args) {
     return {
       params: args[0],
@@ -1131,16 +1135,16 @@ exports.converters = {
   patch: updateOrPatch
 };
 
-exports.hookObject = exports.hook = function (method, type, args) {
-  var hook = exports.converters[method](args);
+function hookObject(method, type, args) {
+  var hook = converters[method](args);
 
   hook.method = method;
   hook.type = type;
 
   return hook;
-};
+}
 
-var defaultMakeArguments = exports.defaultMakeArguments = function (hook) {
+function defaultMakeArguments(hook) {
   var result = [];
   if (typeof hook.id !== 'undefined') {
     result.push(hook.id);
@@ -1154,9 +1158,9 @@ var defaultMakeArguments = exports.defaultMakeArguments = function (hook) {
   result.push(hook.callback);
 
   return result;
-};
+}
 
-exports.makeArguments = function (hook) {
+function makeArguments(hook) {
   if (hook.method === 'find') {
     return [hook.params, hook.callback];
   }
@@ -1174,9 +1178,9 @@ exports.makeArguments = function (hook) {
   }
 
   return defaultMakeArguments(hook);
-};
+}
 
-exports.convertHookData = function (obj) {
+function convertHookData(obj) {
   var hook = {};
 
   if (Array.isArray(obj)) {
@@ -1190,7 +1194,17 @@ exports.convertHookData = function (obj) {
   }
 
   return hook;
+}
+
+exports.default = {
+  hookObject: hookObject,
+  hook: hookObject,
+  converters: converters,
+  defaultMakeArguments: defaultMakeArguments,
+  makeArguments: makeArguments,
+  convertHookData: convertHookData
 };
+module.exports = exports['default'];
 },{"./utils":11}],11:[function(require,module,exports){
 'use strict';
 
@@ -1300,7 +1314,7 @@ function matcher(originalQuery) {
 
   return function (item) {
     if (query.$or && _.some(query.$or, function (or) {
-      return _.isMatch(item, or);
+      return matcher(or)(item);
     })) {
       return true;
     }
@@ -2588,7 +2602,7 @@ var Service = function (_Base) {
   function Service() {
     _classCallCheck(this, Service);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Service).apply(this, arguments));
+    return _possibleConstructorReturn(this, (Service.__proto__ || Object.getPrototypeOf(Service)).apply(this, arguments));
   }
 
   _createClass(Service, [{
@@ -2598,7 +2612,7 @@ var Service = function (_Base) {
 
       fetchOptions.headers = _extends({
         Accept: 'application/json'
-      }, fetchOptions.headers);
+      }, this.options.headers, fetchOptions.headers);
 
       if (options.body) {
         fetchOptions.body = JSON.stringify(options.body);
@@ -2729,7 +2743,7 @@ var Service = function (_Base) {
   function Service() {
     _classCallCheck(this, Service);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Service).apply(this, arguments));
+    return _possibleConstructorReturn(this, (Service.__proto__ || Object.getPrototypeOf(Service)).apply(this, arguments));
   }
 
   _createClass(Service, [{
@@ -2739,6 +2753,8 @@ var Service = function (_Base) {
 
       var opts = _extends({
         dataType: options.type || 'json'
+      }, {
+        headers: this.options.headers || {}
       }, options);
 
       if (options.body) {
@@ -2801,7 +2817,7 @@ var Service = function (_Base) {
   function Service() {
     _classCallCheck(this, Service);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Service).apply(this, arguments));
+    return _possibleConstructorReturn(this, (Service.__proto__ || Object.getPrototypeOf(Service)).apply(this, arguments));
   }
 
   _createClass(Service, [{
@@ -2865,13 +2881,13 @@ var Service = function (_Base) {
   function Service() {
     _classCallCheck(this, Service);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Service).apply(this, arguments));
+    return _possibleConstructorReturn(this, (Service.__proto__ || Object.getPrototypeOf(Service)).apply(this, arguments));
   }
 
   _createClass(Service, [{
     key: 'request',
     value: function request(options) {
-      var superagent = this.connection(options.method, options.url).set('Accept', 'application/json').type(options.type || 'json');
+      var superagent = this.connection(options.method, options.url).set(this.options.headers || {}).set('Accept', 'application/json').set(options.headers || {}).type(options.type || 'json');
 
       return new Promise(function (resolve, reject) {
         superagent.set(options.headers);
@@ -3055,16 +3071,20 @@ var Service = function () {
     }
   }, {
     key: 'off',
-    value: function off() {
+    value: function off(name) {
+      for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+        args[_key3 - 1] = arguments[_key3];
+      }
+
       if (typeof this.connection.off === 'function') {
         var _connection4;
 
-        return (_connection4 = this.connection).off.apply(_connection4, arguments);
-      } else if (arguments.length === 1) {
-        return this.removeAllListeners.apply(this, arguments);
+        return (_connection4 = this.connection).off.apply(_connection4, [this.path + ' ' + name].concat(args));
+      } else if (args.length === 0) {
+        return this.removeAllListeners(name);
       }
 
-      return this.removeEventListener.apply(this, arguments);
+      return this.removeListener.apply(this, [name].concat(args));
     }
   }]);
 
