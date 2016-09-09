@@ -1,5 +1,19 @@
 # Change Log
 
+## [v1.6.0](https://github.com/feathersjs/feathers-client/tree/v1.6.0) (2016-09-09)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.5.3...v1.6.0)
+
+**Closed issues:**
+
+- How to declare the app in a static way? [\#86](https://github.com/feathersjs/feathers-client/issues/86)
+- feathers client and requireJS [\#85](https://github.com/feathersjs/feathers-client/issues/85)
+- SocketIO timeout based on service [\#84](https://github.com/feathersjs/feathers-client/issues/84)
+
+**Merged pull requests:**
+
+- Update feathers-rest to version 1.5.0 🚀 [\#89](https://github.com/feathersjs/feathers-client/pull/89) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-memory to version 0.8.0 🚀 [\#88](https://github.com/feathersjs/feathers-client/pull/88) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+
 ## [v1.5.3](https://github.com/feathersjs/feathers-client/tree/v1.5.3) (2016-08-31)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.5.2...v1.5.3)
 
