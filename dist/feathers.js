@@ -3472,6 +3472,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function (service) {
+  var app = this;
   var isEmitter = typeof service.on === 'function' && typeof service.emit === 'function';
   var emitter = service._rubberDuck = _rubberduck2.default.emitter(service);
 
@@ -3505,6 +3506,7 @@ exports.default = function (service) {
             var hook = hookObject(method, 'after', args);
             var data = Array.isArray(results[1]) ? results[1] : [results[1]];
 
+            hook.app = app;
             data.forEach(function (current) {
               return service.emit(event, current, hook);
             });
