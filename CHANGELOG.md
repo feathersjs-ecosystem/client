@@ -1,5 +1,16 @@
 # Change Log
 
+## [v1.6.1](https://github.com/feathersjs/feathers-client/tree/v1.6.1) (2016-09-15)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.6.0...v1.6.1)
+
+**Closed issues:**
+
+- documentation on how to build client [\#87](https://github.com/feathersjs/feathers-client/issues/87)
+
+**Merged pull requests:**
+
+- Update feathers to version 2.0.2 🚀 [\#90](https://github.com/feathersjs/feathers-client/pull/90) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+
 ## [v1.6.0](https://github.com/feathersjs/feathers-client/tree/v1.6.0) (2016-09-09)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.5.3...v1.6.0)
 
