@@ -52,7 +52,7 @@
   "dependencies": {
     "feathers": "2.0.2",
     "feathers-authentication": "0.7.10",
-    "feathers-hooks": "1.5.7",
+    "feathers-hooks": "1.5.8",
     "feathers-primus": "1.4.1",
     "feathers-rest": "1.5.0",
     "feathers-socketio": "1.4.1"
