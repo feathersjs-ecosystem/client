@@ -49,6 +49,9 @@
   "browser": {
     "babel-polyfill": false
   },
+  "greenkeeper": {
+    "ignore": "jsdom"
+  },
   "dependencies": {
     "feathers": "2.0.2",
     "feathers-authentication": "0.7.11",
