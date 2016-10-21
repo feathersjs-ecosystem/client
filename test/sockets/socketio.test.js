@@ -1,8 +1,8 @@
 import socketio from 'feathers-socketio';
 import io from 'socket.io-client';
+import baseTests from 'feathers-commons/lib/test/client';
 
 import app from '../fixture';
-import baseTests from '../base';
 import feathers from '../../src/client';
 
 describe('Socket.io connector', function() {
@@ -24,5 +24,5 @@ describe('Socket.io connector', function() {
     socket.disconnect();
   });
 
-  baseTests(client);
+  baseTests(client, 'todos');
 });

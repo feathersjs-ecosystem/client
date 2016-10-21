@@ -1,5 +1,5 @@
 import assert from 'assert';
-import baseTests from '../base';
+import baseTests from 'feathers-commons/lib/test/client';
 
 const feathers = window.feathers;
 const socket = window.io('http://localhost:7979');
@@ -30,7 +30,7 @@ describe('Universal Feathers client browser tests', function() {
     }
   });
   
-  baseTests(app);
+  baseTests(app, 'todos');
   
   describe('Client side hooks and services', () => {
     it('initialized myservice and works with hooks', done => {

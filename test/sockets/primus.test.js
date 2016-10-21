@@ -1,6 +1,6 @@
 import primus from 'feathers-primus';
+import baseTests from 'feathers-commons/lib/test/client';
 
-import baseTests from '../base';
 import app from '../fixture';
 import feathers from '../../src/client';
 
@@ -25,5 +25,5 @@ describe('Primus connector', function() {
     this.server.close();
   });
 
-  baseTests(client);
+  baseTests(client, 'todos');
 });

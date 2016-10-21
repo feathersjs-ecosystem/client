@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
+import baseTests from 'feathers-commons/lib/test/client';
 
 import app from '../fixture';
-import baseTests from '../base';
 import feathers from '../../src/client';
 
 describe('fetch REST connector', function() {
@@ -17,5 +17,5 @@ describe('fetch REST connector', function() {
     this.server.close(done);
   });
 
-  baseTests(client);
+  baseTests(client, 'todos');
 });

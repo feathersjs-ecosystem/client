@@ -1,7 +1,7 @@
 import jsdom from 'jsdom';
+import baseTests from 'feathers-commons/lib/test/client';
 
 import app from '../fixture';
-import baseTests from '../base';
 import feathers from '../../src/client';
 
 describe('jQuery REST connector', function() {
@@ -28,5 +28,5 @@ describe('jQuery REST connector', function() {
     this.server.close();
   });
 
-  baseTests(client);
+  baseTests(client, 'todos');
 });

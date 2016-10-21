@@ -966,7 +966,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.default = getArguments;
 var noop = exports.noop = function noop() {};
@@ -1094,7 +1094,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _utils = require('./utils');
 
@@ -1135,11 +1135,15 @@ var converters = {
   patch: updateOrPatch
 };
 
-function hookObject(method, type, args) {
+function hookObject(method, type, args, app) {
   var hook = converters[method](args);
 
   hook.method = method;
   hook.type = type;
+
+  if (app) {
+    hook.app = app;
+  }
 
   return hook;
 }
@@ -1214,7 +1218,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 exports.stripSlashes = stripSlashes;
 exports.each = each;
@@ -1310,7 +1314,7 @@ var specialFilters = exports.specialFilters = {
 };
 
 function matcher(originalQuery) {
-  var query = _.omit(originalQuery, '$limit', '$skip', '$sort');
+  var query = _.omit(originalQuery, '$limit', '$skip', '$sort', '$select');
 
   return function (item) {
     if (query.$or && _.some(query.$or, function (or) {
@@ -1949,7 +1953,7 @@ function remove() {
           result[index] = element.toJSON();
         }
       });
-    } else {
+    } else if (result) {
       if (typeof result.toObject === 'function') {
         result = result.toObject();
       } else if (typeof result.toJSON === 'function') {
