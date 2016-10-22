@@ -1,5 +1,21 @@
 # Change Log
 
+## [v1.6.2](https://github.com/feathersjs/feathers-client/tree/v1.6.2) (2016-10-22)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.6.1...v1.6.2)
+
+**Closed issues:**
+
+- Browser Support [\#96](https://github.com/feathersjs/feathers-client/issues/96)
+- How to destroy feathers and socketio client? [\#95](https://github.com/feathersjs/feathers-client/issues/95)
+- Use tests from feathers-commons [\#26](https://github.com/feathersjs/feathers-client/issues/26)
+
+**Merged pull requests:**
+
+- Update feathers-rest to version 1.5.1 🚀 [\#99](https://github.com/feathersjs/feathers-client/pull/99) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Use tests from feathers-commons [\#98](https://github.com/feathersjs/feathers-client/pull/98) ([daffl](https://github.com/daffl))
+- Update feathers-authentication to version 0.7.11 🚀 [\#92](https://github.com/feathersjs/feathers-client/pull/92) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-hooks to version 1.5.8 🚀 [\#91](https://github.com/feathersjs/feathers-client/pull/91) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+
 ## [v1.6.1](https://github.com/feathersjs/feathers-client/tree/v1.6.1) (2016-09-15)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.6.0...v1.6.1)
 
