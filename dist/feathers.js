@@ -2504,7 +2504,7 @@ var Base = function () {
   }, {
     key: 'find',
     value: function find() {
-      var params = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+      var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
       return this.request({
         url: this.makeUrl(params.query),
@@ -2515,7 +2515,7 @@ var Base = function () {
   }, {
     key: 'get',
     value: function get(id) {
-      var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+      var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       return this.request({
         url: this.makeUrl(params.query, id),
@@ -2526,7 +2526,7 @@ var Base = function () {
   }, {
     key: 'create',
     value: function create(body) {
-      var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+      var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       return this.request({
         url: this.makeUrl(params.query),
@@ -2538,7 +2538,11 @@ var Base = function () {
   }, {
     key: 'update',
     value: function update(id, body) {
-      var params = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+      var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+      if (typeof id === 'undefined') {
+        return Promise.reject(new Error('id for \'update\' can not be undefined, only \'null\' when updating multiple entries'));
+      }
 
       return this.request({
         url: this.makeUrl(params.query, id),
@@ -2550,7 +2554,11 @@ var Base = function () {
   }, {
     key: 'patch',
     value: function patch(id, body) {
-      var params = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+      var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+      if (typeof id === 'undefined') {
+        return Promise.reject(new Error('id for \'patch\' can not be undefined, only \'null\' when updating multiple entries'));
+      }
 
       return this.request({
         url: this.makeUrl(params.query, id),
@@ -2562,7 +2570,11 @@ var Base = function () {
   }, {
     key: 'remove',
     value: function remove(id) {
-      var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+      var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      if (typeof id === 'undefined') {
+        return Promise.reject(new Error('id for \'remove\' can not be undefined, only \'null\' when removing multiple entries'));
+      }
 
       return this.request({
         url: this.makeUrl(params.query, id),
@@ -2655,7 +2667,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function () {
-  var base = arguments.length <= 0 || arguments[0] === undefined ? '' : arguments[0];
+  var base = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
 
   var result = {};
 
@@ -2663,7 +2675,7 @@ exports.default = function () {
     var Service = transports[key];
 
     result[key] = function (connection) {
-      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       if (!connection) {
         throw new Error(key + ' has to be provided to feathers-rest');
