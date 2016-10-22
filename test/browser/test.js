@@ -2,7 +2,7 @@ import assert from 'assert';
 import baseTests from 'feathers-commons/lib/test/client';
 
 const feathers = window.feathers;
-const socket = window.io('http://localhost:7979');
+const socket = window.io();
 
 describe('Universal Feathers client browser tests', function() {
   const app = feathers()
@@ -29,6 +29,8 @@ describe('Universal Feathers client browser tests', function() {
       hook.result.ran = true;
     }
   });
+
+  after(() => app.service('todos').remove(null));
   
   baseTests(app, 'todos');
   
