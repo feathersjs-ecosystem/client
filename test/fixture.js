@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const memory = require('feathers-memory');
 const path = require('path');
 
+// eslint-disable-next-line no-extend-native
 Object.defineProperty(Error.prototype, 'toJSON', {
   value: function () {
     var alt = {};
@@ -18,11 +19,11 @@ Object.defineProperty(Error.prototype, 'toJSON', {
   configurable: true
 });
 
-module.exports = function(configurer) {
+module.exports = function (configurer) {
   // Create an in-memory CRUD service for our Todos
   var todoService = memory().extend({
-    get: function(id, params) {
-      if(params.query.error) {
+    get: function (id, params) {
+      if (params.query.error) {
         return Promise.reject(new Error('Something went wrong'));
       }
 
@@ -37,7 +38,7 @@ module.exports = function(configurer) {
     // Set up REST and SocketIO APIs
     .configure(rest());
 
-  if(typeof configurer === 'function') {
+  if (typeof configurer === 'function') {
     configurer.call(app);
   }
 
@@ -57,8 +58,8 @@ module.exports = function(configurer) {
 
   service.create(testTodo);
   service.after({
-    remove(hook) {
-      if(hook.id === null) {
+    remove (hook) {
+      if (hook.id === null) {
         service._uId = 0;
         return service.create(testTodo)
           .then(() => hook);

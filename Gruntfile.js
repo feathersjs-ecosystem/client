@@ -25,8 +25,8 @@ module.exports = function (grunt) {
     version: '9'
   }
   ];
-    
-  grunt.registerTask('server', 'Start the test server', function() {
+
+  grunt.registerTask('server', 'Start the test server', function () {
     server.listen(3000).on('listening', () => {
       console.log('Test server listening on port 3000');
     });
@@ -35,7 +35,7 @@ module.exports = function (grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     server: {},
-  
+
     'saucelabs-mocha': {
       all: {
         options: {

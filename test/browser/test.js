@@ -4,36 +4,36 @@ import baseTests from 'feathers-commons/lib/test/client';
 const feathers = window.feathers;
 const socket = window.io();
 
-describe('Universal Feathers client browser tests', function() {
+describe('Universal Feathers client browser tests', function () {
   const app = feathers()
     .configure(feathers.socketio(socket))
     .configure(feathers.hooks())
     .use('/myservice', {
-      get(id) {
+      get (id) {
         return Promise.resolve({
           id, description: `You have to do ${id}!`
         });
       },
-      
-      create(data) {
+
+      create (data) {
         return Promise.resolve(data);
       }
     });
-    
+
   app.service('myservice').before({
-    create(hook) {
+    create (hook) {
       hook.data.hook = true;
     }
   }).after({
-    get(hook) {
+    get (hook) {
       hook.result.ran = true;
     }
   });
 
   after(() => app.service('todos').remove(null));
-  
+
   baseTests(app, 'todos');
-  
+
   describe('Client side hooks and services', () => {
     it('initialized myservice and works with hooks', done => {
       app.service('myservice').get('dishes').then(todo => {
@@ -45,10 +45,10 @@ describe('Universal Feathers client browser tests', function() {
         done();
       }).catch(done);
     });
-    
+
     it('create and event with hook', done => {
       const myservice = app.service('myservice');
-      
+
       myservice.once('created', data => {
         assert.deepEqual(data, {
           description: 'Test todo',
@@ -56,7 +56,7 @@ describe('Universal Feathers client browser tests', function() {
         });
         done();
       });
-      
+
       myservice.create({ description: 'Test todo' });
     });
   });
