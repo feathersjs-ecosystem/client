@@ -24,10 +24,10 @@ In the browser a client that connects to the local server via websockets can be 
 <script type="text/javascript" src="//cdn.rawgit.com/feathersjs/feathers-client/v1.1.0/dist/feathers.js"></script>
 <script type="text/javascript">
   var socket = io();
-  var app = feathers()
+  var client = feathers()
     .configure(feathers.hooks())
     .configure(feathers.socketio(socket));
-  var todoService = app.service('todos');
+  var todoService = client.service('todos');
   
   todoService.on('created', function(todo) {
     console.log('Someone created a todo', todo);
