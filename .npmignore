@@ -8,3 +8,8 @@
 !lib/
 src/
 .github/
+coverage
+.editorconfig
+.travis.yml
+.istanbul.yml
+test/
