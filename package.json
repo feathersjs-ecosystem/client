@@ -67,6 +67,7 @@
   "dependencies": {
     "feathers": "2.0.2",
     "feathers-authentication": "0.7.11",
+    "feathers-commons": "^0.7.8",
     "feathers-hooks": "1.5.8",
     "feathers-primus": "1.4.1",
     "feathers-rest": "1.5.1",
