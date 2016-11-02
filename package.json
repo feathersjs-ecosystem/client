@@ -20,7 +20,7 @@
   ],
   "author": "Feathers contributors",
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">= 4"
   },
   "main": "lib/client.js",
   "scripts": {
