@@ -1,5 +1,17 @@
 # Change Log
 
+## [v1.7.1](https://github.com/feathersjs/feathers-client/tree/v1.7.1) (2016-11-02)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.7.0...v1.7.1)
+
+**Closed issues:**
+
+- Bower: Version mismatch [\#104](https://github.com/feathersjs/feathers-client/issues/104)
+
+**Merged pull requests:**
+
+- Update feathers-hooks to version 1.6.1 🚀 [\#108](https://github.com/feathersjs/feathers-client/pull/108) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Make sure Bower and NPM version are in sync [\#107](https://github.com/feathersjs/feathers-client/pull/107) ([daffl](https://github.com/daffl))
+
 ## [v1.7.0](https://github.com/feathersjs/feathers-client/tree/v1.7.0) (2016-11-02)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.6.2...v1.7.0)
 
