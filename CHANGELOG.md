@@ -1,5 +1,21 @@
 # Change Log
 
+## [v1.7.0](https://github.com/feathersjs/feathers-client/tree/v1.7.0) (2016-11-02)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.6.2...v1.7.0)
+
+**Closed issues:**
+
+- How to access feathers-client [\#102](https://github.com/feathersjs/feathers-client/issues/102)
+- Set up Saucelabs [\#97](https://github.com/feathersjs/feathers-client/issues/97)
+
+**Merged pull requests:**
+
+- 👻😱 Node.js 0.10 is unmaintained 😱👻 [\#106](https://github.com/feathersjs/feathers-client/pull/106) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-hooks to version 1.6.0 🚀 [\#105](https://github.com/feathersjs/feathers-client/pull/105) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Change variable naming from "app" to "feathersClient" [\#103](https://github.com/feathersjs/feathers-client/pull/103) ([NicoKnoll](https://github.com/NicoKnoll))
+- jshint —\> semistandard [\#101](https://github.com/feathersjs/feathers-client/pull/101) ([corymsmith](https://github.com/corymsmith))
+- Cross browser testing in Saucelabs [\#100](https://github.com/feathersjs/feathers-client/pull/100) ([daffl](https://github.com/daffl))
+
 ## [v1.6.2](https://github.com/feathersjs/feathers-client/tree/v1.6.2) (2016-10-22)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.6.1...v1.6.2)
 
