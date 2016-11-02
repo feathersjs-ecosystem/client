@@ -367,7 +367,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":43}],3:[function(require,module,exports){
+},{"ms":40}],3:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2264,552 +2264,7 @@ function populate(target, options) {
     });
   };
 }
-},{"./utils":17,"feathers-errors":12}],14:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.validate = exports.validateUsingPromise = exports.validateUsingCallback = exports.validateSync = exports.debug = exports.setSlug = exports.setUpdatedAt = exports.setCreatedAt = undefined;
-
-var _feathersErrors = require('feathers-errors');
-
-var _feathersErrors2 = _interopRequireDefault(_feathersErrors);
-
-var _utils = require('./utils');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-/* eslint-env es6, node */
-/* eslint  max-len: 0, new-cap: 0, no-console: 0, no-param-reassign: 0, no-shadow: 0, no-var: 0 */
-
-
-/**
- * Set one or more fields to a value. Base function for setCreateAt and setUpdatedAt.
- *
- * @param {string} defaultFieldName - default field name to add or update
- * @param {*} value - The value to set the fields to
- * @param {Array.<string|Function>} fieldNames - Field names.
- * @returns {Function} hook function(hook).
- */
-var setField = function setField(defaultFieldName, value) {
-  for (var _len = arguments.length, fieldNames = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-    fieldNames[_key - 2] = arguments[_key];
-  }
-
-  var addFields = function addFields(data) {
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = fieldNames[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var field = _step.value;
-
-        (0, _utils.setByDot)(data, field, value);
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
-    }
-  };
-
-  var callback = typeof fieldNames[fieldNames.length - 1] === 'function' ? fieldNames.pop() : function () {
-    return true;
-  };
-
-  if (!fieldNames.length) {
-    fieldNames = [defaultFieldName];
-  }
-
-  return function (hook) {
-    var items = hook.type === 'before' ? hook.data : hook.result;
-
-    var update = function update(condition) {
-      if (items && condition) {
-        if (hook.method === 'find' || Array.isArray(items)) {
-          // data.data if the find method is paginated
-          (items.data || items).forEach(addFields);
-        } else {
-          addFields(items);
-        }
-      }
-      return hook;
-    };
-
-    var check = callback(hook);
-
-    return check && typeof check.then === 'function' ? check.then(update) : update(check);
-  };
-};
-
-/**
- * Set the fields to the current date-time. The fields are either in the data submitted
- * (as a before hook for create, update or patch) or in the result (as an after hook).
- * If the data is an array or a paginated find result the hook will lowercase the field
- * for every item.
- *
- * @param {Array.<string|Function>} fieldNames - Field names.
- *    One or more fields may be set to the date-time. Dot notation is supported.
- *    The default is createdAt if no fields names are included.
- * @returns {Function} hook function(hook).
- *
- * The last param may be a function to determine if the current hook should be updated.
- * Its signature is func(hook) and it returns either a boolean or a promise resolving to a boolean.
- * This boolean determines if the hook is updated.
- *
- * hooks.setCreatedAt('madeAt', hook => hook.data.status === 1);
- * hooks.setCreatedAt(hook => new Promise(resolve => {
- *   setTimeout(() => { resolve(true); }, 100)
- * }));
- *
- */
-var setCreatedAt = exports.setCreatedAt = function setCreatedAt() {
-  for (var _len2 = arguments.length, fieldNames = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-    fieldNames[_key2] = arguments[_key2];
-  }
-
-  return setField.apply(undefined, ['createdAt', new Date()].concat(fieldNames));
-};
-
-/**
- * Set the fields to the current date-time. The fields are either in the data submitted
- * (as a before hook for create, update or patch) or in the result (as an after hook).
- * If the data is an array or a paginated find result the hook will lowercase the field
- * for every item.
- *
- * @param {Array.<string|Function>} fieldNames - Field names.
- *    One or more fields may be set to the date-time. Dot notation is supported.
- *    The default is updatedAt if no fields names are included.
- * @returns {Function} hook function(hook).
- *
- * The last param may be a function to determine if the current hook should be updated.
- * Its signature is func(hook) and it returns either a boolean or a promise resolving to a boolean.
- * This boolean determines if the hook is updated.
- *
- * hooks.setCreatedAt('madeAt', hook => hook.data.status === 1);
- * hooks.setCreatedAt(hook => new Promise(resolve => {
- *   setTimeout(() => { resolve(true); }, 100)
- * }));
- *
- */
-var setUpdatedAt = exports.setUpdatedAt = function setUpdatedAt() {
-  for (var _len3 = arguments.length, fieldNames = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-    fieldNames[_key3] = arguments[_key3];
-  }
-
-  return setField.apply(undefined, ['updatedAt', new Date()].concat(fieldNames));
-};
-
-/**
- * Normalize slug, so it can be accessed in the same place regardless of provider and transport.
- *
- * @param {string} slug - The slug, e.g. 'storeId' for http://.../stores/:storeId/...
- * @param {?string} field - where in hook.params to copy the URL slug. Dot notation is supported.
- *    hook.params.query[storeId] is the default location.
- * @returns {Function} hook function(hook)
- *
- * A service may have a slug in its path e.g. app.use('/stores/:storeId/candies', new Service());
- * The service gets slightly different values depending on the transport used by the client.
- *
- * hook.params.
- * transport         storeId   hook.params.query                 code on client
- * ----------------- --------- --------------------------------- ------------------------
- * feathers-socketio undefined { size: 'large', storeId: '123' } candies.create({ name: 'Gummi', qty: 100 }, { query: { size: 'large', storeId: '123' } }, cb)
- * feathers-rest     :storeId  { size: 'large', storeId: '123' } ... same as above
- * raw HTTP          123       { size: 'large' }                 fetch('/stores/123/candies?size=large', ...
- *
- * This hook normalizes the difference between the transports. A hook of
- * all: [ hooks.setSlug('storeId') ]
- * provides a normalized hook.params.query of { size: 'large', storeId: '123' } for the above.
- *
- * module.exports.before = {
- *   all: [ hooks.setSlug('storeId') ]
- * };
- */
-var setSlug = exports.setSlug = function setSlug(slug, field) {
-  return function (hook) {
-    if (typeof field !== 'string') {
-      field = 'query.' + slug;
-    }
-
-    if (hook.type === 'after') {
-      throw new _feathersErrors2.default.GeneralError('Cannot set slug on after hook. (setSlug)');
-    }
-
-    if (hook.params && hook.params.provider === 'rest') {
-      var value = hook.params[slug];
-      if (typeof value === 'string' && value[0] !== ':') {
-        (0, _utils.setByDot)(hook.params, field, value);
-      }
-    }
-  };
-};
-
-/**
- * Display debug info in hooks
- *
- * @param {string} msg - Message to display.
- * @returns {Function} hook function(hook)
- *
- * module.exports.before = {
- *   create: [ hooks.debug('step 1') ]
- * };
- */
-var debug = exports.debug = function debug(msg) {
-  return function (hook) {
-    console.log('* ' + (msg || '') + '\ntype:' + hook.type + ', method: ' + hook.method);
-    if (hook.data) {
-      console.log('data:', hook.data);
-    }
-    if (hook.params && hook.params.query) {
-      console.log('query:', hook.params.query);
-    }
-    if (hook.result) {
-      console.log('result:', hook.result);
-    }
-  };
-};
-
-/**
- * Call a validation routine which returns form errors.
- *
- * @param {Function} validator - with signature (formValues, ...rest)
- * @param {?Array.<*>} rest - Params #2+ for validator
- * @returns {Function} hook function(hook, next)
- *
- * The validator is called with: validator(formValues, ...rest)
- *   formValues:  { email: 'a@a.com', password: '1234567890' }
- *   returns:     { email: 'Email not found', password: 'Password is incorrect.' }
- */
-var validateSync = exports.validateSync = function validateSync(validator) {
-  for (var _len4 = arguments.length, rest = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-    rest[_key4 - 1] = arguments[_key4];
-  }
-
-  return function (hook) {
-    console.error('DEPRECATED Removed next ver. (validateSync)');
-    (0, _utils.checkContext)(hook, 'before', ['create', 'update', 'patch'], 'validateSync');
-
-    var formErrors = validator.apply(undefined, [(0, _utils.getItems)(hook)].concat(rest));
-
-    if (formErrors && Object.keys(formErrors).length) {
-      throw new _feathersErrors2.default.BadRequest({ errors: formErrors });
-    }
-
-    return hook;
-  };
-};
-
-/**
- * Call a validation routine which uses a callback.
- *
- * @param {Function} validator - with signature (formValues, ...rest, (err, newValues) => {...})
- * @param {?Array.<*>} rest - params #2+ for validator, not including the callback
- * @returns {Function} hook function(hook, next)
- *
- * The validator is called with: validator(formValues, ...rest, internal_callback)
- *   ...rest:     All params must be specified so the callback is defined in the proper place.
- *   formValues:  { email: 'a@a.com', password: '1234567890' }
- *   err:         { email: 'Email not found', password: 'Password is incorrect.' } or new Error(...)
- *   newValues:   Replaces formValues if truthy
- *
- * Note this is not compatible with Feathersjs callbacks from services. Use promises for these.
- */
-var validateUsingCallback = exports.validateUsingCallback = function validateUsingCallback(validator) {
-  for (var _len5 = arguments.length, rest = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
-    rest[_key5 - 1] = arguments[_key5];
-  }
-
-  return function (hook, next) {
-    console.error('DEPRECATED Removed next ver. (validateUsingCallback)');
-    (0, _utils.checkContext)(hook, 'before', ['create', 'update', 'patch'], 'validateUsingCallback');
-    var rest1 = rest.concat(cb);
-
-    validator.apply(undefined, [(0, _utils.getItems)(hook)].concat(_toConsumableArray(rest1)));
-
-    function cb(formErrors, convertedValues) {
-      if (formErrors) {
-        return next(formErrors instanceof Error ? formErrors : new _feathersErrors2.default.BadRequest('Invalid data', { errors: formErrors }), hook);
-      }
-
-      if (convertedValues) {
-        (0, _utils.replaceItems)(hook, convertedValues);
-      }
-
-      return next(null, hook);
-    }
-  };
-};
-
-/**
- * Call a validation routine which returns a Promise.
- *
- * @param {Function} validator - with signature (formValues, ...rest)
- * @param {?Array.<*>} rest - params #2+ for validator
- * @returns {Function} hook function(hook, next)
- *
- * The validator is called with: validator(formValues, ...rest)
- *   formValues:  { email: 'a@a.com', password: '1234567890' }
- *   reject:      reject(new errors.BadRequest({ errors: { email: 'Email not found' }}))
- *                Or reject(new errors.GeneralError(...))
- *   resolve:     resolve(data) replaces formValues if truthy
- */
-var validateUsingPromise = exports.validateUsingPromise = function validateUsingPromise(validator) {
-  for (var _len6 = arguments.length, rest = Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
-    rest[_key6 - 1] = arguments[_key6];
-  }
-
-  return function (hook) {
-    console.error('DEPRECATED Removed next ver. (validateUsingPromise)');
-    (0, _utils.checkContext)(hook, 'before', ['create', 'update', 'patch'], 'validateUsingPromise');
-
-    return validator.apply(undefined, [(0, _utils.getItems)(hook)].concat(rest)).then(function (convertedValues) {
-      if (convertedValues) {
-        (0, _utils.replaceItems)(hook, convertedValues);
-      }
-
-      return hook;
-    });
-  };
-};
-
-/**
- * Call a validation function from a before hook. The function may be sync or return a Promise.
- *
- * @param {Function} validator - Validation function with signature function validator(formValues)
- *    If you have a different signature for the validator then pass a wrapper as the validator
- *      e.g. (values) => myValidator(..., values, ...)
- *    If your validator uses a callback, wrap your validator in a Promise
- *      const fnPromisify = require('feathers-hooks-common/lib/promisify').fnPromisifyCallback;
- *      const myValidator = fnPromisifyCallback(myCallbackValidator, 1);
- *      app.service('users').before({ create: validate(myValidator) });
- * @returns {Function} hook function(hook)
- *
- * Sync functions return either an error object or null. Validate will throw on an error
- * object with:
- *   throw new errors.BadRequest({ errors: errorObject });
- * Promise functions should throw on an error. Their .then returns either sanitized values to
- * replace hook.data, or null.
- */
-var validate = exports.validate = function validate(validator) {
-  return function (hook) {
-    (0, _utils.checkContext)(hook, 'before', ['create', 'update', 'patch'], 'validate');
-
-    var res = validator((0, _utils.getItems)(hook));
-
-    if (res && typeof res.then === 'function') {
-      return res.then(function (convertedValues) {
-        if (convertedValues) {
-          // if values have been sanitized
-          (0, _utils.replaceItems)(hook, convertedValues);
-        }
-
-        return hook;
-      });
-    }
-
-    // Sync function returns errors. It cannot sanitize.
-    if (res && Object.keys(res).length) {
-      throw new _feathersErrors2.default.BadRequest({ errors: res });
-    }
-
-    return hook;
-  };
-};
-
-/**
- * Before acting on a request, such as saving a new user record. the server should validate the
- * schema of the request object, rerun any validations the client has already performed,
- * and then perform any additional server-side validation.
- *
- * We would of course prefer to reuse the client-side validation code.
- *
- * The following would be typical validation for user create if we use
- * - the popular redux-form for handling react client forms
- * - joi for schema validation:
- *
- * // index.js
- * // support async checking for unique email addrs and usernames, among other things
- * const verifyResetService = require('feathers-service-verify-reset').service;
- * app.configure(verifyResetService(...)); // custom service
- *
- * // user/hooks/index.js
- * const hooks = require('feathers-hooks-common');
- * const validateSchema = require('feathers-hooks-validate-joi');
- * const verifyReset = app.service('/verifyReset/:action/:value');
- *
- * create: [
- *   validateSchema.form(schemas.signup, schemas.options), // schema validation
- *   hooks.validateSync(usersClientValidations.signup),  // redo redux-form client validation
- *   hooks.validateUsingPromise( // redo redux-form async validation, for uniqueness
- *     (values) => verifyReset.create( // wrap call for compatibility with validateUsingPromise
- *       { action: 'unique', value: { username: values.username, email: values.email } }
- *     )
- *   ),
- *   hooks.validateUsingCallback(usersServerValidations.signup, {}), // server validation
- *   hooks.remove('confirmPassword'),
- *   auth.hashPassword(),
- * ],
- *
- * See feathersjs-starter-react-redux-login for a working example.
- */
-},{"./utils":17,"feathers-errors":12}],15:[function(require,module,exports){
-'use strict';
-
-/* eslint-env es6, node */
-
-module.exports = Object.assign({}, require('./common'), require('./bundled'), require('./new'));
-},{"./bundled":13,"./common":14,"./new":16}],16:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.isNot = exports.isProvider = exports.iff = exports.softDelete = undefined;
-
-var _utils = require('./utils');
-
-/* eslint-env es6, node */
-/* eslint no-param-reassign: 0, no-var: 0 */
-
-var errors = require('feathers-errors').errors;
-
-/**
- * Mark an item as deleted rather than removing it from the database.
- *
- * @param {string} field - Field for delete status. Supports dot notation. Default is 'deleted'.
- *
- * export.before = {
- *   remove: [ softDelete() ], // update item flagging it as deleted
- *   find: [ softDelete() ] // ignore deleted items
- * };
- */
-var softDelete = exports.softDelete = function softDelete(field) {
-  return function (hook) {
-    (0, _utils.checkContext)(hook, 'before', ['remove', 'find'], 'softDelete');
-
-    if (hook.method === 'find') {
-      hook.params.query = hook.params.query || {};
-      (0, _utils.setByDot)(hook.data, (field || 'deleted') + '.$ne', true); // include non-deleted items only
-      return hook;
-    }
-
-    hook.data = hook.data || {};
-    (0, _utils.setByDot)(hook.data, field || 'deleted', true); // update the item as deleted
-
-    return undefined.patch(hook.id, hook.data, hook.params).then(function (data) {
-      hook.result = data; // Set the result from `patch` as the method call result
-      return hook; // Always return the hook or `undefined`
-    });
-  };
-};
-
-/**
- * Hook to conditionally execute another hook.
- *
- * @param {Function|Promise|boolean} ifFcn - Predicate function(hook).
- *    Execute hookFcn if result is truesy.
- * @param {Function|Promise} hookFcn - Hook function to execute.
- * @returns {Object} hook
- *
- * The predicate is called with hook as a param.
- *   const isServer = hook => !hook.params.provider;
- *   iff(isServer, hook.remove( ... ));
- * You can use a high order predicate to access other values.
- *   const isProvider = provider => hook => hook.params.provider === provider;
- *   iff(isProvider('socketio'), hook.remove( ... ));
- *
- * feathers-hooks will catch any errors from the predicate or hook Promises.
- */
-var iff = exports.iff = function iff(ifFcn, hookFcn) {
-  return function (hook) {
-    var check = typeof ifFcn === 'function' ? ifFcn(hook) : !!ifFcn;
-
-    if (!check) {
-      return hook;
-    }
-
-    if (typeof check.then !== 'function') {
-      return hookFcn(hook); // could be sync or async
-    }
-
-    return check.then(function (check1) {
-      if (!check1) {
-        return hook;
-      }
-
-      return hookFcn(hook); // could be sync or async
-    });
-  };
-};
-
-/**
- * Predicate to check what called the service method.
- *
- * @param {string} [providers] - Providers permitted
- *    'server' = service method called from server,
- *    'external' = any external access,
- *    string = that provider e.g. 'rest',
- * @returns {boolean} whether the service method was called by one of the [providers].
- */
-var isProvider = exports.isProvider = function isProvider() {
-  for (var _len = arguments.length, providers = Array(_len), _key = 0; _key < _len; _key++) {
-    providers[_key] = arguments[_key];
-  }
-
-  if (!providers.length) {
-    throw new errors.MethodNotAllowed('Calling iff() predicate incorrectly. (isProvider)');
-  }
-
-  return function (hook) {
-    // allow bind
-    var hookProvider = (hook.params || {}).provider;
-
-    return providers.some(function (provider) {
-      return provider === hookProvider || provider === 'server' && !hookProvider || provider === 'external' && hookProvider;
-    });
-  };
-};
-
-/**
- * Negate a predicate.
- *
- * @param {Function} predicate - returns a boolean or a promise resolving to a boolean.
- * @returns {boolean} the not of the predicate result.
- *
- * const hooks, { iff, isNot, isProvider } from 'feathers-hooks-common';
- * iff(isNot(isProvider('rest')), hooks.remove( ... ));
- */
-var isNot = exports.isNot = function isNot(predicate) {
-  if (typeof predicate !== 'function') {
-    throw new errors.MethodNotAllowed('Expected function as param. (isNot)');
-  }
-
-  return function (hook) {
-    var result = predicate(hook); // Should we pass a clone? (safety vs performance)
-
-    if (!result || typeof result.then !== 'function') {
-      return !result;
-    }
-
-    return result.then(function (result1) {
-      return !result1;
-    });
-  };
-};
-},{"./utils":17,"feathers-errors":12}],17:[function(require,module,exports){
+},{"./utils":14,"feathers-errors":12}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2958,7 +2413,7 @@ function replaceItems(hook, items) {
     hook.result = items;
   }
 }
-},{}],18:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3096,7 +2551,7 @@ function baseMixin(methods) {
 
   return Object.assign.apply(Object, [mixin].concat(objs));
 }
-},{"feathers-commons":9}],19:[function(require,module,exports){
+},{"feathers-commons":9}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3109,7 +2564,7 @@ var _uberproto2 = _interopRequireDefault(_uberproto);
 
 var _feathersCommons = require('feathers-commons');
 
-var _feathersHooksCommon = require('feathers-hooks-common');
+var _bundled = require('feathers-hooks-common/lib/bundled');
 
 var _commons = require('./commons');
 
@@ -3243,21 +2698,21 @@ function configure() {
   };
 }
 
-configure.removeQuery = _feathersHooksCommon.removeQuery;
-configure.pluckQuery = _feathersHooksCommon.pluckQuery;
-configure.lowerCase = _feathersHooksCommon.lowerCase;
-configure.remove = _feathersHooksCommon.remove;
-configure.pluck = _feathersHooksCommon.pluck;
-configure.disable = _feathersHooksCommon.disable;
-configure.populate = _feathersHooksCommon.populate;
-configure.removeField = _feathersHooksCommon.removeField;
+configure.removeQuery = _bundled.removeQuery;
+configure.pluckQuery = _bundled.pluckQuery;
+configure.lowerCase = _bundled.lowerCase;
+configure.remove = _bundled.remove;
+configure.pluck = _bundled.pluck;
+configure.disable = _bundled.disable;
+configure.populate = _bundled.populate;
+configure.removeField = _bundled.removeField;
 
 exports.default = configure;
 module.exports = exports['default'];
-},{"./commons":18,"feathers-commons":9,"feathers-hooks-common":15,"uberproto":51}],20:[function(require,module,exports){
+},{"./commons":15,"feathers-commons":9,"feathers-hooks-common/lib/bundled":13,"uberproto":48}],17:[function(require,module,exports){
 module.exports = require('./lib/client');
 
-},{"./lib/client":21}],21:[function(require,module,exports){
+},{"./lib/client":18}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3299,9 +2754,9 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":29}],22:[function(require,module,exports){
+},{"feathers-socket-commons/client":26}],19:[function(require,module,exports){
 arguments[4][4][0].apply(exports,arguments)
-},{"./lib/client/index":25,"dup":4}],23:[function(require,module,exports){
+},{"./lib/client/index":22,"dup":4}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3444,7 +2899,7 @@ var Base = function () {
 
 exports.default = Base;
 module.exports = exports['default'];
-},{"feathers-commons":9,"feathers-errors":12,"qs":45}],24:[function(require,module,exports){
+},{"feathers-commons":9,"feathers-errors":12,"qs":42}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3514,7 +2969,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":23}],25:[function(require,module,exports){
+},{"./base":20}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3585,7 +3040,7 @@ var transports = {
 };
 
 module.exports = exports['default'];
-},{"./fetch":24,"./jquery":26,"./request":27,"./superagent":28}],26:[function(require,module,exports){
+},{"./fetch":21,"./jquery":23,"./request":24,"./superagent":25}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3659,7 +3114,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":23}],27:[function(require,module,exports){
+},{"./base":20}],24:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3725,7 +3180,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":23}],28:[function(require,module,exports){
+},{"./base":20}],25:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3789,9 +3244,9 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":23}],29:[function(require,module,exports){
-arguments[4][20][0].apply(exports,arguments)
-},{"./lib/client":30,"dup":20}],30:[function(require,module,exports){
+},{"./base":20}],26:[function(require,module,exports){
+arguments[4][17][0].apply(exports,arguments)
+},{"./lib/client":27,"dup":17}],27:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3964,7 +3419,7 @@ var Service = function () {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./utils":31,"debug":1,"feathers-errors":12}],31:[function(require,module,exports){
+},{"./utils":28,"debug":1,"feathers-errors":12}],28:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -4025,9 +3480,9 @@ function normalizeError(e) {
   return result;
 }
 }).call(this,require('_process'))
-},{"_process":44,"feathers-commons":9}],32:[function(require,module,exports){
-arguments[4][20][0].apply(exports,arguments)
-},{"./lib/client":33,"dup":20}],33:[function(require,module,exports){
+},{"_process":41,"feathers-commons":9}],29:[function(require,module,exports){
+arguments[4][17][0].apply(exports,arguments)
+},{"./lib/client":30,"dup":17}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4073,9 +3528,9 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":29}],34:[function(require,module,exports){
+},{"feathers-socket-commons/client":26}],31:[function(require,module,exports){
 arguments[4][4][0].apply(exports,arguments)
-},{"./lib/client/index":37,"dup":4}],35:[function(require,module,exports){
+},{"./lib/client/index":34,"dup":4}],32:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4227,7 +3682,7 @@ exports.default = {
   }
 };
 module.exports = exports['default'];
-},{"./mixins/index":40,"debug":1,"feathers-commons":9,"uberproto":51}],36:[function(require,module,exports){
+},{"./mixins/index":37,"debug":1,"feathers-commons":9,"uberproto":48}],33:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4281,7 +3736,7 @@ var _uberproto2 = _interopRequireDefault(_uberproto);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"events":3,"uberproto":51}],37:[function(require,module,exports){
+},{"events":3,"uberproto":48}],34:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4305,7 +3760,7 @@ function createApplication() {
 
 createApplication.version = '2.0.1';
 module.exports = exports['default'];
-},{"../feathers":38,"./express":36}],38:[function(require,module,exports){
+},{"../feathers":35,"./express":33}],35:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4335,7 +3790,7 @@ function createApplication(app) {
   return app;
 }
 module.exports = exports['default'];
-},{"./application":35,"uberproto":51}],39:[function(require,module,exports){
+},{"./application":32,"uberproto":48}],36:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4413,7 +3868,7 @@ function upperCase(name) {
 }
 
 module.exports = exports['default'];
-},{"events":3,"feathers-commons":9,"rubberduck":49}],40:[function(require,module,exports){
+},{"events":3,"feathers-commons":9,"rubberduck":46}],37:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4434,7 +3889,7 @@ exports.default = function () {
 };
 
 module.exports = exports['default'];
-},{"./event":39,"./normalizer":41,"./promise":42}],41:[function(require,module,exports){
+},{"./event":36,"./normalizer":38,"./promise":39}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4464,7 +3919,7 @@ exports.default = function (service) {
 var _feathersCommons = require('feathers-commons');
 
 module.exports = exports['default'];
-},{"feathers-commons":9}],42:[function(require,module,exports){
+},{"feathers-commons":9}],39:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4508,7 +3963,7 @@ function wrapper() {
 }
 
 module.exports = exports['default'];
-},{}],43:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -4635,7 +4090,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],44:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -4817,7 +4272,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],45:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 'use strict';
 
 var Stringify = require('./stringify');
@@ -4828,7 +4283,7 @@ module.exports = {
     parse: Parse
 };
 
-},{"./parse":46,"./stringify":47}],46:[function(require,module,exports){
+},{"./parse":43,"./stringify":44}],43:[function(require,module,exports){
 'use strict';
 
 var Utils = require('./utils');
@@ -4997,7 +4452,7 @@ module.exports = function (str, opts) {
     return Utils.compact(obj);
 };
 
-},{"./utils":48}],47:[function(require,module,exports){
+},{"./utils":45}],44:[function(require,module,exports){
 'use strict';
 
 var Utils = require('./utils');
@@ -5136,7 +4591,7 @@ module.exports = function (object, opts) {
     return keys.join(delimiter);
 };
 
-},{"./utils":48}],48:[function(require,module,exports){
+},{"./utils":45}],45:[function(require,module,exports){
 'use strict';
 
 var hexTable = (function () {
@@ -5302,7 +4757,7 @@ exports.isBuffer = function (obj) {
     return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
 };
 
-},{}],49:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 var events = require('events');
 var utils = require('./utils');
 var wrap = exports.wrap = {
@@ -5414,7 +4869,7 @@ exports.emitter = function(obj) {
   return new Emitter(obj);
 };
 
-},{"./utils":50,"events":3}],50:[function(require,module,exports){
+},{"./utils":47,"events":3}],47:[function(require,module,exports){
 exports.toBase26 = function(num) {
   var outString = '';
   var letters = 'abcdefghijklmnopqrstuvwxyz';
@@ -5450,7 +4905,7 @@ exports.emitEvents = function(emitter, type, name, args) {
   }
 };
 
-},{}],51:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 /* global define */
 /**
  * A base object for ECMAScript 5 style prototypal inheritance.
@@ -5594,7 +5049,7 @@ exports.emitEvents = function(emitter, type, name, args) {
 
 }));
 
-},{}],52:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5632,5 +5087,5 @@ Object.assign(_client2.default, { socketio: _client6.default, primus: _client8.d
 exports.default = _client2.default;
 module.exports = exports['default'];
 
-},{"feathers-authentication/client":4,"feathers-hooks":19,"feathers-primus/client":20,"feathers-rest/client":22,"feathers-socketio/client":32,"feathers/client":34}]},{},[52])(52)
+},{"feathers-authentication/client":4,"feathers-hooks":16,"feathers-primus/client":17,"feathers-rest/client":19,"feathers-socketio/client":29,"feathers/client":31}]},{},[49])(49)
 });
