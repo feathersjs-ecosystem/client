@@ -40,7 +40,8 @@ exports.colors = [
 
 function useColors() {
   // is webkit? http://stackoverflow.com/a/16459606/376773
-  return ('WebkitAppearance' in document.documentElement.style) ||
+  // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
+  return (typeof document !== 'undefined' && 'WebkitAppearance' in document.documentElement.style) ||
     // is firebug? http://stackoverflow.com/a/398120/376773
     (window.console && (console.firebug || (console.exception && console.table))) ||
     // is firefox >= v31?
@@ -177,7 +178,7 @@ function localstorage(){
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = debug;
+exports = module.exports = debug.debug = debug;
 exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
@@ -312,7 +313,7 @@ function enable(namespaces) {
 
   for (var i = 0; i < len; i++) {
     if (!split[i]) continue; // ignore empty strings
-    namespaces = split[i].replace(/\*/g, '.*?');
+    namespaces = split[i].replace(/[\\^$+?.()|[\]{}]/g, '\\$&').replace(/\*/g, '.*?');
     if (namespaces[0] === '-') {
       exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
     } else {
@@ -1368,7 +1369,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -1420,9 +1421,9 @@ var FeathersError = function (_extendableBuiltin2) {
 
     msg = msg || 'Error';
 
-    var errors = undefined;
-    var message = undefined;
-    var newData = undefined;
+    var errors = void 0;
+    var message = void 0;
+    var newData = void 0;
 
     if (msg instanceof Error) {
       message = msg.message || 'Error';
@@ -1431,16 +1432,14 @@ var FeathersError = function (_extendableBuiltin2) {
       if (msg.errors) {
         errors = msg.errors;
       }
-    }
-    // Support plain old objects
-    else if ((typeof msg === 'undefined' ? 'undefined' : _typeof(msg)) === 'object') {
-        message = msg.message || 'Error';
-        data = msg;
-      }
+    } else if ((typeof msg === 'undefined' ? 'undefined' : _typeof(msg)) === 'object') {
+      // Support plain old objects
+      message = msg.message || 'Error';
+      data = msg;
+    } else {
       // message is just a string
-      else {
-          message = msg;
-        }
+      message = msg;
+    }
 
     if (data) {
       // NOTE(EK): To make sure that we are not messing
@@ -1457,8 +1456,7 @@ var FeathersError = function (_extendableBuiltin2) {
     // NOTE (EK): Babel doesn't support this so
     // we have to pass in the class name manually.
     // this.name = this.constructor.name;
-
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(FeathersError).call(this, message));
+    var _this = _possibleConstructorReturn(this, (FeathersError.__proto__ || Object.getPrototypeOf(FeathersError)).call(this, message));
 
     _this.type = 'FeathersError';
     _this.name = name;
@@ -1499,7 +1497,7 @@ var BadRequest = function (_FeathersError) {
   function BadRequest(message, data) {
     _classCallCheck(this, BadRequest);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(BadRequest).call(this, message, 'BadRequest', 400, 'bad-request', data));
+    return _possibleConstructorReturn(this, (BadRequest.__proto__ || Object.getPrototypeOf(BadRequest)).call(this, message, 'BadRequest', 400, 'bad-request', data));
   }
 
   return BadRequest;
@@ -1511,7 +1509,7 @@ var NotAuthenticated = function (_FeathersError2) {
   function NotAuthenticated(message, data) {
     _classCallCheck(this, NotAuthenticated);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(NotAuthenticated).call(this, message, 'NotAuthenticated', 401, 'not-authenticated', data));
+    return _possibleConstructorReturn(this, (NotAuthenticated.__proto__ || Object.getPrototypeOf(NotAuthenticated)).call(this, message, 'NotAuthenticated', 401, 'not-authenticated', data));
   }
 
   return NotAuthenticated;
@@ -1523,7 +1521,7 @@ var PaymentError = function (_FeathersError3) {
   function PaymentError(message, data) {
     _classCallCheck(this, PaymentError);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(PaymentError).call(this, message, 'PaymentError', 402, 'payment-error', data));
+    return _possibleConstructorReturn(this, (PaymentError.__proto__ || Object.getPrototypeOf(PaymentError)).call(this, message, 'PaymentError', 402, 'payment-error', data));
   }
 
   return PaymentError;
@@ -1535,7 +1533,7 @@ var Forbidden = function (_FeathersError4) {
   function Forbidden(message, data) {
     _classCallCheck(this, Forbidden);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Forbidden).call(this, message, 'Forbidden', 403, 'forbidden', data));
+    return _possibleConstructorReturn(this, (Forbidden.__proto__ || Object.getPrototypeOf(Forbidden)).call(this, message, 'Forbidden', 403, 'forbidden', data));
   }
 
   return Forbidden;
@@ -1547,7 +1545,7 @@ var NotFound = function (_FeathersError5) {
   function NotFound(message, data) {
     _classCallCheck(this, NotFound);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(NotFound).call(this, message, 'NotFound', 404, 'not-found', data));
+    return _possibleConstructorReturn(this, (NotFound.__proto__ || Object.getPrototypeOf(NotFound)).call(this, message, 'NotFound', 404, 'not-found', data));
   }
 
   return NotFound;
@@ -1559,7 +1557,7 @@ var MethodNotAllowed = function (_FeathersError6) {
   function MethodNotAllowed(message, data) {
     _classCallCheck(this, MethodNotAllowed);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(MethodNotAllowed).call(this, message, 'MethodNotAllowed', 405, 'method-not-allowed', data));
+    return _possibleConstructorReturn(this, (MethodNotAllowed.__proto__ || Object.getPrototypeOf(MethodNotAllowed)).call(this, message, 'MethodNotAllowed', 405, 'method-not-allowed', data));
   }
 
   return MethodNotAllowed;
@@ -1571,7 +1569,7 @@ var NotAcceptable = function (_FeathersError7) {
   function NotAcceptable(message, data) {
     _classCallCheck(this, NotAcceptable);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(NotAcceptable).call(this, message, 'NotAcceptable', 406, 'not-acceptable', data));
+    return _possibleConstructorReturn(this, (NotAcceptable.__proto__ || Object.getPrototypeOf(NotAcceptable)).call(this, message, 'NotAcceptable', 406, 'not-acceptable', data));
   }
 
   return NotAcceptable;
@@ -1583,7 +1581,7 @@ var Timeout = function (_FeathersError8) {
   function Timeout(message, data) {
     _classCallCheck(this, Timeout);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Timeout).call(this, message, 'Timeout', 408, 'timeout', data));
+    return _possibleConstructorReturn(this, (Timeout.__proto__ || Object.getPrototypeOf(Timeout)).call(this, message, 'Timeout', 408, 'timeout', data));
   }
 
   return Timeout;
@@ -1595,55 +1593,91 @@ var Conflict = function (_FeathersError9) {
   function Conflict(message, data) {
     _classCallCheck(this, Conflict);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Conflict).call(this, message, 'Conflict', 409, 'conflict', data));
+    return _possibleConstructorReturn(this, (Conflict.__proto__ || Object.getPrototypeOf(Conflict)).call(this, message, 'Conflict', 409, 'conflict', data));
   }
 
   return Conflict;
 }(FeathersError);
 
-var Unprocessable = function (_FeathersError10) {
-  _inherits(Unprocessable, _FeathersError10);
+var LengthRequired = function (_FeathersError10) {
+  _inherits(LengthRequired, _FeathersError10);
+
+  function LengthRequired(message, data) {
+    _classCallCheck(this, LengthRequired);
+
+    return _possibleConstructorReturn(this, (LengthRequired.__proto__ || Object.getPrototypeOf(LengthRequired)).call(this, message, 'LengthRequired', 411, 'length-required', data));
+  }
+
+  return LengthRequired;
+}(FeathersError);
+
+var Unprocessable = function (_FeathersError11) {
+  _inherits(Unprocessable, _FeathersError11);
 
   function Unprocessable(message, data) {
     _classCallCheck(this, Unprocessable);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Unprocessable).call(this, message, 'Unprocessable', 422, 'unprocessable', data));
+    return _possibleConstructorReturn(this, (Unprocessable.__proto__ || Object.getPrototypeOf(Unprocessable)).call(this, message, 'Unprocessable', 422, 'unprocessable', data));
   }
 
   return Unprocessable;
 }(FeathersError);
 
-var GeneralError = function (_FeathersError11) {
-  _inherits(GeneralError, _FeathersError11);
+var TooManyRequests = function (_FeathersError12) {
+  _inherits(TooManyRequests, _FeathersError12);
+
+  function TooManyRequests(message, data) {
+    _classCallCheck(this, TooManyRequests);
+
+    return _possibleConstructorReturn(this, (TooManyRequests.__proto__ || Object.getPrototypeOf(TooManyRequests)).call(this, message, 'TooManyRequests', 429, 'too-many-requests', data));
+  }
+
+  return TooManyRequests;
+}(FeathersError);
+
+var GeneralError = function (_FeathersError13) {
+  _inherits(GeneralError, _FeathersError13);
 
   function GeneralError(message, data) {
     _classCallCheck(this, GeneralError);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(GeneralError).call(this, message, 'GeneralError', 500, 'general-error', data));
+    return _possibleConstructorReturn(this, (GeneralError.__proto__ || Object.getPrototypeOf(GeneralError)).call(this, message, 'GeneralError', 500, 'general-error', data));
   }
 
   return GeneralError;
 }(FeathersError);
 
-var NotImplemented = function (_FeathersError12) {
-  _inherits(NotImplemented, _FeathersError12);
+var NotImplemented = function (_FeathersError14) {
+  _inherits(NotImplemented, _FeathersError14);
 
   function NotImplemented(message, data) {
     _classCallCheck(this, NotImplemented);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(NotImplemented).call(this, message, 'NotImplemented', 501, 'not-implemented', data));
+    return _possibleConstructorReturn(this, (NotImplemented.__proto__ || Object.getPrototypeOf(NotImplemented)).call(this, message, 'NotImplemented', 501, 'not-implemented', data));
   }
 
   return NotImplemented;
 }(FeathersError);
 
-var Unavailable = function (_FeathersError13) {
-  _inherits(Unavailable, _FeathersError13);
+var BadGateway = function (_FeathersError15) {
+  _inherits(BadGateway, _FeathersError15);
+
+  function BadGateway(message, data) {
+    _classCallCheck(this, BadGateway);
+
+    return _possibleConstructorReturn(this, (BadGateway.__proto__ || Object.getPrototypeOf(BadGateway)).call(this, message, 'BadGateway', 502, 'bad-gateway', data));
+  }
+
+  return BadGateway;
+}(FeathersError);
+
+var Unavailable = function (_FeathersError16) {
+  _inherits(Unavailable, _FeathersError16);
 
   function Unavailable(message, data) {
     _classCallCheck(this, Unavailable);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Unavailable).call(this, message, 'Unavailable', 503, 'unavailable', data));
+    return _possibleConstructorReturn(this, (Unavailable.__proto__ || Object.getPrototypeOf(Unavailable)).call(this, message, 'Unavailable', 503, 'unavailable', data));
   }
 
   return Unavailable;
@@ -1660,9 +1694,12 @@ var errors = {
   NotAcceptable: NotAcceptable,
   Timeout: Timeout,
   Conflict: Conflict,
+  LengthRequired: LengthRequired,
   Unprocessable: Unprocessable,
+  TooManyRequests: TooManyRequests,
   GeneralError: GeneralError,
   NotImplemented: NotImplemented,
+  BadGateway: BadGateway,
   Unavailable: Unavailable,
   400: BadRequest,
   401: NotAuthenticated,
@@ -1673,9 +1710,12 @@ var errors = {
   406: NotAcceptable,
   408: Timeout,
   409: Conflict,
+  411: LengthRequired,
   422: Unprocessable,
+  429: TooManyRequests,
   500: GeneralError,
   501: NotImplemented,
+  502: BadGateway,
   503: Unavailable
 };
 
@@ -2184,18 +2224,22 @@ function disable(realm) {
  *    for the item(s) in options.service.
  * @returns {Function} hook function(hook):Promise resolving to the hook.
  *
- * 'target' is the foreign key for one related item in options.service, e.g. target === item._id.
+ * 'options.field' is the foreign key for one related item in options.service, i.e. item[options.field] === foreignItem[idField].
  * 'target' is set to this related item once it is read successfully.
+ * 
+ * If 'options.field' is not present in the hook result item, the hook is ignored.
  *
  * So if the hook result has the message item
  *    { _id: '1...1', senderId: 'a...a', text: 'Jane, are you there?' }
+ * and the /users service has the item
+ *    { _id: 'a...a', name: 'John Doe'}
  * and then the hook is run
- *    hooks.populate('senderId', { field: 'user', service: '/users' })
+ *    hooks.populate('sender', { field: 'userId', service: '/users' })
  * the hook result will contain
  *    { _id: '1...1', senderId : 'a...a', text: 'Jane, are you there?',
- *      user: { _id: 'a...a', name: 'John Doe'} }
+ *      sender: { _id: 'a...a', name: 'John Doe'} }
  *
- * If 'senderId' is an array of keys, then 'user' will be an array of populated items.
+ * If 'senderId' is an array of keys, then 'sender' will be an array of populated items.
  */
 function populate(target, options) {
   options = Object.assign({}, options);
@@ -2224,7 +2268,7 @@ function populate(target, options) {
           item = item.toJSON(options);
         }
       // Remove any query from params as it's not related
-      var params = Object.assign({}, params, { query: undefined });
+      var params = Object.assign({}, hook.params, { query: undefined });
       // If the relationship is an array of ids, fetch and resolve an object for each,
       // otherwise just fetch the object.
       var promise = Array.isArray(id) ? Promise.all(id.map(function (objectID) {
@@ -2947,6 +2991,10 @@ var Service = function (_Base) {
       var fetch = this.connection;
 
       return fetch(options.url, fetchOptions).then(this.checkStatus).then(function (response) {
+        if (response.status === 204) {
+          return null;
+        }
+
         return response.json();
       });
     }
@@ -3968,11 +4016,11 @@ module.exports = exports['default'];
  * Helpers.
  */
 
-var s = 1000;
-var m = s * 60;
-var h = m * 60;
-var d = h * 24;
-var y = d * 365.25;
+var s = 1000
+var m = s * 60
+var h = m * 60
+var d = h * 24
+var y = d * 365.25
 
 /**
  * Parse or format the given `val`.
@@ -3983,17 +4031,23 @@ var y = d * 365.25;
  *
  * @param {String|Number} val
  * @param {Object} options
+ * @throws {Error} throw an error if val is not a non-empty string or a number
  * @return {String|Number}
  * @api public
  */
 
-module.exports = function(val, options){
-  options = options || {};
-  if ('string' == typeof val) return parse(val);
-  return options.long
-    ? long(val)
-    : short(val);
-};
+module.exports = function (val, options) {
+  options = options || {}
+  var type = typeof val
+  if (type === 'string' && val.length > 0) {
+    return parse(val)
+  } else if (type === 'number' && isNaN(val) === false) {
+    return options.long ?
+			fmtLong(val) :
+			fmtShort(val)
+  }
+  throw new Error('val is not a non-empty string or a valid number. val=' + JSON.stringify(val))
+}
 
 /**
  * Parse the given `str` and return milliseconds.
@@ -4004,47 +4058,53 @@ module.exports = function(val, options){
  */
 
 function parse(str) {
-  str = '' + str;
-  if (str.length > 10000) return;
-  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
-  if (!match) return;
-  var n = parseFloat(match[1]);
-  var type = (match[2] || 'ms').toLowerCase();
+  str = String(str)
+  if (str.length > 10000) {
+    return
+  }
+  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str)
+  if (!match) {
+    return
+  }
+  var n = parseFloat(match[1])
+  var type = (match[2] || 'ms').toLowerCase()
   switch (type) {
     case 'years':
     case 'year':
     case 'yrs':
     case 'yr':
     case 'y':
-      return n * y;
+      return n * y
     case 'days':
     case 'day':
     case 'd':
-      return n * d;
+      return n * d
     case 'hours':
     case 'hour':
     case 'hrs':
     case 'hr':
     case 'h':
-      return n * h;
+      return n * h
     case 'minutes':
     case 'minute':
     case 'mins':
     case 'min':
     case 'm':
-      return n * m;
+      return n * m
     case 'seconds':
     case 'second':
     case 'secs':
     case 'sec':
     case 's':
-      return n * s;
+      return n * s
     case 'milliseconds':
     case 'millisecond':
     case 'msecs':
     case 'msec':
     case 'ms':
-      return n;
+      return n
+    default:
+      return undefined
   }
 }
 
@@ -4056,12 +4116,20 @@ function parse(str) {
  * @api private
  */
 
-function short(ms) {
-  if (ms >= d) return Math.round(ms / d) + 'd';
-  if (ms >= h) return Math.round(ms / h) + 'h';
-  if (ms >= m) return Math.round(ms / m) + 'm';
-  if (ms >= s) return Math.round(ms / s) + 's';
-  return ms + 'ms';
+function fmtShort(ms) {
+  if (ms >= d) {
+    return Math.round(ms / d) + 'd'
+  }
+  if (ms >= h) {
+    return Math.round(ms / h) + 'h'
+  }
+  if (ms >= m) {
+    return Math.round(ms / m) + 'm'
+  }
+  if (ms >= s) {
+    return Math.round(ms / s) + 's'
+  }
+  return ms + 'ms'
 }
 
 /**
@@ -4072,12 +4140,12 @@ function short(ms) {
  * @api private
  */
 
-function long(ms) {
-  return plural(ms, d, 'day')
-    || plural(ms, h, 'hour')
-    || plural(ms, m, 'minute')
-    || plural(ms, s, 'second')
-    || ms + ' ms';
+function fmtLong(ms) {
+  return plural(ms, d, 'day') ||
+    plural(ms, h, 'hour') ||
+    plural(ms, m, 'minute') ||
+    plural(ms, s, 'second') ||
+    ms + ' ms'
 }
 
 /**
@@ -4085,9 +4153,13 @@ function long(ms) {
  */
 
 function plural(ms, n, name) {
-  if (ms < n) return;
-  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
-  return Math.ceil(ms / n) + ' ' + name + 's';
+  if (ms < n) {
+    return
+  }
+  if (ms < n * 1.5) {
+    return Math.floor(ms / n) + ' ' + name
+  }
+  return Math.ceil(ms / n) + ' ' + name + 's'
 }
 
 },{}],41:[function(require,module,exports){
