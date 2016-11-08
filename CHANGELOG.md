@@ -1,5 +1,13 @@
 # Change Log
 
+## [v1.7.2](https://github.com/feathersjs/feathers-client/tree/v1.7.2) (2016-11-08)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.7.1...v1.7.2)
+
+**Merged pull requests:**
+
+- Update feathers-rest to version 1.5.2 🚀 [\#110](https://github.com/feathersjs/feathers-client/pull/110) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-socketio to version 1.4.2 🚀 [\#109](https://github.com/feathersjs/feathers-client/pull/109) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+
 ## [v1.7.1](https://github.com/feathersjs/feathers-client/tree/v1.7.1) (2016-11-02)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.7.0...v1.7.1)
 
