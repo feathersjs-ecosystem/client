@@ -1,9 +1,6 @@
 sudo: false
 language: node_js
-node_js:
-  - node
-  - '6'
-  - '4'
+node_js: node
 script: 'npm run ci'
 before_script:
   - 'npm install -g codeclimate-test-reporter'
