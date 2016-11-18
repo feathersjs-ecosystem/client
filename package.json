@@ -66,6 +66,7 @@
   "greenkeeper": {
     "ignore": "jsdom"
   },
+  "typings": "index.d.ts",
   "dependencies": {
     "feathers": "2.0.2",
     "feathers-authentication": "0.7.12",
