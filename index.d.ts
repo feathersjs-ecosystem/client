@@ -1,5 +1,3 @@
-/// <reference path="typings/index.d.ts" />
-
 import events = require('events');
 
 export class FeathersApp {
