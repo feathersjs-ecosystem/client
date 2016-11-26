@@ -71,7 +71,7 @@
     "feathers": "2.0.2",
     "feathers-authentication": "0.7.12",
     "feathers-commons": "^0.8.0",
-    "feathers-hooks": "1.6.1",
+    "feathers-hooks": "1.7.0",
     "feathers-primus": "1.4.1",
     "feathers-rest": "1.5.2",
     "feathers-socketio": "1.4.2"
