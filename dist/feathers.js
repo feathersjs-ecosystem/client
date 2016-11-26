@@ -1,4 +1,5 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.feathers = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function (process){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -54,7 +55,11 @@ function useColors() {
  */
 
 exports.formatters.j = function(v) {
-  return JSON.stringify(v);
+  try {
+    return JSON.stringify(v);
+  } catch (err) {
+    return '[UnexpectedJSONParseError]: ' + err.message;
+  }
 };
 
 
@@ -141,9 +146,13 @@ function save(namespaces) {
 function load() {
   var r;
   try {
-    r = exports.storage.debug;
+    return exports.storage.debug;
   } catch(e) {}
-  return r;
+
+  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+  if (typeof process !== 'undefined' && 'env' in process) {
+    return process.env.DEBUG;
+  }
 }
 
 /**
@@ -169,7 +178,8 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"./debug":2}],2:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"./debug":2,"_process":53}],2:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -255,7 +265,10 @@ function debug(namespace) {
     if (null == self.useColors) self.useColors = exports.useColors();
     if (null == self.color && self.useColors) self.color = selectColor();
 
-    var args = Array.prototype.slice.call(arguments);
+    var args = new Array(arguments.length);
+    for (var i = 0; i < args.length; i++) {
+      args[i] = arguments[i];
+    }
 
     args[0] = exports.coerce(args[0]);
 
@@ -282,9 +295,9 @@ function debug(namespace) {
       return match;
     });
 
-    if ('function' === typeof exports.formatArgs) {
-      args = exports.formatArgs.apply(self, args);
-    }
+    // apply env-specific formatting
+    args = exports.formatArgs.apply(self, args);
+
     var logFn = enabled.log || exports.log || console.log.bind(console);
     logFn.apply(self, args);
   }
@@ -368,7 +381,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":40}],3:[function(require,module,exports){
+},{"ms":52}],3:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -698,7 +711,7 @@ function populateParams() {
 }
 
 function populateHeader() {
-  var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   return function (hook) {
     if (hook.params.token) {
@@ -714,7 +727,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function () {
-  var opts = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   var config = Object.assign({}, defaults, opts);
 
@@ -726,7 +739,7 @@ exports.default = function () {
     }
 
     app.authenticate = function () {
-      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+      var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
       var storage = this.get('storage');
       var getOptions = Promise.resolve(options);
@@ -1080,12 +1093,27 @@ var _hooks2 = _interopRequireDefault(_hooks);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = {
+  _: _utils._,
   getArguments: _arguments2.default,
   stripSlashes: _utils.stripSlashes,
-  each: _utils.each,
   hooks: _hooks2.default,
   matcher: _utils.matcher,
-  sorter: _utils.sorter
+  sorter: _utils.sorter,
+  select: _utils.select,
+  makeUrl: _utils.makeUrl,
+  // lodash functions
+  each: _utils.each,
+  some: _utils.some,
+  every: _utils.every,
+  keys: _utils.keys,
+  values: _utils.values,
+  isMatch: _utils.isMatch,
+  isEmpty: _utils.isEmpty,
+  isObject: _utils.isObject,
+  extend: _utils.extend,
+  omit: _utils.omit,
+  pick: _utils.pick,
+  merge: _utils.merge
 };
 module.exports = exports['default'];
 },{"./arguments":8,"./hooks":10,"./utils":11}],10:[function(require,module,exports){
@@ -1096,6 +1124,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _utils = require('./utils');
 
@@ -1136,14 +1166,18 @@ var converters = {
   patch: updateOrPatch
 };
 
-function hookObject(method, type, args, app) {
+function hookObject(method, type, args) {
+  var app = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+
   var hook = converters[method](args);
 
   hook.method = method;
   hook.type = type;
 
-  if (app) {
+  if (typeof app === 'function') {
     hook.app = app;
+  } else {
+    _extends(hook, app);
   }
 
   return hook;
@@ -1211,6 +1245,7 @@ exports.default = {
 };
 module.exports = exports['default'];
 },{"./utils":11}],11:[function(require,module,exports){
+(function (process){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1223,8 +1258,23 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 exports.stripSlashes = stripSlashes;
 exports.each = each;
+exports.some = some;
+exports.every = every;
+exports.keys = keys;
+exports.values = values;
+exports.isMatch = isMatch;
+exports.isEmpty = isEmpty;
+exports.isObject = isObject;
+exports.extend = extend;
+exports.omit = omit;
+exports.pick = pick;
+exports.merge = merge;
+exports.select = select;
 exports.matcher = matcher;
 exports.sorter = sorter;
+exports.makeUrl = makeUrl;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -1235,45 +1285,110 @@ function stripSlashes(name) {
 function each(obj, callback) {
   if (obj && typeof obj.forEach === 'function') {
     obj.forEach(callback);
-  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
+  } else if (isObject(obj)) {
     Object.keys(obj).forEach(function (key) {
       return callback(obj[key], key);
     });
   }
 }
 
-var _ = exports._ = {
-  some: function some(value, callback) {
-    return Object.keys(value).map(function (key) {
-      return [value[key], key];
-    }).some(function (current) {
-      return callback.apply(undefined, _toConsumableArray(current));
-    });
-  },
-  every: function every(value, callback) {
-    return Object.keys(value).map(function (key) {
-      return [value[key], key];
-    }).every(function (current) {
-      return callback.apply(undefined, _toConsumableArray(current));
-    });
-  },
-  isMatch: function isMatch(obj, item) {
-    return Object.keys(item).every(function (key) {
-      return obj[key] === item[key];
-    });
-  },
-  omit: function omit(obj) {
-    var result = _extends({}, obj);
+function some(value, callback) {
+  return Object.keys(value).map(function (key) {
+    return [value[key], key];
+  }).some(function (current) {
+    return callback.apply(undefined, _toConsumableArray(current));
+  });
+}
 
-    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      keys[_key - 1] = arguments[_key];
-    }
+function every(value, callback) {
+  return Object.keys(value).map(function (key) {
+    return [value[key], key];
+  }).every(function (current) {
+    return callback.apply(undefined, _toConsumableArray(current));
+  });
+}
 
-    keys.forEach(function (key) {
-      return delete result[key];
-    });
-    return result;
+function keys(obj) {
+  return Object.keys(obj);
+}
+
+function values(obj) {
+  return _.keys(obj).map(function (key) {
+    return obj[key];
+  });
+}
+
+function isMatch(obj, item) {
+  return _.keys(item).every(function (key) {
+    return obj[key] === item[key];
+  });
+}
+
+function isEmpty(obj) {
+  return _.keys(obj).length === 0;
+}
+
+function isObject(item) {
+  return (typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object' && !Array.isArray(item) && item !== null;
+}
+
+function extend() {
+  return _extends.apply(undefined, arguments);
+}
+
+function omit(obj) {
+  var result = _.extend({}, obj);
+
+  for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    keys[_key - 1] = arguments[_key];
   }
+
+  keys.forEach(function (key) {
+    return delete result[key];
+  });
+  return result;
+}
+
+function pick(source) {
+  var result = {};
+
+  for (var _len2 = arguments.length, keys = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+    keys[_key2 - 1] = arguments[_key2];
+  }
+
+  keys.forEach(function (key) {
+    result[key] = source[key];
+  });
+  return result;
+}
+
+function merge(target, source) {
+  if (isObject(target) && isObject(source)) {
+    Object.keys(source).forEach(function (key) {
+      if (isObject(source[key])) {
+        if (!target[key]) _extends(target, _defineProperty({}, key, {}));
+        merge(target[key], source[key]);
+      } else {
+        _extends(target, _defineProperty({}, key, source[key]));
+      }
+    });
+  }
+  return target;
+}
+
+var _ = exports._ = {
+  each: each,
+  some: some,
+  every: every,
+  keys: keys,
+  values: values,
+  isMatch: isMatch,
+  isEmpty: isEmpty,
+  isObject: isObject,
+  extend: extend,
+  omit: omit,
+  pick: pick,
+  merge: merge
 };
 
 var specialFilters = exports.specialFilters = {
@@ -1313,6 +1428,34 @@ var specialFilters = exports.specialFilters = {
     };
   }
 };
+
+function select(params) {
+  var fields = params && params.query && params.query.$select;
+
+  for (var _len3 = arguments.length, otherFields = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+    otherFields[_key3 - 1] = arguments[_key3];
+  }
+
+  if (Array.isArray(fields) && otherFields.length) {
+    fields.push.apply(fields, otherFields);
+  }
+
+  var convert = function convert(result) {
+    if (!Array.isArray(fields)) {
+      return result;
+    }
+
+    return _.pick.apply(_, [result].concat(_toConsumableArray(fields)));
+  };
+
+  return function (result) {
+    if (Array.isArray(result)) {
+      return result.map(convert);
+    }
+
+    return convert(result);
+  };
+}
 
 function matcher(originalQuery) {
   var query = _.omit(originalQuery, '$limit', '$skip', '$sort', '$select');
@@ -1360,7 +1503,23 @@ function sorter($sort) {
     return comparator;
   };
 }
-},{}],12:[function(require,module,exports){
+
+function makeUrl(path) {
+  var app = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  var get = typeof app.get === 'function' ? app.get.bind(app) : function () {};
+  var env = get('env') || process.env.NODE_ENV;
+  var host = get('host') || process.env.HOST_NAME || 'localhost';
+  var protocol = env === 'development' || env === 'test' || env === undefined ? 'http' : 'https';
+  var PORT = get('port') || process.env.PORT || 3030;
+  var port = env === 'development' || env === 'test' || env === undefined ? ':' + PORT : '';
+
+  path = path || '';
+
+  return protocol + '://' + host + port + '/' + stripSlashes(path);
+}
+}).call(this,require('_process'))
+},{"_process":53}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2646,10 +2805,21 @@ function hookMixin(service) {
     mixin[method] = function () {
       var _this = this;
 
+      var service = this;
       // A reference to the original method
       var _super = this._super.bind(this);
+      // Additional data to add to the hook object
+      var hookData = {
+        app: app,
+        service: service,
+        get path() {
+          return Object.keys(app.services).find(function (path) {
+            return app.services[path] === service;
+          });
+        }
+      };
       // Create the hook object that gets passed through
-      var hookObject = _feathersCommons.hooks.hookObject(method, 'before', arguments, app);
+      var hookObject = _feathersCommons.hooks.hookObject(method, 'before', arguments, hookData);
       // Get all hooks
       var hooks = {
         // For before hooks the app hooks will run first
@@ -2753,7 +2923,7 @@ configure.removeField = _bundled.removeField;
 
 exports.default = configure;
 module.exports = exports['default'];
-},{"./commons":15,"feathers-commons":9,"feathers-hooks-common/lib/bundled":13,"uberproto":48}],17:[function(require,module,exports){
+},{"./commons":15,"feathers-commons":9,"feathers-hooks-common/lib/bundled":13,"uberproto":60}],17:[function(require,module,exports){
 module.exports = require('./lib/client');
 
 },{"./lib/client":18}],18:[function(require,module,exports){
@@ -2798,7 +2968,7 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":26}],19:[function(require,module,exports){
+},{"feathers-socket-commons/client":30}],19:[function(require,module,exports){
 arguments[4][4][0].apply(exports,arguments)
 },{"./lib/client/index":22,"dup":4}],20:[function(require,module,exports){
 'use strict';
@@ -2943,7 +3113,7 @@ var Base = function () {
 
 exports.default = Base;
 module.exports = exports['default'];
-},{"feathers-commons":9,"feathers-errors":12,"qs":42}],21:[function(require,module,exports){
+},{"feathers-commons":27,"feathers-errors":12,"qs":54}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3293,8 +3463,310 @@ var Service = function (_Base) {
 exports.default = Service;
 module.exports = exports['default'];
 },{"./base":20}],26:[function(require,module,exports){
+arguments[4][8][0].apply(exports,arguments)
+},{"dup":8}],27:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _arguments = require('./arguments');
+
+var _arguments2 = _interopRequireDefault(_arguments);
+
+var _utils = require('./utils');
+
+var _hooks = require('./hooks');
+
+var _hooks2 = _interopRequireDefault(_hooks);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = {
+  getArguments: _arguments2.default,
+  stripSlashes: _utils.stripSlashes,
+  each: _utils.each,
+  hooks: _hooks2.default,
+  matcher: _utils.matcher,
+  sorter: _utils.sorter
+};
+module.exports = exports['default'];
+},{"./arguments":26,"./hooks":28,"./utils":29}],28:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _utils = require('./utils');
+
+function getOrRemove(args) {
+  return {
+    id: args[0],
+    params: args[1],
+    callback: args[2]
+  };
+}
+
+function updateOrPatch(args) {
+  return {
+    id: args[0],
+    data: args[1],
+    params: args[2],
+    callback: args[3]
+  };
+}
+
+var converters = {
+  find: function find(args) {
+    return {
+      params: args[0],
+      callback: args[1]
+    };
+  },
+  create: function create(args) {
+    return {
+      data: args[0],
+      params: args[1],
+      callback: args[2]
+    };
+  },
+  get: getOrRemove,
+  remove: getOrRemove,
+  update: updateOrPatch,
+  patch: updateOrPatch
+};
+
+function hookObject(method, type, args, app) {
+  var hook = converters[method](args);
+
+  hook.method = method;
+  hook.type = type;
+
+  if (app) {
+    hook.app = app;
+  }
+
+  return hook;
+}
+
+function defaultMakeArguments(hook) {
+  var result = [];
+  if (typeof hook.id !== 'undefined') {
+    result.push(hook.id);
+  }
+
+  if (hook.data) {
+    result.push(hook.data);
+  }
+
+  result.push(hook.params || {});
+  result.push(hook.callback);
+
+  return result;
+}
+
+function makeArguments(hook) {
+  if (hook.method === 'find') {
+    return [hook.params, hook.callback];
+  }
+
+  if (hook.method === 'get' || hook.method === 'remove') {
+    return [hook.id, hook.params, hook.callback];
+  }
+
+  if (hook.method === 'update' || hook.method === 'patch') {
+    return [hook.id, hook.data, hook.params, hook.callback];
+  }
+
+  if (hook.method === 'create') {
+    return [hook.data, hook.params, hook.callback];
+  }
+
+  return defaultMakeArguments(hook);
+}
+
+function convertHookData(obj) {
+  var hook = {};
+
+  if (Array.isArray(obj)) {
+    hook = { all: obj };
+  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object') {
+    hook = { all: [obj] };
+  } else {
+    (0, _utils.each)(obj, function (value, key) {
+      hook[key] = !Array.isArray(value) ? [value] : value;
+    });
+  }
+
+  return hook;
+}
+
+exports.default = {
+  hookObject: hookObject,
+  hook: hookObject,
+  converters: converters,
+  defaultMakeArguments: defaultMakeArguments,
+  makeArguments: makeArguments,
+  convertHookData: convertHookData
+};
+module.exports = exports['default'];
+},{"./utils":29}],29:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+exports.stripSlashes = stripSlashes;
+exports.each = each;
+exports.matcher = matcher;
+exports.sorter = sorter;
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function stripSlashes(name) {
+  return name.replace(/^(\/*)|(\/*)$/g, '');
+}
+
+function each(obj, callback) {
+  if (obj && typeof obj.forEach === 'function') {
+    obj.forEach(callback);
+  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
+    Object.keys(obj).forEach(function (key) {
+      return callback(obj[key], key);
+    });
+  }
+}
+
+var _ = exports._ = {
+  some: function some(value, callback) {
+    return Object.keys(value).map(function (key) {
+      return [value[key], key];
+    }).some(function (current) {
+      return callback.apply(undefined, _toConsumableArray(current));
+    });
+  },
+  every: function every(value, callback) {
+    return Object.keys(value).map(function (key) {
+      return [value[key], key];
+    }).every(function (current) {
+      return callback.apply(undefined, _toConsumableArray(current));
+    });
+  },
+  isMatch: function isMatch(obj, item) {
+    return Object.keys(item).every(function (key) {
+      return obj[key] === item[key];
+    });
+  },
+  omit: function omit(obj) {
+    var result = _extends({}, obj);
+
+    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      keys[_key - 1] = arguments[_key];
+    }
+
+    keys.forEach(function (key) {
+      return delete result[key];
+    });
+    return result;
+  }
+};
+
+var specialFilters = exports.specialFilters = {
+  $in: function $in(key, ins) {
+    return function (current) {
+      return ins.indexOf(current[key]) !== -1;
+    };
+  },
+  $nin: function $nin(key, nins) {
+    return function (current) {
+      return nins.indexOf(current[key]) === -1;
+    };
+  },
+  $lt: function $lt(key, value) {
+    return function (current) {
+      return current[key] < value;
+    };
+  },
+  $lte: function $lte(key, value) {
+    return function (current) {
+      return current[key] <= value;
+    };
+  },
+  $gt: function $gt(key, value) {
+    return function (current) {
+      return current[key] > value;
+    };
+  },
+  $gte: function $gte(key, value) {
+    return function (current) {
+      return current[key] >= value;
+    };
+  },
+  $ne: function $ne(key, value) {
+    return function (current) {
+      return current[key] !== value;
+    };
+  }
+};
+
+function matcher(originalQuery) {
+  var query = _.omit(originalQuery, '$limit', '$skip', '$sort', '$select');
+
+  return function (item) {
+    if (query.$or && _.some(query.$or, function (or) {
+      return matcher(or)(item);
+    })) {
+      return true;
+    }
+
+    return _.every(query, function (value, key) {
+      if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
+        return _.every(value, function (target, filterType) {
+          if (specialFilters[filterType]) {
+            var filter = specialFilters[filterType](key, target);
+            return filter(item);
+          }
+
+          return false;
+        });
+      } else if (typeof item[key] !== 'undefined') {
+        return item[key] === query[key];
+      }
+
+      return false;
+    });
+  };
+}
+
+function sorter($sort) {
+  return function (first, second) {
+    var comparator = 0;
+    each($sort, function (modifier, key) {
+      modifier = parseInt(modifier, 10);
+
+      if (first[key] < second[key]) {
+        comparator -= 1 * modifier;
+      }
+
+      if (first[key] > second[key]) {
+        comparator += 1 * modifier;
+      }
+    });
+    return comparator;
+  };
+}
+},{}],30:[function(require,module,exports){
 arguments[4][17][0].apply(exports,arguments)
-},{"./lib/client":27,"dup":17}],27:[function(require,module,exports){
+},{"./lib/client":31,"dup":17}],31:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3467,7 +3939,7 @@ var Service = function () {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./utils":28,"debug":1,"feathers-errors":12}],28:[function(require,module,exports){
+},{"./utils":32,"debug":1,"feathers-errors":12}],32:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -3528,9 +4000,17 @@ function normalizeError(e) {
   return result;
 }
 }).call(this,require('_process'))
-},{"_process":41,"feathers-commons":9}],29:[function(require,module,exports){
+},{"_process":53,"feathers-commons":34}],33:[function(require,module,exports){
+arguments[4][8][0].apply(exports,arguments)
+},{"dup":8}],34:[function(require,module,exports){
+arguments[4][27][0].apply(exports,arguments)
+},{"./arguments":33,"./hooks":35,"./utils":36,"dup":27}],35:[function(require,module,exports){
+arguments[4][28][0].apply(exports,arguments)
+},{"./utils":36,"dup":28}],36:[function(require,module,exports){
+arguments[4][29][0].apply(exports,arguments)
+},{"dup":29}],37:[function(require,module,exports){
 arguments[4][17][0].apply(exports,arguments)
-},{"./lib/client":30,"dup":17}],30:[function(require,module,exports){
+},{"./lib/client":38,"dup":17}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3576,9 +4056,9 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":26}],31:[function(require,module,exports){
+},{"feathers-socket-commons/client":30}],39:[function(require,module,exports){
 arguments[4][4][0].apply(exports,arguments)
-},{"./lib/client/index":34,"dup":4}],32:[function(require,module,exports){
+},{"./lib/client/index":42,"dup":4}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3730,7 +4210,7 @@ exports.default = {
   }
 };
 module.exports = exports['default'];
-},{"./mixins/index":37,"debug":1,"feathers-commons":9,"uberproto":48}],33:[function(require,module,exports){
+},{"./mixins/index":45,"debug":1,"feathers-commons":49,"uberproto":60}],41:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3784,7 +4264,7 @@ var _uberproto2 = _interopRequireDefault(_uberproto);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"events":3,"uberproto":48}],34:[function(require,module,exports){
+},{"events":3,"uberproto":60}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3808,7 +4288,7 @@ function createApplication() {
 
 createApplication.version = '2.0.1';
 module.exports = exports['default'];
-},{"../feathers":35,"./express":33}],35:[function(require,module,exports){
+},{"../feathers":43,"./express":41}],43:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3838,7 +4318,7 @@ function createApplication(app) {
   return app;
 }
 module.exports = exports['default'];
-},{"./application":32,"uberproto":48}],36:[function(require,module,exports){
+},{"./application":40,"uberproto":60}],44:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3916,7 +4396,7 @@ function upperCase(name) {
 }
 
 module.exports = exports['default'];
-},{"events":3,"feathers-commons":9,"rubberduck":46}],37:[function(require,module,exports){
+},{"events":3,"feathers-commons":49,"rubberduck":58}],45:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3937,7 +4417,7 @@ exports.default = function () {
 };
 
 module.exports = exports['default'];
-},{"./event":36,"./normalizer":38,"./promise":39}],38:[function(require,module,exports){
+},{"./event":44,"./normalizer":46,"./promise":47}],46:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3967,7 +4447,7 @@ exports.default = function (service) {
 var _feathersCommons = require('feathers-commons');
 
 module.exports = exports['default'];
-},{"feathers-commons":9}],39:[function(require,module,exports){
+},{"feathers-commons":49}],47:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4011,7 +4491,15 @@ function wrapper() {
 }
 
 module.exports = exports['default'];
-},{}],40:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
+arguments[4][8][0].apply(exports,arguments)
+},{"dup":8}],49:[function(require,module,exports){
+arguments[4][27][0].apply(exports,arguments)
+},{"./arguments":48,"./hooks":50,"./utils":51,"dup":27}],50:[function(require,module,exports){
+arguments[4][28][0].apply(exports,arguments)
+},{"./utils":51,"dup":28}],51:[function(require,module,exports){
+arguments[4][29][0].apply(exports,arguments)
+},{"dup":29}],52:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -4162,7 +4650,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's'
 }
 
-},{}],41:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -4344,7 +4832,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],42:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 'use strict';
 
 var Stringify = require('./stringify');
@@ -4355,7 +4843,7 @@ module.exports = {
     parse: Parse
 };
 
-},{"./parse":43,"./stringify":44}],43:[function(require,module,exports){
+},{"./parse":55,"./stringify":56}],55:[function(require,module,exports){
 'use strict';
 
 var Utils = require('./utils');
@@ -4524,7 +5012,7 @@ module.exports = function (str, opts) {
     return Utils.compact(obj);
 };
 
-},{"./utils":45}],44:[function(require,module,exports){
+},{"./utils":57}],56:[function(require,module,exports){
 'use strict';
 
 var Utils = require('./utils');
@@ -4663,7 +5151,7 @@ module.exports = function (object, opts) {
     return keys.join(delimiter);
 };
 
-},{"./utils":45}],45:[function(require,module,exports){
+},{"./utils":57}],57:[function(require,module,exports){
 'use strict';
 
 var hexTable = (function () {
@@ -4829,7 +5317,7 @@ exports.isBuffer = function (obj) {
     return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
 };
 
-},{}],46:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 var events = require('events');
 var utils = require('./utils');
 var wrap = exports.wrap = {
@@ -4941,7 +5429,7 @@ exports.emitter = function(obj) {
   return new Emitter(obj);
 };
 
-},{"./utils":47,"events":3}],47:[function(require,module,exports){
+},{"./utils":59,"events":3}],59:[function(require,module,exports){
 exports.toBase26 = function(num) {
   var outString = '';
   var letters = 'abcdefghijklmnopqrstuvwxyz';
@@ -4977,7 +5465,7 @@ exports.emitEvents = function(emitter, type, name, args) {
   }
 };
 
-},{}],48:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 /* global define */
 /**
  * A base object for ECMAScript 5 style prototypal inheritance.
@@ -5121,7 +5609,7 @@ exports.emitEvents = function(emitter, type, name, args) {
 
 }));
 
-},{}],49:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5159,5 +5647,5 @@ Object.assign(_client2.default, { socketio: _client6.default, primus: _client8.d
 exports.default = _client2.default;
 module.exports = exports['default'];
 
-},{"feathers-authentication/client":4,"feathers-hooks":16,"feathers-primus/client":17,"feathers-rest/client":19,"feathers-socketio/client":29,"feathers/client":31}]},{},[49])(49)
+},{"feathers-authentication/client":4,"feathers-hooks":16,"feathers-primus/client":17,"feathers-rest/client":19,"feathers-socketio/client":37,"feathers/client":39}]},{},[61])(61)
 });
