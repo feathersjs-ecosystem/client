@@ -1,5 +1,23 @@
 # Change Log
 
+## [v1.8.0](https://github.com/feathersjs/feathers-client/tree/v1.8.0) (2016-11-26)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.7.2...v1.8.0)
+
+**Closed issues:**
+
+- How to get `hooks` `socketio` etc from `feathers` object [\#118](https://github.com/feathersjs/feathers-client/issues/118)
+- send back to server additional fields in 'params' besides 'query' [\#115](https://github.com/feathersjs/feathers-client/issues/115)
+
+**Merged pull requests:**
+
+- Update feathers-hooks to version 1.7.0 🚀 [\#120](https://github.com/feathersjs/feathers-client/pull/120) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Remove reference to typings/index.d.ts [\#119](https://github.com/feathersjs/feathers-client/pull/119) ([ninachaubal](https://github.com/ninachaubal))
+- Update superagent to version 3.0.0 🚀 [\#116](https://github.com/feathersjs/feathers-client/pull/116) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Add TypeScript type definitions. [\#114](https://github.com/feathersjs/feathers-client/pull/114) ([ninachaubal](https://github.com/ninachaubal))
+- Update feathers-memory to version 1.0.0 🚀 [\#113](https://github.com/feathersjs/feathers-client/pull/113) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-authentication to version 0.7.12 🚀 [\#112](https://github.com/feathersjs/feathers-client/pull/112) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-commons to version 0.8.0 🚀 [\#111](https://github.com/feathersjs/feathers-client/pull/111) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+
 ## [v1.7.2](https://github.com/feathersjs/feathers-client/tree/v1.7.2) (2016-11-08)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.7.1...v1.7.2)
 
