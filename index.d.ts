@@ -1,6 +1,6 @@
 import events = require('events');
 
-export class FeathersApp {
+interface FeathersApp {
   // Authentication.
   authenticate(options: any) :Promise<any>;
   logout(): void;
@@ -10,10 +10,16 @@ export class FeathersApp {
   service(name: string): FeathersService;
 }
 
-export class FeathersService extends events.EventEmitter {
+interface FeathersService extends events.EventEmitter {
+  // REST interface.
   find(params?: any): Promise<any>;
+  get(id: string, params?: any): Promise<any>;
   create(data: any, params?: any): Promise<any>;
   update(id: string, data: any, params?:any): Promise<any>;
   patch(id: string, data: any, params?:any) : Promise<any>;
   remove(id: string, params?: any): Promise<any>;
+
+  // Realtime interface.
+  on(eventType: string, callback: (data: any) => void);
+  timeout?: number;
 }

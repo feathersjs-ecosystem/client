@@ -1,9 +1,0 @@
-{
-    "name": "feathers-client",
-    "version": "1.7.2",
-    "main": "index.d.ts",
-    "globalDependencies": {
-        "core-js": "registry:dt/core-js#0.0.0+20160914114559",
-        "node": "registry:env/node#4.0.0+20161105011511"
-    }
-}
