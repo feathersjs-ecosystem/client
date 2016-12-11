@@ -68,7 +68,7 @@
   },
   "typings": "index.d.ts",
   "dependencies": {
-    "feathers": "2.0.2",
+    "feathers": "2.0.3",
     "feathers-authentication": "0.7.12",
     "feathers-commons": "^0.8.7",
     "feathers-hooks": "1.7.0",
