@@ -73,7 +73,7 @@
     "feathers-commons": "^0.8.7",
     "feathers-hooks": "1.7.1",
     "feathers-primus": "2.0.0",
-    "feathers-rest": "1.5.2",
+    "feathers-rest": "1.5.3",
     "feathers-socketio": "1.4.2"
   },
   "devDependencies": {
