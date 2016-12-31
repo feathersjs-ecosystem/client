@@ -1,5 +1,25 @@
 # Change Log
 
+## [v1.9.0](https://github.com/feathersjs/feathers-client/tree/v1.9.0) (2016-12-31)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.8.0...v1.9.0)
+
+**Closed issues:**
+
+- Typings don't include configure method [\#130](https://github.com/feathersjs/feathers-client/issues/130)
+
+**Merged pull requests:**
+
+- Add .configure method to TypeScript definitions [\#134](https://github.com/feathersjs/feathers-client/pull/134) ([daffl](https://github.com/daffl))
+- Update feathers-rest to version 1.6.0 🚀 [\#133](https://github.com/feathersjs/feathers-client/pull/133) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-rest to version 1.5.3 🚀 [\#132](https://github.com/feathersjs/feathers-client/pull/132) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-hooks to version 1.7.1 🚀 [\#128](https://github.com/feathersjs/feathers-client/pull/128) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- socket.io-client@1.7.2 breaks build 🚨 [\#126](https://github.com/feathersjs/feathers-client/pull/126) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers to version 2.0.3 🚀 [\#125](https://github.com/feathersjs/feathers-client/pull/125) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Typings changes. [\#124](https://github.com/feathersjs/feathers-client/pull/124) ([ninachaubal](https://github.com/ninachaubal))
+- Update feathers-primus to version 2.0.0 🚀 [\#123](https://github.com/feathersjs/feathers-client/pull/123) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- feathers-commons@0.8.7 breaks build 🚨 [\#122](https://github.com/feathersjs/feathers-client/pull/122) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- superagent@3.1.0 breaks build 🚨 [\#121](https://github.com/feathersjs/feathers-client/pull/121) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+
 ## [v1.8.0](https://github.com/feathersjs/feathers-client/tree/v1.8.0) (2016-11-26)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.7.2...v1.8.0)
 
@@ -50,7 +70,7 @@
 
 - 👻😱 Node.js 0.10 is unmaintained 😱👻 [\#106](https://github.com/feathersjs/feathers-client/pull/106) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
 - Update feathers-hooks to version 1.6.0 🚀 [\#105](https://github.com/feathersjs/feathers-client/pull/105) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
-- Change variable naming from "app" to "feathersClient" [\#103](https://github.com/feathersjs/feathers-client/pull/103) ([NicoKnoll](https://github.com/NicoKnoll))
+- Change variable naming from "app" to "feathersClient" [\#103](https://github.com/feathersjs/feathers-client/pull/103) ([nicoknoll](https://github.com/nicoknoll))
 - jshint —\> semistandard [\#101](https://github.com/feathersjs/feathers-client/pull/101) ([corymsmith](https://github.com/corymsmith))
 - Cross browser testing in Saucelabs [\#100](https://github.com/feathersjs/feathers-client/pull/100) ([daffl](https://github.com/daffl))
 
