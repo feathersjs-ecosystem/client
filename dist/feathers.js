@@ -1,6 +1,5 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.feathers = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (process){
-
 /**
  * This is the web browser implementation of `debug()`.
  *
@@ -40,14 +39,23 @@ exports.colors = [
  */
 
 function useColors() {
+  // NB: In an Electron preload script, document will be defined but not fully
+  // initialized. Since we know we're in Chrome, we'll just detect this case
+  // explicitly
+  if (typeof window !== 'undefined' && window && typeof window.process !== 'undefined' && window.process.type === 'renderer') {
+    return true;
+  }
+
   // is webkit? http://stackoverflow.com/a/16459606/376773
   // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
-  return (typeof document !== 'undefined' && 'WebkitAppearance' in document.documentElement.style) ||
+  return (typeof document !== 'undefined' && document && 'WebkitAppearance' in document.documentElement.style) ||
     // is firebug? http://stackoverflow.com/a/398120/376773
-    (window.console && (console.firebug || (console.exception && console.table))) ||
+    (typeof window !== 'undefined' && window && window.console && (console.firebug || (console.exception && console.table))) ||
     // is firefox >= v31?
     // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-    (navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31);
+    (typeof navigator !== 'undefined' && navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
+    // double check webkit in userAgent just in case we are in a worker
+    (typeof navigator !== 'undefined' && navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
 }
 
 /**
@@ -69,8 +77,7 @@ exports.formatters.j = function(v) {
  * @api public
  */
 
-function formatArgs() {
-  var args = arguments;
+function formatArgs(args) {
   var useColors = this.useColors;
 
   args[0] = (useColors ? '%c' : '')
@@ -80,17 +87,17 @@ function formatArgs() {
     + (useColors ? '%c ' : ' ')
     + '+' + exports.humanize(this.diff);
 
-  if (!useColors) return args;
+  if (!useColors) return;
 
   var c = 'color: ' + this.color;
-  args = [args[0], c, 'color: inherit'].concat(Array.prototype.slice.call(args, 1));
+  args.splice(1, 0, c, 'color: inherit')
 
   // the final "%c" is somewhat tricky, because there could be other
   // arguments passed either before or after the %c, so we need to
   // figure out the correct index to insert the CSS into
   var index = 0;
   var lastC = 0;
-  args[0].replace(/%[a-z%]/g, function(match) {
+  args[0].replace(/%[a-zA-Z%]/g, function(match) {
     if ('%%' === match) return;
     index++;
     if ('%c' === match) {
@@ -101,7 +108,6 @@ function formatArgs() {
   });
 
   args.splice(lastC, 0, c);
-  return args;
 }
 
 /**
@@ -144,7 +150,6 @@ function save(namespaces) {
  */
 
 function load() {
-  var r;
   try {
     return exports.storage.debug;
   } catch(e) {}
@@ -172,14 +177,14 @@ exports.enable(load());
  * @api private
  */
 
-function localstorage(){
+function localstorage() {
   try {
     return window.localStorage;
   } catch (e) {}
 }
 
 }).call(this,require('_process'))
-},{"./debug":2,"_process":53}],2:[function(require,module,exports){
+},{"./debug":2,"_process":47}],2:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -188,7 +193,7 @@ function localstorage(){
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = debug.debug = debug;
+exports = module.exports = createDebug.debug = createDebug.default = createDebug;
 exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
@@ -205,16 +210,10 @@ exports.skips = [];
 /**
  * Map of special "%n" handling functions, for the debug "format" argument.
  *
- * Valid key names are a single, lowercased letter, i.e. "n".
+ * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
  */
 
 exports.formatters = {};
-
-/**
- * Previously assigned color.
- */
-
-var prevColor = 0;
 
 /**
  * Previous log timestamp.
@@ -224,13 +223,20 @@ var prevTime;
 
 /**
  * Select a color.
- *
+ * @param {String} namespace
  * @return {Number}
  * @api private
  */
 
-function selectColor() {
-  return exports.colors[prevColor++ % exports.colors.length];
+function selectColor(namespace) {
+  var hash = 0, i;
+
+  for (i in namespace) {
+    hash  = ((hash << 5) - hash) + namespace.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+
+  return exports.colors[Math.abs(hash) % exports.colors.length];
 }
 
 /**
@@ -241,17 +247,13 @@ function selectColor() {
  * @api public
  */
 
-function debug(namespace) {
+function createDebug(namespace) {
 
-  // define the `disabled` version
-  function disabled() {
-  }
-  disabled.enabled = false;
+  function debug() {
+    // disabled?
+    if (!debug.enabled) return;
 
-  // define the `enabled` version
-  function enabled() {
-
-    var self = enabled;
+    var self = debug;
 
     // set `diff` timestamp
     var curr = +new Date();
@@ -261,10 +263,7 @@ function debug(namespace) {
     self.curr = curr;
     prevTime = curr;
 
-    // add the `color` if not set
-    if (null == self.useColors) self.useColors = exports.useColors();
-    if (null == self.color && self.useColors) self.color = selectColor();
-
+    // turn the `arguments` into a proper Array
     var args = new Array(arguments.length);
     for (var i = 0; i < args.length; i++) {
       args[i] = arguments[i];
@@ -273,13 +272,13 @@ function debug(namespace) {
     args[0] = exports.coerce(args[0]);
 
     if ('string' !== typeof args[0]) {
-      // anything else let's inspect with %o
-      args = ['%o'].concat(args);
+      // anything else let's inspect with %O
+      args.unshift('%O');
     }
 
     // apply any `formatters` transformations
     var index = 0;
-    args[0] = args[0].replace(/%([a-z%])/g, function(match, format) {
+    args[0] = args[0].replace(/%([a-zA-Z%])/g, function(match, format) {
       // if we encounter an escaped % then don't increase the array index
       if (match === '%%') return match;
       index++;
@@ -295,19 +294,24 @@ function debug(namespace) {
       return match;
     });
 
-    // apply env-specific formatting
-    args = exports.formatArgs.apply(self, args);
+    // apply env-specific formatting (colors, etc.)
+    exports.formatArgs.call(self, args);
 
-    var logFn = enabled.log || exports.log || console.log.bind(console);
+    var logFn = debug.log || exports.log || console.log.bind(console);
     logFn.apply(self, args);
   }
-  enabled.enabled = true;
 
-  var fn = exports.enabled(namespace) ? enabled : disabled;
+  debug.namespace = namespace;
+  debug.enabled = exports.enabled(namespace);
+  debug.useColors = exports.useColors();
+  debug.color = selectColor(namespace);
 
-  fn.namespace = namespace;
+  // env-specific initialization logic for debug instances
+  if ('function' === typeof exports.init) {
+    exports.init(debug);
+  }
 
-  return fn;
+  return debug;
 }
 
 /**
@@ -326,7 +330,7 @@ function enable(namespaces) {
 
   for (var i = 0; i < len; i++) {
     if (!split[i]) continue; // ignore empty strings
-    namespaces = split[i].replace(/[\\^$+?.()|[\]{}]/g, '\\$&').replace(/\*/g, '.*?');
+    namespaces = split[i].replace(/\*/g, '.*?');
     if (namespaces[0] === '-') {
       exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
     } else {
@@ -381,7 +385,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":52}],3:[function(require,module,exports){
+},{"ms":46}],3:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -979,10 +983,10 @@ function getStorage(storage) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 exports.default = getArguments;
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
 var noop = exports.noop = function noop() {};
 var getCallback = function getCallback(args) {
   var last = args[args.length - 1];
@@ -1060,7 +1064,6 @@ var converters = exports.converters = {
     return [data, params, callback];
   },
 
-
   update: updateOrPatch('update'),
 
   patch: updateOrPatch('patch'),
@@ -1119,15 +1122,15 @@ module.exports = exports['default'];
 },{"./arguments":8,"./hooks":10,"./utils":11}],10:[function(require,module,exports){
 'use strict';
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
 var _utils = require('./utils');
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
 
 function getOrRemove(args) {
   return {
@@ -1167,7 +1170,7 @@ var converters = {
 };
 
 function hookObject(method, type, args) {
-  var app = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+  var app = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
   var hook = converters[method](args);
 
@@ -1248,14 +1251,11 @@ module.exports = exports['default'];
 (function (process){
 'use strict';
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 exports.stripSlashes = stripSlashes;
 exports.each = each;
 exports.some = some;
@@ -1275,6 +1275,8 @@ exports.sorter = sorter;
 exports.makeUrl = makeUrl;
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -1468,7 +1470,7 @@ function matcher(originalQuery) {
     }
 
     return _.every(query, function (value, key) {
-      if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
+      if (value !== null && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
         return _.every(value, function (target, filterType) {
           if (specialFilters[filterType]) {
             var filter = specialFilters[filterType](key, target);
@@ -1505,7 +1507,7 @@ function sorter($sort) {
 }
 
 function makeUrl(path) {
-  var app = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var app = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
   var get = typeof app.get === 'function' ? app.get.bind(app) : function () {};
   var env = get('env') || process.env.NODE_ENV;
@@ -1519,7 +1521,7 @@ function makeUrl(path) {
   return protocol + '://' + host + port + '/' + stripSlashes(path);
 }
 }).call(this,require('_process'))
-},{"_process":53}],12:[function(require,module,exports){
+},{"_process":47}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1911,7 +1913,7 @@ exports.pluckQuery = pluckQuery;
 exports.remove = remove;
 exports.pluck = pluck;
 exports.disable = disable;
-exports.populate = populate;
+exports.legacyPopulate = legacyPopulate;
 
 var _utils = require('./utils');
 
@@ -2312,7 +2314,7 @@ function pluck() {
  * Disable access to a service method completely, for a specific provider,
  * or for a custom condition.
  *
- * @param {?string|function} realm - Provider, or function(hook):boolean|Promise
+ * @param {string|function} [realm] - Provider, or function(hook):boolean|Promise
  *    The first provider or the custom condition.
  *    null = disable completely,
  *    'external' = disable external access,
@@ -2385,7 +2387,7 @@ function disable(realm) {
  *
  * 'options.field' is the foreign key for one related item in options.service, i.e. item[options.field] === foreignItem[idField].
  * 'target' is set to this related item once it is read successfully.
- * 
+ *
  * If 'options.field' is not present in the hook result item, the hook is ignored.
  *
  * So if the hook result has the message item
@@ -2400,8 +2402,10 @@ function disable(realm) {
  *
  * If 'senderId' is an array of keys, then 'sender' will be an array of populated items.
  */
-function populate(target, options) {
+function legacyPopulate(target, options) {
   options = Object.assign({}, options);
+
+  console.error('Calling populate(target, options) is now DEPRECATED and will be removed in the future. ' + 'Refer to docs.feathersjs.com for more information. (legacyPopulate)');
 
   if (!options.service) {
     throw new Error('You need to provide a service. (populate)');
@@ -2467,7 +2471,206 @@ function populate(target, options) {
     });
   };
 }
-},{"./utils":14,"feathers-errors":12}],14:[function(require,module,exports){
+},{"./utils":15,"feathers-errors":12}],14:[function(require,module,exports){
+(function (process){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.populate = undefined;
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _feathersErrors = require('feathers-errors');
+
+var _feathersErrors2 = _interopRequireDefault(_feathersErrors);
+
+var _utils = require('./utils');
+
+var _bundled = require('./bundled');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var populate = exports.populate = function populate(options) {
+  for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    rest[_key - 1] = arguments[_key];
+  }
+
+  if (typeof options === 'string') {
+    return _bundled.legacyPopulate.apply(undefined, [options].concat(rest));
+  }
+
+  return function (hook) {
+    var optionsDefault = {
+      schema: {},
+      checkPermissions: function checkPermissions() {
+        return true;
+      },
+      profile: false
+    };
+
+    if (hook.params._populate === 'skip') {
+      // this service call made from another populate
+      return hook;
+    }
+
+    return Promise.resolve().then(function () {
+      // 'options.schema' resolves to { permissions: '...', include: [ ... ] }
+
+      var items = (0, _utils.getItems)(hook);
+      var options1 = Object.assign({}, optionsDefault, options);
+      var schema = options1.schema,
+          checkPermissions = options1.checkPermissions;
+
+      var schema1 = typeof schema === 'function' ? schema(hook, options1) : schema;
+      var permissions = schema1.permissions || null;
+
+      if (typeof checkPermissions !== 'function') {
+        throw new _feathersErrors2.default.BadRequest('Permissions param is not a function. (populate)');
+      }
+
+      if (permissions && !checkPermissions(hook, hook.path, permissions, 0)) {
+        throw new _feathersErrors2.default.BadRequest('Permissions do not allow this populate. (populate)');
+      }
+
+      if ((typeof schema1 === 'undefined' ? 'undefined' : _typeof(schema1)) !== 'object') {
+        throw new _feathersErrors2.default.BadRequest('Schema does not resolve to an object. (populate)');
+      }
+
+      return !schema1.include || !Object.keys(schema1.include).length ? items : populateItemArray(options1, hook, items, schema1.include, 0);
+    }).then(function (items) {
+      (0, _utils.replaceItems)(hook, items);
+      return hook;
+    });
+  };
+};
+
+function populateItemArray(options, hook, items, includeSchema, depth) {
+  // 'items' is an item or an array of items
+  // 'includeSchema' is like [ { nameAs: 'author', ... }, { nameAs: 'readers', ... } ]
+
+  if (!Array.isArray(items)) {
+    return populateItem(options, hook, items, includeSchema, depth + 1);
+  }
+
+  return Promise.all(items.map(function (item) {
+    return populateItem(options, hook, item, includeSchema, depth + 1);
+  }));
+}
+
+function populateItem(options, hook, item, includeSchema, depth) {
+  // 'item' is one item
+  // 'includeSchema' is like [ { nameAs: 'author', ... }, { nameAs: 'readers', ... } ]
+
+  var elapsed = {};
+  var startAtAllIncludes = process.hrtime();
+  item._include = [];
+
+  return Promise.all(includeSchema.map(function (childSchema) {
+    var startAtThisInclude = process.hrtime();
+    return populateAddChild(options, hook, item, childSchema, depth).then(function (result) {
+      var nameAs = childSchema.nameAs || childSchema.service;
+      elapsed[nameAs] = getElapsed(options, startAtThisInclude, depth);
+
+      return result;
+    });
+  })).then(function (children) {
+    // 'children' is like [{ authorInfo: {...}, readersInfo: [{...}, {...}] }]
+    if (options.profile !== false) {
+      elapsed.total = getElapsed(options, startAtAllIncludes, depth);
+      item._elapsed = elapsed;
+    }
+
+    return Object.assign.apply(Object, [item].concat(_toConsumableArray(children)));
+  });
+}
+
+function populateAddChild(options, hook, parentItem, childSchema, depth) {
+  /*
+  'parentItem' is the item we are adding children to
+  'childSchema' is like
+    { service: 'comments',
+      permissions: '...',
+      nameAs: 'comments',
+      asArray: true,
+      parentField: 'id',
+      childField: 'postId',
+      query: { $limit: 5, $select: ['title', 'content', 'postId'], $sort: { createdAt: -1 } },
+      select: (hook, parent, depth) => ({ something: { $exists: false }}),
+      include: [ ... ],
+    }
+  */
+
+  // note: parentField & childField are req'd, plus parentItem[parentField} !== undefined .
+  // childSchema.select may override their relationship but some relationship must be given.
+  if (!childSchema.service || !childSchema.parentField || !childSchema.childField) {
+    throw new _feathersErrors2.default.BadRequest('Child schema is missing a required property. (populate)');
+  }
+
+  if (childSchema.permissions && !options.checkPermissions(hook, childSchema.service, childSchema.permissions, depth)) {
+    throw new _feathersErrors2.default.BadRequest('Permissions for ' + childSchema.service + ' do not allow include. (populate)');
+  }
+
+  var nameAs = childSchema.nameAs || childSchema.service;
+  parentItem._include.push(nameAs);
+
+  var promise = Promise.resolve().then(function () {
+    return childSchema.select ? childSchema.select(hook, parentItem, depth) : {};
+  }).then(function (selectQuery) {
+    var parentVal = (0, _utils.getByDot)(parentItem, childSchema.parentField);
+
+    if (parentVal === undefined) {
+      throw new _feathersErrors2.default.BadRequest('ParentField ' + childSchema.parentField + ' for ' + nameAs + ' depth ' + depth + ' is undefined. (populate)');
+    }
+
+    var query = Object.assign({}, childSchema.query, _defineProperty({}, childSchema.childField, Array.isArray(parentVal) ? { $in: parentVal } : parentVal), selectQuery // dynamic options override static ones
+    );
+
+    var serviceHandle = hook.app.service(childSchema.service);
+
+    if (!serviceHandle) {
+      throw new _feathersErrors2.default.BadRequest('Service ' + childSchema.service + ' is not configured. (populate)');
+    }
+
+    return serviceHandle.find({ query: query, _populate: 'skip' });
+  }).then(function (result) {
+    result = result.data || result;
+
+    if (result.length === 1 && !childSchema.asArray) {
+      result = result[0];
+    }
+
+    return result;
+  });
+
+  if (childSchema.include) {
+    promise = promise.then(function (items) {
+      return populateItemArray(options, hook, items, childSchema.include, depth);
+    });
+  }
+
+  return promise.then(function (items) {
+    return _defineProperty({}, nameAs, items);
+  });
+}
+
+// Helpers
+
+function getElapsed(options, startHrtime, depth) {
+  if (options.profile === true) {
+    var elapsed = process.hrtime(startHrtime);
+    return elapsed[0] * 1e9 + elapsed[1];
+  } else if (options.profile !== false) {
+    return depth; // for testing _elapsed
+  }
+}
+}).call(this,require('_process'))
+},{"./bundled":13,"./utils":15,"_process":47,"feathers-errors":12}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2475,11 +2678,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-exports.setByDot = setByDot;
-exports.checkContext = checkContext;
-exports.getItems = getItems;
-exports.replaceItems = replaceItems;
 
 /* eslint no-param-reassign: 0 */
 
@@ -2493,6 +2691,10 @@ exports.replaceItems = replaceItems;
  * There is no way to differentiate between non-existent paths and a value of undefined
  */
 var getByDot = exports.getByDot = function getByDot(obj, path) {
+  if (path.indexOf('.') === -1) {
+    return obj[path];
+  }
+
   return path.split('.').reduce(function (obj1, part) {
     return (typeof obj1 === 'undefined' ? 'undefined' : _typeof(obj1)) === 'object' ? obj1[part] : undefined;
   }, obj);
@@ -2511,7 +2713,17 @@ var getByDot = exports.getByDot = function getByDot(obj, path) {
  * new empty inner objects will still be created,
  * e.g. setByDot({}, 'a.b.c', undefined, true) will return {a: b: {} }
  */
-function setByDot(obj, path, value, ifDelete) {
+var setByDot = exports.setByDot = function setByDot(obj, path, value, ifDelete) {
+  if (path.indexOf('.') === -1) {
+    obj[path] = value;
+
+    if (value === undefined && ifDelete) {
+      delete obj[path];
+    }
+
+    return;
+  }
+
   var parts = path.split('.');
   var lastIndex = parts.length - 1;
   return parts.reduce(function (obj1, part, i) {
@@ -2528,7 +2740,7 @@ function setByDot(obj, path, value, ifDelete) {
     }
     return obj1;
   }, obj);
-}
+};
 
 /**
  * Restrict the calling hook to a hook type (before, after) and a set of
@@ -2557,7 +2769,7 @@ function setByDot(obj, path, value, ifDelete) {
  * checkContext(hook, 'before');
  */
 
-function checkContext(hook) {
+var checkContext = exports.checkContext = function checkContext(hook) {
   var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
   var methods = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
   var label = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'anonymous';
@@ -2576,7 +2788,7 @@ function checkContext(hook) {
     var msg = JSON.stringify(myMethods);
     throw new Error('The \'' + label + '\' hook can only be used on the \'' + msg + '\' service method(s).');
   }
-}
+};
 
 /**
  * Return the data items in a hook.
@@ -2587,10 +2799,10 @@ function checkContext(hook) {
  * @param {Object} hook - The hook.
  * @returns {Object|Array.<Object>} The data item or array of data items
  */
-function getItems(hook) {
+var getItems = exports.getItems = function getItems(hook) {
   var items = hook.type === 'before' ? hook.data : hook.result;
   return items && hook.method === 'find' ? items.data || items : items;
-}
+};
 
 /**
  * Replace the data items in a hook. Companion to getItems.
@@ -2601,7 +2813,7 @@ function getItems(hook) {
  * If you update an after find paginated hook with an item rather than an array of items,
  * the hook will have an array consisting of that one item.
  */
-function replaceItems(hook, items) {
+var replaceItems = exports.replaceItems = function replaceItems(hook, items) {
   if (hook.type === 'before') {
     hook.data = items;
   } else if (hook.method === 'find' && hook.result && hook.result.data) {
@@ -2615,8 +2827,8 @@ function replaceItems(hook, items) {
   } else {
     hook.result = items;
   }
-}
-},{}],15:[function(require,module,exports){
+};
+},{}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2754,7 +2966,7 @@ function baseMixin(methods) {
 
   return Object.assign.apply(Object, [mixin].concat(objs));
 }
-},{"feathers-commons":9}],16:[function(require,module,exports){
+},{"feathers-commons":9}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2766,6 +2978,8 @@ var _uberproto = require('uberproto');
 var _uberproto2 = _interopRequireDefault(_uberproto);
 
 var _feathersCommons = require('feathers-commons');
+
+var _populate = require('feathers-hooks-common/lib/populate');
 
 var _bundled = require('feathers-hooks-common/lib/bundled');
 
@@ -2918,15 +3132,15 @@ configure.lowerCase = _bundled.lowerCase;
 configure.remove = _bundled.remove;
 configure.pluck = _bundled.pluck;
 configure.disable = _bundled.disable;
-configure.populate = _bundled.populate;
+configure.populate = _populate.populate;
 configure.removeField = _bundled.removeField;
 
 exports.default = configure;
 module.exports = exports['default'];
-},{"./commons":15,"feathers-commons":9,"feathers-hooks-common/lib/bundled":13,"uberproto":60}],17:[function(require,module,exports){
+},{"./commons":16,"feathers-commons":9,"feathers-hooks-common/lib/bundled":13,"feathers-hooks-common/lib/populate":14,"uberproto":54}],18:[function(require,module,exports){
 module.exports = require('./lib/client');
 
-},{"./lib/client":18}],18:[function(require,module,exports){
+},{"./lib/client":19}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2968,9 +3182,68 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":30}],19:[function(require,module,exports){
+},{"feathers-socket-commons/client":28}],20:[function(require,module,exports){
 arguments[4][4][0].apply(exports,arguments)
-},{"./lib/client/index":22,"dup":4}],20:[function(require,module,exports){
+},{"./lib/client/index":24,"dup":4}],21:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _base = require('./base');
+
+var _base2 = _interopRequireDefault(_base);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Service = function (_Base) {
+  _inherits(Service, _Base);
+
+  function Service() {
+    _classCallCheck(this, Service);
+
+    return _possibleConstructorReturn(this, (Service.__proto__ || Object.getPrototypeOf(Service)).apply(this, arguments));
+  }
+
+  _createClass(Service, [{
+    key: 'request',
+    value: function request(options) {
+      var config = {
+        url: options.url,
+        method: options.method,
+        data: options.body,
+        headers: _extends({
+          Accept: 'application/json'
+        }, this.options.headers, options.headers)
+      };
+
+      return this.connection.request(config).then(function (res) {
+        return res.data;
+      }).catch(function (error) {
+        var response = error.response || error;
+
+        throw response instanceof Error ? response : response.data || response;
+      });
+    }
+  }]);
+
+  return Service;
+}(_base2.default);
+
+exports.default = Service;
+module.exports = exports['default'];
+},{"./base":22}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3040,6 +3313,10 @@ var Base = function () {
     key: 'get',
     value: function get(id) {
       var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      if (typeof id === 'undefined') {
+        return Promise.reject(new Error('id for \'get\' can not be undefined'));
+      }
 
       return this.request({
         url: this.makeUrl(params.query, id),
@@ -3113,7 +3390,7 @@ var Base = function () {
 
 exports.default = Base;
 module.exports = exports['default'];
-},{"feathers-commons":27,"feathers-errors":12,"qs":54}],21:[function(require,module,exports){
+},{"feathers-commons":9,"feathers-errors":12,"qs":48}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3187,7 +3464,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":20}],22:[function(require,module,exports){
+},{"./base":22}],24:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3248,17 +3525,22 @@ var _fetch = require('./fetch');
 
 var _fetch2 = _interopRequireDefault(_fetch);
 
+var _axios = require('./axios');
+
+var _axios2 = _interopRequireDefault(_axios);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var transports = {
   jquery: _jquery2.default,
   superagent: _superagent2.default,
   request: _request2.default,
-  fetch: _fetch2.default
+  fetch: _fetch2.default,
+  axios: _axios2.default
 };
 
 module.exports = exports['default'];
-},{"./fetch":21,"./jquery":23,"./request":24,"./superagent":25}],23:[function(require,module,exports){
+},{"./axios":21,"./fetch":23,"./jquery":25,"./request":26,"./superagent":27}],25:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3332,7 +3614,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":20}],24:[function(require,module,exports){
+},{"./base":22}],26:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3398,7 +3680,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":20}],25:[function(require,module,exports){
+},{"./base":22}],27:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3462,311 +3744,9 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":20}],26:[function(require,module,exports){
-arguments[4][8][0].apply(exports,arguments)
-},{"dup":8}],27:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _arguments = require('./arguments');
-
-var _arguments2 = _interopRequireDefault(_arguments);
-
-var _utils = require('./utils');
-
-var _hooks = require('./hooks');
-
-var _hooks2 = _interopRequireDefault(_hooks);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-exports.default = {
-  getArguments: _arguments2.default,
-  stripSlashes: _utils.stripSlashes,
-  each: _utils.each,
-  hooks: _hooks2.default,
-  matcher: _utils.matcher,
-  sorter: _utils.sorter
-};
-module.exports = exports['default'];
-},{"./arguments":26,"./hooks":28,"./utils":29}],28:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _utils = require('./utils');
-
-function getOrRemove(args) {
-  return {
-    id: args[0],
-    params: args[1],
-    callback: args[2]
-  };
-}
-
-function updateOrPatch(args) {
-  return {
-    id: args[0],
-    data: args[1],
-    params: args[2],
-    callback: args[3]
-  };
-}
-
-var converters = {
-  find: function find(args) {
-    return {
-      params: args[0],
-      callback: args[1]
-    };
-  },
-  create: function create(args) {
-    return {
-      data: args[0],
-      params: args[1],
-      callback: args[2]
-    };
-  },
-  get: getOrRemove,
-  remove: getOrRemove,
-  update: updateOrPatch,
-  patch: updateOrPatch
-};
-
-function hookObject(method, type, args, app) {
-  var hook = converters[method](args);
-
-  hook.method = method;
-  hook.type = type;
-
-  if (app) {
-    hook.app = app;
-  }
-
-  return hook;
-}
-
-function defaultMakeArguments(hook) {
-  var result = [];
-  if (typeof hook.id !== 'undefined') {
-    result.push(hook.id);
-  }
-
-  if (hook.data) {
-    result.push(hook.data);
-  }
-
-  result.push(hook.params || {});
-  result.push(hook.callback);
-
-  return result;
-}
-
-function makeArguments(hook) {
-  if (hook.method === 'find') {
-    return [hook.params, hook.callback];
-  }
-
-  if (hook.method === 'get' || hook.method === 'remove') {
-    return [hook.id, hook.params, hook.callback];
-  }
-
-  if (hook.method === 'update' || hook.method === 'patch') {
-    return [hook.id, hook.data, hook.params, hook.callback];
-  }
-
-  if (hook.method === 'create') {
-    return [hook.data, hook.params, hook.callback];
-  }
-
-  return defaultMakeArguments(hook);
-}
-
-function convertHookData(obj) {
-  var hook = {};
-
-  if (Array.isArray(obj)) {
-    hook = { all: obj };
-  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object') {
-    hook = { all: [obj] };
-  } else {
-    (0, _utils.each)(obj, function (value, key) {
-      hook[key] = !Array.isArray(value) ? [value] : value;
-    });
-  }
-
-  return hook;
-}
-
-exports.default = {
-  hookObject: hookObject,
-  hook: hookObject,
-  converters: converters,
-  defaultMakeArguments: defaultMakeArguments,
-  makeArguments: makeArguments,
-  convertHookData: convertHookData
-};
-module.exports = exports['default'];
-},{"./utils":29}],29:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-exports.stripSlashes = stripSlashes;
-exports.each = each;
-exports.matcher = matcher;
-exports.sorter = sorter;
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-function stripSlashes(name) {
-  return name.replace(/^(\/*)|(\/*)$/g, '');
-}
-
-function each(obj, callback) {
-  if (obj && typeof obj.forEach === 'function') {
-    obj.forEach(callback);
-  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
-    Object.keys(obj).forEach(function (key) {
-      return callback(obj[key], key);
-    });
-  }
-}
-
-var _ = exports._ = {
-  some: function some(value, callback) {
-    return Object.keys(value).map(function (key) {
-      return [value[key], key];
-    }).some(function (current) {
-      return callback.apply(undefined, _toConsumableArray(current));
-    });
-  },
-  every: function every(value, callback) {
-    return Object.keys(value).map(function (key) {
-      return [value[key], key];
-    }).every(function (current) {
-      return callback.apply(undefined, _toConsumableArray(current));
-    });
-  },
-  isMatch: function isMatch(obj, item) {
-    return Object.keys(item).every(function (key) {
-      return obj[key] === item[key];
-    });
-  },
-  omit: function omit(obj) {
-    var result = _extends({}, obj);
-
-    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      keys[_key - 1] = arguments[_key];
-    }
-
-    keys.forEach(function (key) {
-      return delete result[key];
-    });
-    return result;
-  }
-};
-
-var specialFilters = exports.specialFilters = {
-  $in: function $in(key, ins) {
-    return function (current) {
-      return ins.indexOf(current[key]) !== -1;
-    };
-  },
-  $nin: function $nin(key, nins) {
-    return function (current) {
-      return nins.indexOf(current[key]) === -1;
-    };
-  },
-  $lt: function $lt(key, value) {
-    return function (current) {
-      return current[key] < value;
-    };
-  },
-  $lte: function $lte(key, value) {
-    return function (current) {
-      return current[key] <= value;
-    };
-  },
-  $gt: function $gt(key, value) {
-    return function (current) {
-      return current[key] > value;
-    };
-  },
-  $gte: function $gte(key, value) {
-    return function (current) {
-      return current[key] >= value;
-    };
-  },
-  $ne: function $ne(key, value) {
-    return function (current) {
-      return current[key] !== value;
-    };
-  }
-};
-
-function matcher(originalQuery) {
-  var query = _.omit(originalQuery, '$limit', '$skip', '$sort', '$select');
-
-  return function (item) {
-    if (query.$or && _.some(query.$or, function (or) {
-      return matcher(or)(item);
-    })) {
-      return true;
-    }
-
-    return _.every(query, function (value, key) {
-      if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
-        return _.every(value, function (target, filterType) {
-          if (specialFilters[filterType]) {
-            var filter = specialFilters[filterType](key, target);
-            return filter(item);
-          }
-
-          return false;
-        });
-      } else if (typeof item[key] !== 'undefined') {
-        return item[key] === query[key];
-      }
-
-      return false;
-    });
-  };
-}
-
-function sorter($sort) {
-  return function (first, second) {
-    var comparator = 0;
-    each($sort, function (modifier, key) {
-      modifier = parseInt(modifier, 10);
-
-      if (first[key] < second[key]) {
-        comparator -= 1 * modifier;
-      }
-
-      if (first[key] > second[key]) {
-        comparator += 1 * modifier;
-      }
-    });
-    return comparator;
-  };
-}
-},{}],30:[function(require,module,exports){
-arguments[4][17][0].apply(exports,arguments)
-},{"./lib/client":31,"dup":17}],31:[function(require,module,exports){
+},{"./base":22}],28:[function(require,module,exports){
+arguments[4][18][0].apply(exports,arguments)
+},{"./lib/client":29,"dup":18}],29:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3939,7 +3919,7 @@ var Service = function () {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./utils":32,"debug":1,"feathers-errors":12}],32:[function(require,module,exports){
+},{"./utils":30,"debug":1,"feathers-errors":12}],30:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -4000,17 +3980,409 @@ function normalizeError(e) {
   return result;
 }
 }).call(this,require('_process'))
-},{"_process":53,"feathers-commons":34}],33:[function(require,module,exports){
-arguments[4][8][0].apply(exports,arguments)
-},{"dup":8}],34:[function(require,module,exports){
-arguments[4][27][0].apply(exports,arguments)
-},{"./arguments":33,"./hooks":35,"./utils":36,"dup":27}],35:[function(require,module,exports){
-arguments[4][28][0].apply(exports,arguments)
-},{"./utils":36,"dup":28}],36:[function(require,module,exports){
-arguments[4][29][0].apply(exports,arguments)
-},{"dup":29}],37:[function(require,module,exports){
-arguments[4][17][0].apply(exports,arguments)
-},{"./lib/client":38,"dup":17}],38:[function(require,module,exports){
+},{"_process":47,"feathers-commons":32}],31:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+exports.default = getArguments;
+var noop = exports.noop = function noop() {};
+var getCallback = function getCallback(args) {
+  var last = args[args.length - 1];
+  return typeof last === 'function' ? last : noop;
+};
+var getParams = function getParams(args, position) {
+  return _typeof(args[position]) === 'object' ? args[position] : {};
+};
+
+var updateOrPatch = function updateOrPatch(name) {
+  return function (args) {
+    var id = args[0];
+    var data = args[1];
+    var callback = getCallback(args);
+    var params = getParams(args, 2);
+
+    if (typeof id === 'function') {
+      throw new Error('First parameter for \'' + name + '\' can not be a function');
+    }
+
+    if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) !== 'object') {
+      throw new Error('No data provided for \'' + name + '\'');
+    }
+
+    if (args.length > 4) {
+      throw new Error('Too many arguments for \'' + name + '\' service method');
+    }
+
+    return [id, data, params, callback];
+  };
+};
+
+var getOrRemove = function getOrRemove(name) {
+  return function (args) {
+    var id = args[0];
+    var params = getParams(args, 1);
+    var callback = getCallback(args);
+
+    if (args.length > 3) {
+      throw new Error('Too many arguments for \'' + name + '\' service method');
+    }
+
+    if (typeof id === 'function') {
+      throw new Error('First parameter for \'' + name + '\' can not be a function');
+    }
+
+    return [id, params, callback];
+  };
+};
+
+var converters = exports.converters = {
+  find: function find(args) {
+    var callback = getCallback(args);
+    var params = getParams(args, 0);
+
+    if (args.length > 2) {
+      throw new Error('Too many arguments for \'find\' service method');
+    }
+
+    return [params, callback];
+  },
+  create: function create(args) {
+    var data = args[0];
+    var params = getParams(args, 1);
+    var callback = getCallback(args);
+
+    if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) !== 'object') {
+      throw new Error('First parameter for \'create\' must be an object');
+    }
+
+    if (args.length > 3) {
+      throw new Error('Too many arguments for \'create\' service method');
+    }
+
+    return [data, params, callback];
+  },
+
+
+  update: updateOrPatch('update'),
+
+  patch: updateOrPatch('patch'),
+
+  get: getOrRemove('get'),
+
+  remove: getOrRemove('remove')
+};
+
+function getArguments(method, args) {
+  return converters[method](args);
+}
+},{}],32:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _arguments = require('./arguments');
+
+var _arguments2 = _interopRequireDefault(_arguments);
+
+var _utils = require('./utils');
+
+var _hooks = require('./hooks');
+
+var _hooks2 = _interopRequireDefault(_hooks);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = {
+  getArguments: _arguments2.default,
+  stripSlashes: _utils.stripSlashes,
+  each: _utils.each,
+  hooks: _hooks2.default,
+  matcher: _utils.matcher,
+  sorter: _utils.sorter
+};
+module.exports = exports['default'];
+},{"./arguments":31,"./hooks":33,"./utils":34}],33:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _utils = require('./utils');
+
+function getOrRemove(args) {
+  return {
+    id: args[0],
+    params: args[1],
+    callback: args[2]
+  };
+}
+
+function updateOrPatch(args) {
+  return {
+    id: args[0],
+    data: args[1],
+    params: args[2],
+    callback: args[3]
+  };
+}
+
+var converters = {
+  find: function find(args) {
+    return {
+      params: args[0],
+      callback: args[1]
+    };
+  },
+  create: function create(args) {
+    return {
+      data: args[0],
+      params: args[1],
+      callback: args[2]
+    };
+  },
+  get: getOrRemove,
+  remove: getOrRemove,
+  update: updateOrPatch,
+  patch: updateOrPatch
+};
+
+function hookObject(method, type, args, app) {
+  var hook = converters[method](args);
+
+  hook.method = method;
+  hook.type = type;
+
+  if (app) {
+    hook.app = app;
+  }
+
+  return hook;
+}
+
+function defaultMakeArguments(hook) {
+  var result = [];
+  if (typeof hook.id !== 'undefined') {
+    result.push(hook.id);
+  }
+
+  if (hook.data) {
+    result.push(hook.data);
+  }
+
+  result.push(hook.params || {});
+  result.push(hook.callback);
+
+  return result;
+}
+
+function makeArguments(hook) {
+  if (hook.method === 'find') {
+    return [hook.params, hook.callback];
+  }
+
+  if (hook.method === 'get' || hook.method === 'remove') {
+    return [hook.id, hook.params, hook.callback];
+  }
+
+  if (hook.method === 'update' || hook.method === 'patch') {
+    return [hook.id, hook.data, hook.params, hook.callback];
+  }
+
+  if (hook.method === 'create') {
+    return [hook.data, hook.params, hook.callback];
+  }
+
+  return defaultMakeArguments(hook);
+}
+
+function convertHookData(obj) {
+  var hook = {};
+
+  if (Array.isArray(obj)) {
+    hook = { all: obj };
+  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object') {
+    hook = { all: [obj] };
+  } else {
+    (0, _utils.each)(obj, function (value, key) {
+      hook[key] = !Array.isArray(value) ? [value] : value;
+    });
+  }
+
+  return hook;
+}
+
+exports.default = {
+  hookObject: hookObject,
+  hook: hookObject,
+  converters: converters,
+  defaultMakeArguments: defaultMakeArguments,
+  makeArguments: makeArguments,
+  convertHookData: convertHookData
+};
+module.exports = exports['default'];
+},{"./utils":34}],34:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+exports.stripSlashes = stripSlashes;
+exports.each = each;
+exports.matcher = matcher;
+exports.sorter = sorter;
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function stripSlashes(name) {
+  return name.replace(/^(\/*)|(\/*)$/g, '');
+}
+
+function each(obj, callback) {
+  if (obj && typeof obj.forEach === 'function') {
+    obj.forEach(callback);
+  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
+    Object.keys(obj).forEach(function (key) {
+      return callback(obj[key], key);
+    });
+  }
+}
+
+var _ = exports._ = {
+  some: function some(value, callback) {
+    return Object.keys(value).map(function (key) {
+      return [value[key], key];
+    }).some(function (current) {
+      return callback.apply(undefined, _toConsumableArray(current));
+    });
+  },
+  every: function every(value, callback) {
+    return Object.keys(value).map(function (key) {
+      return [value[key], key];
+    }).every(function (current) {
+      return callback.apply(undefined, _toConsumableArray(current));
+    });
+  },
+  isMatch: function isMatch(obj, item) {
+    return Object.keys(item).every(function (key) {
+      return obj[key] === item[key];
+    });
+  },
+  omit: function omit(obj) {
+    var result = _extends({}, obj);
+
+    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      keys[_key - 1] = arguments[_key];
+    }
+
+    keys.forEach(function (key) {
+      return delete result[key];
+    });
+    return result;
+  }
+};
+
+var specialFilters = exports.specialFilters = {
+  $in: function $in(key, ins) {
+    return function (current) {
+      return ins.indexOf(current[key]) !== -1;
+    };
+  },
+  $nin: function $nin(key, nins) {
+    return function (current) {
+      return nins.indexOf(current[key]) === -1;
+    };
+  },
+  $lt: function $lt(key, value) {
+    return function (current) {
+      return current[key] < value;
+    };
+  },
+  $lte: function $lte(key, value) {
+    return function (current) {
+      return current[key] <= value;
+    };
+  },
+  $gt: function $gt(key, value) {
+    return function (current) {
+      return current[key] > value;
+    };
+  },
+  $gte: function $gte(key, value) {
+    return function (current) {
+      return current[key] >= value;
+    };
+  },
+  $ne: function $ne(key, value) {
+    return function (current) {
+      return current[key] !== value;
+    };
+  }
+};
+
+function matcher(originalQuery) {
+  var query = _.omit(originalQuery, '$limit', '$skip', '$sort', '$select');
+
+  return function (item) {
+    if (query.$or && _.some(query.$or, function (or) {
+      return matcher(or)(item);
+    })) {
+      return true;
+    }
+
+    return _.every(query, function (value, key) {
+      if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
+        return _.every(value, function (target, filterType) {
+          if (specialFilters[filterType]) {
+            var filter = specialFilters[filterType](key, target);
+            return filter(item);
+          }
+
+          return false;
+        });
+      } else if (typeof item[key] !== 'undefined') {
+        return item[key] === query[key];
+      }
+
+      return false;
+    });
+  };
+}
+
+function sorter($sort) {
+  return function (first, second) {
+    var comparator = 0;
+    each($sort, function (modifier, key) {
+      modifier = parseInt(modifier, 10);
+
+      if (first[key] < second[key]) {
+        comparator -= 1 * modifier;
+      }
+
+      if (first[key] > second[key]) {
+        comparator += 1 * modifier;
+      }
+    });
+    return comparator;
+  };
+}
+},{}],35:[function(require,module,exports){
+arguments[4][18][0].apply(exports,arguments)
+},{"./lib/client":36,"dup":18}],36:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4056,9 +4428,9 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":30}],39:[function(require,module,exports){
+},{"feathers-socket-commons/client":28}],37:[function(require,module,exports){
 arguments[4][4][0].apply(exports,arguments)
-},{"./lib/client/index":42,"dup":4}],40:[function(require,module,exports){
+},{"./lib/client/index":40,"dup":4}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4100,7 +4472,7 @@ exports.default = {
   service: function service(location, _service) {
     var _this = this;
 
-    var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+    var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
     location = (0, _feathersCommons.stripSlashes)(location);
 
@@ -4141,8 +4513,8 @@ exports.default = {
     return this.services[location] = protoService;
   },
   use: function use(location) {
-    var service = void 0,
-        middleware = Array.from(arguments).slice(1).reduce(function (middleware, arg) {
+    var service = void 0;
+    var middleware = Array.from(arguments).slice(1).reduce(function (middleware, arg) {
       if (typeof arg === 'function') {
         middleware[service ? 'after' : 'before'].push(arg);
       } else if (!service) {
@@ -4210,7 +4582,7 @@ exports.default = {
   }
 };
 module.exports = exports['default'];
-},{"./mixins/index":45,"debug":1,"feathers-commons":49,"uberproto":60}],41:[function(require,module,exports){
+},{"./mixins/index":43,"debug":1,"feathers-commons":9,"uberproto":54}],39:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4264,7 +4636,7 @@ var _uberproto2 = _interopRequireDefault(_uberproto);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"events":3,"uberproto":60}],42:[function(require,module,exports){
+},{"events":3,"uberproto":54}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4288,7 +4660,7 @@ function createApplication() {
 
 createApplication.version = '2.0.1';
 module.exports = exports['default'];
-},{"../feathers":43,"./express":41}],43:[function(require,module,exports){
+},{"../feathers":41,"./express":39}],41:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4318,7 +4690,7 @@ function createApplication(app) {
   return app;
 }
 module.exports = exports['default'];
-},{"./application":40,"uberproto":60}],44:[function(require,module,exports){
+},{"./application":38,"uberproto":54}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4396,7 +4768,7 @@ function upperCase(name) {
 }
 
 module.exports = exports['default'];
-},{"events":3,"feathers-commons":49,"rubberduck":58}],45:[function(require,module,exports){
+},{"events":3,"feathers-commons":9,"rubberduck":52}],43:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4417,7 +4789,7 @@ exports.default = function () {
 };
 
 module.exports = exports['default'];
-},{"./event":44,"./normalizer":46,"./promise":47}],46:[function(require,module,exports){
+},{"./event":42,"./normalizer":44,"./promise":45}],44:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4447,7 +4819,7 @@ exports.default = function (service) {
 var _feathersCommons = require('feathers-commons');
 
 module.exports = exports['default'];
-},{"feathers-commons":49}],47:[function(require,module,exports){
+},{"feathers-commons":9}],45:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4491,15 +4863,7 @@ function wrapper() {
 }
 
 module.exports = exports['default'];
-},{}],48:[function(require,module,exports){
-arguments[4][8][0].apply(exports,arguments)
-},{"dup":8}],49:[function(require,module,exports){
-arguments[4][27][0].apply(exports,arguments)
-},{"./arguments":48,"./hooks":50,"./utils":51,"dup":27}],50:[function(require,module,exports){
-arguments[4][28][0].apply(exports,arguments)
-},{"./utils":51,"dup":28}],51:[function(require,module,exports){
-arguments[4][29][0].apply(exports,arguments)
-},{"dup":29}],52:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -4650,7 +5014,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's'
 }
 
-},{}],53:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -4832,7 +5196,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],54:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 'use strict';
 
 var Stringify = require('./stringify');
@@ -4843,7 +5207,7 @@ module.exports = {
     parse: Parse
 };
 
-},{"./parse":55,"./stringify":56}],55:[function(require,module,exports){
+},{"./parse":49,"./stringify":50}],49:[function(require,module,exports){
 'use strict';
 
 var Utils = require('./utils');
@@ -5012,7 +5376,7 @@ module.exports = function (str, opts) {
     return Utils.compact(obj);
 };
 
-},{"./utils":57}],56:[function(require,module,exports){
+},{"./utils":51}],50:[function(require,module,exports){
 'use strict';
 
 var Utils = require('./utils');
@@ -5151,7 +5515,7 @@ module.exports = function (object, opts) {
     return keys.join(delimiter);
 };
 
-},{"./utils":57}],57:[function(require,module,exports){
+},{"./utils":51}],51:[function(require,module,exports){
 'use strict';
 
 var hexTable = (function () {
@@ -5317,7 +5681,7 @@ exports.isBuffer = function (obj) {
     return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
 };
 
-},{}],58:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 var events = require('events');
 var utils = require('./utils');
 var wrap = exports.wrap = {
@@ -5429,7 +5793,7 @@ exports.emitter = function(obj) {
   return new Emitter(obj);
 };
 
-},{"./utils":59,"events":3}],59:[function(require,module,exports){
+},{"./utils":53,"events":3}],53:[function(require,module,exports){
 exports.toBase26 = function(num) {
   var outString = '';
   var letters = 'abcdefghijklmnopqrstuvwxyz';
@@ -5465,7 +5829,7 @@ exports.emitEvents = function(emitter, type, name, args) {
   }
 };
 
-},{}],60:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 /* global define */
 /**
  * A base object for ECMAScript 5 style prototypal inheritance.
@@ -5609,7 +5973,7 @@ exports.emitEvents = function(emitter, type, name, args) {
 
 }));
 
-},{}],61:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5647,5 +6011,5 @@ Object.assign(_client2.default, { socketio: _client6.default, primus: _client8.d
 exports.default = _client2.default;
 module.exports = exports['default'];
 
-},{"feathers-authentication/client":4,"feathers-hooks":16,"feathers-primus/client":17,"feathers-rest/client":19,"feathers-socketio/client":37,"feathers/client":39}]},{},[61])(61)
+},{"feathers-authentication/client":4,"feathers-hooks":17,"feathers-primus/client":18,"feathers-rest/client":20,"feathers-socketio/client":35,"feathers/client":37}]},{},[55])(55)
 });
