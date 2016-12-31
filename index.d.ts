@@ -8,6 +8,8 @@ interface FeathersApp {
 
   // Services.
   service(name: string): FeathersService;
+
+  configure(fn: () => void): FeathersApp;
 }
 
 interface FeathersService extends events.EventEmitter {
