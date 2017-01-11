@@ -1,8 +1,7 @@
 # Change Log
 
-## [Unreleased](https://github.com/feathersjs/feathers-client/tree/HEAD)
-
-[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.9.0...HEAD)
+## [v2.0.0-pre.1](https://github.com/feathersjs/feathers-client/tree/v2.0.0-pre.1) (2017-01-11)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.9.0...v2.0.0-pre.1)
 
 **Closed issues:**
 
