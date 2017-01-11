@@ -1,5 +1,16 @@
 # Change Log
 
+## [v2.0.1-0](https://github.com/feathersjs/feathers-client/tree/v2.0.1-0) (2017-01-11)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.9.0...v2.0.1-0)
+
+**Closed issues:**
+
+- Socket.io timeout does nothing when there is JWT token available [\#129](https://github.com/feathersjs/feathers-client/issues/129)
+
+**Merged pull requests:**
+
+- Feathers Auth Update [\#131](https://github.com/feathersjs/feathers-client/pull/131) ([flyboarder](https://github.com/flyboarder))
+
 ## [v1.9.0](https://github.com/feathersjs/feathers-client/tree/v1.9.0) (2016-12-31)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.8.0...v1.9.0)
 
