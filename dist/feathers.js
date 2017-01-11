@@ -184,7 +184,7 @@ function localstorage() {
 }
 
 }).call(this,require('_process'))
-},{"./debug":2,"_process":47}],2:[function(require,module,exports){
+},{"./debug":2,"_process":48}],2:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -385,7 +385,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":46}],3:[function(require,module,exports){
+},{"ms":47}],3:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -690,294 +690,561 @@ function isUndefined(arg) {
 }
 
 },{}],4:[function(require,module,exports){
-module.exports = require('./lib/client/index');
-
-},{"./lib/client/index":6}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.populateParams = populateParams;
-exports.populateHeader = populateHeader;
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+var _populateHeader = require('./populate-header');
 
-function populateParams() {
+var _populateHeader2 = _interopRequireDefault(_populateHeader);
+
+var _populateAccessToken = require('./populate-access-token');
+
+var _populateAccessToken2 = _interopRequireDefault(_populateAccessToken);
+
+var _populateEntity = require('./populate-entity');
+
+var _populateEntity2 = _interopRequireDefault(_populateEntity);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var hooks = {
+  populateHeader: _populateHeader2.default,
+  populateAccessToken: _populateAccessToken2.default,
+  populateEntity: _populateEntity2.default
+};
+
+exports.default = hooks;
+module.exports = exports['default'];
+},{"./populate-access-token":5,"./populate-entity":6,"./populate-header":7}],5:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = populateAccessToken;
+/*
+ * Exposes the access token to the client side hooks
+ * under hook.params.accessToken.
+ */
+
+function populateAccessToken() {
   return function (hook) {
     var app = hook.app;
 
-    Object.assign(hook.params, {
-      user: app.get('user'),
-      token: app.get('token')
-    });
-  };
-}
-
-function populateHeader() {
-  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  return function (hook) {
-    if (hook.params.token) {
-      hook.params.headers = Object.assign({}, _defineProperty({}, options.header || 'authorization', hook.params.token), hook.params.headers);
+    if (hook.type !== 'before') {
+      return Promise.reject(new Error('The \'populateAccessToken\' hook should only be used as a \'before\' hook.'));
     }
+
+    Object.assign(hook.params, { accessToken: app.get('accessToken') });
+
+    return Promise.resolve(hook);
   };
 }
+module.exports = exports['default'];
 },{}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.default = populateEntity;
+/*
+ * Fetch and populate an entity by id encoded in the
+ * access token payload. Useful for easily getting the
+ * current user after authentication, or any other entity.
+ */
 
-exports.default = function () {
-  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+function populateEntity() {
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-  var config = Object.assign({}, defaults, opts);
+  if (!options.service) {
+    throw new Error('You need to pass \'options.service\' to the populateEntity() hook.');
+  }
 
-  return function () {
-    var app = this;
+  if (!options.field) {
+    throw new Error('You need to pass \'options.field\' to the populateEntity() hook.');
+  }
 
-    if (!app.get('storage')) {
-      app.set('storage', (0, _utils.getStorage)(config.storage));
+  if (!options.entity) {
+    throw new Error('You need to pass \'options.entity\' to the populateEntity() hook.');
+  }
+
+  return function (hook) {
+    var app = hook.app;
+
+    if (hook.type !== 'after') {
+      return Promise.reject(new Error('The \'populateEntity\' hook should only be used as an \'after\' hook.'));
     }
 
-    app.authenticate = function () {
-      var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    return app.passport.verifyJWT(hook.result.accessToken).then(function (payload) {
+      var id = payload[options.field];
 
-      var storage = this.get('storage');
-      var getOptions = Promise.resolve(options);
-
-      // If no type was given let's try to authenticate with a stored JWT
-      if (!options.type) {
-        getOptions = (0, _utils.getJWT)(config.tokenKey, config.cookie, this.get('storage')).then(function (token) {
-          if (!token) {
-            return Promise.reject(new _feathersErrors2.default.NotAuthenticated('Could not find stored JWT and no authentication type was given'));
-          }
-
-          return { type: 'token', token: token };
-        });
+      if (!id) {
+        return Promise.reject(new Error('Access token payload is missing the \'' + options.field + '\' field.'));
       }
 
-      var handleResponse = function handleResponse(response) {
-        app.set('token', response.token);
-        app.set('user', response.data);
+      return app.service(options.service).get(id);
+    }).then(function (entity) {
+      hook.result[options.entity] = entity;
+      app.set(options.entity, entity);
 
-        return Promise.resolve(storage.setItem(config.tokenKey, response.token)).then(function () {
-          return response;
-        });
-      };
-
-      return getOptions.then(function (options) {
-        var endPoint = void 0;
-
-        if (options.endpoint) {
-          endPoint = options.endpoint;
-        } else if (options.type === 'local') {
-          endPoint = config.localEndpoint;
-        } else if (options.type === 'token') {
-          endPoint = config.tokenEndpoint;
-        } else {
-          throw new Error('Unsupported authentication \'type\': ' + options.type);
-        }
-
-        return (0, _utils.connected)(app).then(function (socket) {
-          // TODO (EK): Handle OAuth logins
-          // If we are using a REST client
-          if (app.rest) {
-            return app.service(endPoint).create(options).then(handleResponse);
-          }
-
-          var method = app.io ? 'emit' : 'send';
-
-          return (0, _utils.authenticateSocket)(options, socket, method).then(handleResponse);
-        });
-      });
-    };
-
-    // Set our logout method with the correct socket context
-    app.logout = function () {
-      app.set('user', null);
-      app.set('token', null);
-
-      (0, _utils.clearCookie)(config.cookie);
-
-      // remove the token from localStorage
-      return Promise.resolve(app.get('storage').removeItem(config.tokenKey)).then(function () {
-        // If using sockets de-authenticate the socket
-        if (app.io || app.primus) {
-          var method = app.io ? 'emit' : 'send';
-          var socket = app.io ? app.io : app.primus;
-
-          return (0, _utils.logoutSocket)(socket, method);
-        }
-      });
-    };
-
-    // Set up hook that adds token and user to params so that
-    // it they can be accessed by client side hooks and services
-    app.mixins.push(function (service) {
-      if (typeof service.before !== 'function' || typeof service.after !== 'function') {
-        throw new Error('It looks like feathers-hooks isn\'t configured. It is required before running feathers-authentication.');
-      }
-
-      service.before(hooks.populateParams(config));
+      return Promise.resolve(hook);
     });
-
-    // Set up hook that adds authorization header for REST provider
-    if (app.rest) {
-      app.mixins.push(function (service) {
-        service.before(hooks.populateHeader(config));
-      });
-    }
   };
-};
-
-var _feathersErrors = require('feathers-errors');
-
-var _feathersErrors2 = _interopRequireDefault(_feathersErrors);
-
-var _hooks = require('./hooks');
-
-var hooks = _interopRequireWildcard(_hooks);
-
-var _utils = require('./utils');
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var defaults = {
-  cookie: 'feathers-jwt',
-  tokenKey: 'feathers-jwt',
-  localEndpoint: '/auth/local',
-  tokenEndpoint: '/auth/token'
-};
-
+}
 module.exports = exports['default'];
-},{"./hooks":5,"./utils":7,"feathers-errors":12}],7:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.connected = connected;
-exports.authenticateSocket = authenticateSocket;
-exports.logoutSocket = logoutSocket;
-exports.getCookie = getCookie;
-exports.clearCookie = clearCookie;
-exports.getJWT = getJWT;
-exports.getStorage = getStorage;
-// Returns a promise that resolves when the socket is connected
-function connected(app) {
-  return new Promise(function (resolve, reject) {
-    if (app.rest) {
-      return resolve();
+exports.default = populateHeader;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+/*
+ * Sets the access token in the authorization header
+ * under hook.params.header so that it can be picked
+ * up by the client side REST libraries.
+ */
+
+function populateHeader() {
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  if (!options.header) {
+    throw new Error('You need to pass \'options.header\' to the populateHeader() hook.');
+  }
+
+  return function (hook) {
+    if (hook.type !== 'before') {
+      return Promise.reject(new Error('The \'populateHeader\' hook should only be used as a \'before\' hook.'));
     }
 
-    var socket = app.io || app.primus;
-
-    if (!socket) {
-      return reject(new Error('It looks like no client connection has been configured.'));
+    if (hook.params.accessToken) {
+      hook.params.headers = Object.assign({}, _defineProperty({}, options.header, options.prefix ? options.prefix + ' ' + hook.params.accessToken : hook.params.accessToken), hook.params.headers);
     }
 
-    // If one of those events happens before `connect` the promise will be rejected
-    // If it happens after, it will do nothing (since Promises can only resolve once)
-    socket.once('disconnect', reject);
-    socket.once('close', reject);
-
-    // If the socket is not connected yet we have to wait for the `connect` event
-    if (app.io && !socket.connected || app.primus && socket.readyState !== 3) {
-      var connectEvent = app.primus ? 'open' : 'connect';
-      socket.once(connectEvent, function () {
-        return resolve(socket);
-      });
-    } else {
-      resolve(socket);
-    }
-  });
+    return Promise.resolve(hook);
+  };
 }
+module.exports = exports['default'];
+},{}],8:[function(require,module,exports){
+'use strict';
 
-// Returns a promise that authenticates a socket
-function authenticateSocket(options, socket, method) {
-  return new Promise(function (resolve, reject) {
-    socket.once('unauthorized', reject);
-    socket.once('authenticated', resolve);
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = init;
 
-    socket[method]('authenticate', options);
-  });
-}
+var _index = require('./hooks/index');
 
-// Returns a promise that de-authenticates a socket
-function logoutSocket(socket, method) {
-  return new Promise(function (resolve, reject) {
-    socket[method]('logout', function (error) {
-      if (error) {
-        reject(error);
+var _index2 = _interopRequireDefault(_index);
+
+var _passport = require('./passport');
+
+var _passport2 = _interopRequireDefault(_passport);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var defaults = {
+  header: 'authorization',
+  cookie: 'feathers-jwt',
+  storageKey: 'feathers-jwt',
+  jwtStrategy: 'jwt',
+  path: '/authentication',
+  entity: 'user',
+  service: 'users'
+};
+
+function init() {
+  var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  var options = Object.assign({}, defaults, config);
+
+  return function () {
+    var app = this;
+
+    app.passport = new _passport2.default(app, options);
+    app.authenticate = app.passport.authenticate.bind(app.passport);
+    app.logout = app.passport.logout.bind(app.passport);
+
+    // Set up hook that adds token and user to params so that
+    // it they can be accessed by client side hooks and services
+    app.mixins.push(function (service) {
+      // if (typeof service.hooks !== 'function') {
+      if (typeof service.before !== 'function' || typeof service.after !== 'function') {
+        throw new Error('It looks like feathers-hooks isn\'t configured. It is required before running feathers-authentication.');
       }
 
-      resolve();
+      service.before(_index2.default.populateAccessToken(options));
     });
-  });
-}
 
-// Returns the value for a cookie
-function getCookie(name) {
-  if (typeof document !== 'undefined') {
-    var value = '; ' + document.cookie;
-    var parts = value.split('; ' + name + '=');
-
-    if (parts.length === 2) {
-      return parts.pop().split(';').shift();
-    }
-  }
-
-  return null;
-}
-
-// Returns the value for a cookie
-function clearCookie(name) {
-  if (typeof document !== 'undefined') {
-    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-  }
-
-  return null;
-}
-
-// Tries the JWT from the given key either from a storage or the cookie
-function getJWT(tokenKey, cookieKey, storage) {
-  return Promise.resolve(storage.getItem(tokenKey)).then(function (jwt) {
-    var cookieToken = getCookie(cookieKey);
-
-    if (cookieToken) {
-      return cookieToken;
-    }
-
-    return jwt;
-  });
-}
-
-// Returns a storage implementation
-function getStorage(storage) {
-  if (storage) {
-    return storage;
-  }
-
-  return {
-    store: {},
-    getItem: function getItem(key) {
-      return this.store[key];
-    },
-    setItem: function setItem(key, value) {
-      return this.store[key] = value;
-    },
-    removeItem: function removeItem(key) {
-      delete this.store[key];
-      return this;
+    // Set up hook that adds authorization header for REST provider
+    if (app.rest) {
+      app.mixins.push(function (service) {
+        service.before(_index2.default.populateHeader(options));
+      });
     }
   };
 }
-},{}],8:[function(require,module,exports){
+
+init.defaults = defaults;
+module.exports = exports['default'];
+},{"./hooks/index":4,"./passport":9}],9:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _feathersErrors = require('feathers-errors');
+
+var _feathersErrors2 = _interopRequireDefault(_feathersErrors);
+
+var _jwtDecode = require('jwt-decode');
+
+var _jwtDecode2 = _interopRequireDefault(_jwtDecode);
+
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var debug = (0, _debug2.default)('feathers-authentication-client');
+
+var Passport = function () {
+  function Passport(app, options) {
+    _classCallCheck(this, Passport);
+
+    if (app.passport) {
+      throw new Error('You have already registered authentication on this client app instance. You only need to do it once.');
+    }
+
+    this.options = options;
+    this.app = app;
+    this.storage = app.get('storage') || this.getStorage(options.storage);
+
+    this.setJWT = this.setJWT.bind(this);
+
+    app.set('storage', this.storage);
+    this.getJWT().then(this.setJWT);
+
+    this.setupSocketListeners();
+  }
+
+  _createClass(Passport, [{
+    key: 'setupSocketListeners',
+    value: function setupSocketListeners() {
+      var _this = this;
+
+      var app = this.app;
+      var socket = app.io || app.primus;
+      var emit = app.io ? 'emit' : 'send';
+      var reconnected = app.io ? 'reconnect' : 'reconnected';
+
+      if (!socket) {
+        return;
+      }
+
+      socket.on(reconnected, function () {
+        debug('Socket reconnected');
+
+        // If socket was already authenticated then re-authenticate
+        // it with the server automatically.
+        if (socket.authenticated) {
+          var data = {
+            strategy: _this.options.jwtStrategy,
+            accessToken: app.get('accessToken')
+          };
+          _this.authenticateSocket(data, socket, emit).then(_this.setJWT).catch(function (error) {
+            debug('Error re-authenticating after socket reconnect', error);
+            socket.authenticated = false;
+            app.emit('reauthentication-error', error);
+          });
+        }
+      });
+
+      if (socket.io) {
+        socket.io.engine.on('upgrade', function () {
+          debug('Socket upgrading');
+
+          // If socket was already authenticated then re-authenticate
+          // it with the server automatically.
+          if (socket.authenticated) {
+            var data = {
+              strategy: _this.options.jwtStrategy,
+              accessToken: app.get('accessToken')
+            };
+
+            _this.authenticateSocket(data, socket, emit).then(_this.setJWT).catch(function (error) {
+              debug('Error re-authenticating after socket upgrade', error);
+              socket.authenticated = false;
+              app.emit('reauthentication-error', error);
+            });
+          }
+        });
+      }
+    }
+  }, {
+    key: 'connected',
+    value: function connected() {
+      var app = this.app;
+
+      if (app.rest) {
+        return Promise.resolve();
+      }
+
+      var socket = app.io || app.primus;
+
+      if (!socket) {
+        return Promise.reject(new Error('It looks like your client connection has not been configured.'));
+      }
+
+      if (app.io && socket.connected || app.primus && socket.readyState === 3) {
+        debug('Socket already connected');
+        return Promise.resolve(socket);
+      }
+
+      return new Promise(function (resolve, reject) {
+        var connected = app.primus ? 'open' : 'connect';
+        var disconnect = app.io ? 'disconnect' : 'end';
+        debug('Waiting for socket connection');
+
+        var handleDisconnect = function handleDisconnect() {
+          debug('Socket disconnected before it could connect');
+          socket.authenticated = false;
+        };
+
+        // If disconnect happens before `connect` the promise will be rejected.
+        socket.once(disconnect, handleDisconnect);
+        socket.once(connected, function () {
+          debug('Socket connected');
+          debug('Removing ' + disconnect + ' listener');
+          socket.removeListener(disconnect, handleDisconnect);
+          resolve(socket);
+        });
+      });
+    }
+  }, {
+    key: 'authenticate',
+    value: function authenticate() {
+      var _this2 = this;
+
+      var credentials = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      var app = this.app;
+      var getCredentials = Promise.resolve(credentials);
+
+      // If no strategy was given let's try to authenticate with a stored JWT
+      if (!credentials.strategy) {
+        if (credentials.accessToken) {
+          credentials.strategy = this.options.jwtStrategy;
+        } else {
+          getCredentials = this.getJWT().then(function (accessToken) {
+            if (!accessToken) {
+              return Promise.reject(new _feathersErrors2.default.NotAuthenticated('Could not find stored JWT and no authentication strategy was given'));
+            }
+            return { strategy: _this2.options.jwtStrategy, accessToken: accessToken };
+          });
+        }
+      }
+
+      return getCredentials.then(function (credentials) {
+        return _this2.connected(app).then(function (socket) {
+          if (app.rest) {
+            return app.service(_this2.options.path).create(credentials).then(_this2.setJWT);
+          }
+
+          var emit = app.io ? 'emit' : 'send';
+          return _this2.authenticateSocket(credentials, socket, emit).then(_this2.setJWT);
+        });
+      });
+    }
+
+    // Returns a promise that authenticates a socket
+
+  }, {
+    key: 'authenticateSocket',
+    value: function authenticateSocket(credentials, socket, emit) {
+      return new Promise(function (resolve, reject) {
+        debug('Attempting to authenticate socket');
+        socket[emit]('authenticate', credentials, function (error, data) {
+          if (error) {
+            return reject(error);
+          }
+
+          socket.authenticated = true;
+          debug('Socket authenticated!');
+
+          resolve(data);
+        });
+      });
+    }
+  }, {
+    key: 'logoutSocket',
+    value: function logoutSocket(socket, emit) {
+      return new Promise(function (resolve, reject) {
+        socket[emit]('logout', function (error) {
+          if (error) {
+            reject(error);
+          }
+
+          socket.authenticated = false;
+          resolve();
+        });
+      });
+    }
+  }, {
+    key: 'logout',
+    value: function logout() {
+      var _this3 = this;
+
+      var app = this.app;
+
+      app.set('accessToken', null);
+      this.clearCookie(this.options.cookie);
+
+      // remove the accessToken from localStorage
+      return Promise.resolve(app.get('storage').removeItem(this.options.storageKey)).then(function () {
+        // If using sockets de-authenticate the socket
+        if (app.io || app.primus) {
+          var method = app.io ? 'emit' : 'send';
+          var socket = app.io ? app.io : app.primus;
+
+          return _this3.logoutSocket(socket, method);
+        }
+      });
+    }
+  }, {
+    key: 'setJWT',
+    value: function setJWT(data) {
+      var accessToken = data && data.accessToken ? data.accessToken : data;
+
+      if (accessToken) {
+        this.app.set('accessToken', accessToken);
+        this.app.get('storage').setItem(this.options.storageKey, accessToken);
+      }
+
+      return Promise.resolve(data);
+    }
+  }, {
+    key: 'getJWT',
+    value: function getJWT() {
+      var _this4 = this;
+
+      var app = this.app;
+      return new Promise(function (resolve) {
+        var accessToken = app.get('accessToken');
+
+        if (accessToken) {
+          return resolve(accessToken);
+        }
+
+        return Promise.resolve(_this4.storage.getItem(_this4.options.storageKey)).then(function (jwt) {
+          var token = jwt || _this4.getCookie(_this4.options.cookie);
+
+          if (token && token !== 'null' && !_this4.payloadIsValid((0, _jwtDecode2.default)(token))) {
+            token = undefined;
+          }
+
+          return resolve(token);
+        });
+      });
+    }
+
+    // Pass a jwt token, get back a payload if it's valid.
+
+  }, {
+    key: 'verifyJWT',
+    value: function verifyJWT(token) {
+      if (typeof token !== 'string') {
+        return Promise.reject(new Error('Token provided to verifyJWT is missing or not a string'));
+      }
+
+      try {
+        var payload = (0, _jwtDecode2.default)(token);
+
+        if (this.payloadIsValid(payload)) {
+          return Promise.resolve(payload);
+        }
+
+        return Promise.reject(new Error('Invalid token: expired'));
+      } catch (error) {
+        return Promise.reject(new Error('Cannot decode malformed token.'));
+      }
+    }
+
+    // Pass a decoded payload and it will return a boolean based on if it hasn't expired.
+
+  }, {
+    key: 'payloadIsValid',
+    value: function payloadIsValid(payload) {
+      return payload && payload.exp * 1000 > new Date().getTime();
+    }
+  }, {
+    key: 'getCookie',
+    value: function getCookie(name) {
+      if (typeof document !== 'undefined') {
+        var value = '; ' + document.cookie;
+        var parts = value.split('; ' + name + '=');
+
+        if (parts.length === 2) {
+          return parts.pop().split(';').shift();
+        }
+      }
+
+      return null;
+    }
+  }, {
+    key: 'clearCookie',
+    value: function clearCookie(name) {
+      if (typeof document !== 'undefined') {
+        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      }
+
+      return null;
+    }
+
+    // Returns a storage implementation
+
+  }, {
+    key: 'getStorage',
+    value: function getStorage(storage) {
+      if (storage) {
+        return storage;
+      }
+
+      return {
+        store: {},
+        getItem: function getItem(key) {
+          return this.store[key];
+        },
+        setItem: function setItem(key, value) {
+          return this.store[key] = value;
+        },
+        removeItem: function removeItem(key) {
+          delete this.store[key];
+          return this;
+        }
+      };
+    }
+  }]);
+
+  return Passport;
+}();
+
+exports.default = Passport;
+module.exports = exports['default'];
+},{"debug":1,"feathers-errors":14,"jwt-decode":46}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1076,7 +1343,7 @@ var converters = exports.converters = {
 function getArguments(method, args) {
   return converters[method](args);
 }
-},{}],9:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1119,7 +1386,7 @@ exports.default = {
   merge: _utils.merge
 };
 module.exports = exports['default'];
-},{"./arguments":8,"./hooks":10,"./utils":11}],10:[function(require,module,exports){
+},{"./arguments":10,"./hooks":12,"./utils":13}],12:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1247,7 +1514,7 @@ exports.default = {
   convertHookData: convertHookData
 };
 module.exports = exports['default'];
-},{"./utils":11}],11:[function(require,module,exports){
+},{"./utils":13}],13:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -1521,7 +1788,7 @@ function makeUrl(path) {
   return protocol + '://' + host + port + '/' + stripSlashes(path);
 }
 }).call(this,require('_process'))
-},{"_process":47}],12:[function(require,module,exports){
+},{"_process":48}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1901,7 +2168,7 @@ exports.default = _extends({
   errors: errors
 }, errors);
 module.exports = exports['default'];
-},{"debug":1}],13:[function(require,module,exports){
+},{"debug":1}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2471,7 +2738,7 @@ function legacyPopulate(target, options) {
     });
   };
 }
-},{"./utils":15,"feathers-errors":12}],14:[function(require,module,exports){
+},{"./utils":17,"feathers-errors":14}],16:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -2670,7 +2937,7 @@ function getElapsed(options, startHrtime, depth) {
   }
 }
 }).call(this,require('_process'))
-},{"./bundled":13,"./utils":15,"_process":47,"feathers-errors":12}],15:[function(require,module,exports){
+},{"./bundled":15,"./utils":17,"_process":48,"feathers-errors":14}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2828,7 +3095,7 @@ var replaceItems = exports.replaceItems = function replaceItems(hook, items) {
     hook.result = items;
   }
 };
-},{}],16:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2966,7 +3233,7 @@ function baseMixin(methods) {
 
   return Object.assign.apply(Object, [mixin].concat(objs));
 }
-},{"feathers-commons":9}],17:[function(require,module,exports){
+},{"feathers-commons":11}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3137,10 +3404,10 @@ configure.removeField = _bundled.removeField;
 
 exports.default = configure;
 module.exports = exports['default'];
-},{"./commons":16,"feathers-commons":9,"feathers-hooks-common/lib/bundled":13,"feathers-hooks-common/lib/populate":14,"uberproto":54}],18:[function(require,module,exports){
+},{"./commons":18,"feathers-commons":11,"feathers-hooks-common/lib/bundled":15,"feathers-hooks-common/lib/populate":16,"uberproto":55}],20:[function(require,module,exports){
 module.exports = require('./lib/client');
 
-},{"./lib/client":19}],19:[function(require,module,exports){
+},{"./lib/client":21}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3182,9 +3449,10 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":28}],20:[function(require,module,exports){
-arguments[4][4][0].apply(exports,arguments)
-},{"./lib/client/index":24,"dup":4}],21:[function(require,module,exports){
+},{"feathers-socket-commons/client":30}],22:[function(require,module,exports){
+module.exports = require('./lib/client/index');
+
+},{"./lib/client/index":26}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3243,7 +3511,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":22}],22:[function(require,module,exports){
+},{"./base":24}],24:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3390,7 +3658,7 @@ var Base = function () {
 
 exports.default = Base;
 module.exports = exports['default'];
-},{"feathers-commons":9,"feathers-errors":12,"qs":48}],23:[function(require,module,exports){
+},{"feathers-commons":11,"feathers-errors":14,"qs":49}],25:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3464,7 +3732,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":22}],24:[function(require,module,exports){
+},{"./base":24}],26:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3540,7 +3808,7 @@ var transports = {
 };
 
 module.exports = exports['default'];
-},{"./axios":21,"./fetch":23,"./jquery":25,"./request":26,"./superagent":27}],25:[function(require,module,exports){
+},{"./axios":23,"./fetch":25,"./jquery":27,"./request":28,"./superagent":29}],27:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3614,7 +3882,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":22}],26:[function(require,module,exports){
+},{"./base":24}],28:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3680,7 +3948,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":22}],27:[function(require,module,exports){
+},{"./base":24}],29:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3744,9 +4012,9 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":22}],28:[function(require,module,exports){
-arguments[4][18][0].apply(exports,arguments)
-},{"./lib/client":29,"dup":18}],29:[function(require,module,exports){
+},{"./base":24}],30:[function(require,module,exports){
+arguments[4][20][0].apply(exports,arguments)
+},{"./lib/client":31,"dup":20}],31:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3856,42 +4124,42 @@ var Service = function () {
   }, {
     key: 'find',
     value: function find() {
-      var params = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+      var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
       return this.send('find', params.query || {});
     }
   }, {
     key: 'get',
     value: function get(id) {
-      var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+      var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       return this.send('get', id, params.query || {});
     }
   }, {
     key: 'create',
     value: function create(data) {
-      var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+      var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       return this.send('create', data, params.query || {});
     }
   }, {
     key: 'update',
     value: function update(id, data) {
-      var params = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+      var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
       return this.send('update', id, data, params.query || {});
     }
   }, {
     key: 'patch',
     value: function patch(id, data) {
-      var params = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+      var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
       return this.send('patch', id, data, params.query || {});
     }
   }, {
     key: 'remove',
     value: function remove(id) {
-      var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+      var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       return this.send('remove', id, params.query || {});
     }
@@ -3919,7 +4187,7 @@ var Service = function () {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./utils":30,"debug":1,"feathers-errors":12}],30:[function(require,module,exports){
+},{"./utils":32,"debug":1,"feathers-errors":14}],32:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -3930,6 +4198,7 @@ exports.events = exports.eventMappings = undefined;
 exports.convertFilterData = convertFilterData;
 exports.promisify = promisify;
 exports.normalizeError = normalizeError;
+exports.normalizeArgs = normalizeArgs;
 
 var _feathersCommons = require('feathers-commons');
 
@@ -3979,410 +4248,20 @@ function normalizeError(e) {
 
   return result;
 }
+
+function normalizeArgs(args) {
+  var ret = [];
+  if (args.length === 2 && Array.isArray(args['0'])) {
+    ret = args[0];
+    ret.push(args[1]);
+    return ret;
+  }
+  return args;
+}
 }).call(this,require('_process'))
-},{"_process":47,"feathers-commons":32}],31:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-exports.default = getArguments;
-var noop = exports.noop = function noop() {};
-var getCallback = function getCallback(args) {
-  var last = args[args.length - 1];
-  return typeof last === 'function' ? last : noop;
-};
-var getParams = function getParams(args, position) {
-  return _typeof(args[position]) === 'object' ? args[position] : {};
-};
-
-var updateOrPatch = function updateOrPatch(name) {
-  return function (args) {
-    var id = args[0];
-    var data = args[1];
-    var callback = getCallback(args);
-    var params = getParams(args, 2);
-
-    if (typeof id === 'function') {
-      throw new Error('First parameter for \'' + name + '\' can not be a function');
-    }
-
-    if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) !== 'object') {
-      throw new Error('No data provided for \'' + name + '\'');
-    }
-
-    if (args.length > 4) {
-      throw new Error('Too many arguments for \'' + name + '\' service method');
-    }
-
-    return [id, data, params, callback];
-  };
-};
-
-var getOrRemove = function getOrRemove(name) {
-  return function (args) {
-    var id = args[0];
-    var params = getParams(args, 1);
-    var callback = getCallback(args);
-
-    if (args.length > 3) {
-      throw new Error('Too many arguments for \'' + name + '\' service method');
-    }
-
-    if (typeof id === 'function') {
-      throw new Error('First parameter for \'' + name + '\' can not be a function');
-    }
-
-    return [id, params, callback];
-  };
-};
-
-var converters = exports.converters = {
-  find: function find(args) {
-    var callback = getCallback(args);
-    var params = getParams(args, 0);
-
-    if (args.length > 2) {
-      throw new Error('Too many arguments for \'find\' service method');
-    }
-
-    return [params, callback];
-  },
-  create: function create(args) {
-    var data = args[0];
-    var params = getParams(args, 1);
-    var callback = getCallback(args);
-
-    if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) !== 'object') {
-      throw new Error('First parameter for \'create\' must be an object');
-    }
-
-    if (args.length > 3) {
-      throw new Error('Too many arguments for \'create\' service method');
-    }
-
-    return [data, params, callback];
-  },
-
-
-  update: updateOrPatch('update'),
-
-  patch: updateOrPatch('patch'),
-
-  get: getOrRemove('get'),
-
-  remove: getOrRemove('remove')
-};
-
-function getArguments(method, args) {
-  return converters[method](args);
-}
-},{}],32:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _arguments = require('./arguments');
-
-var _arguments2 = _interopRequireDefault(_arguments);
-
-var _utils = require('./utils');
-
-var _hooks = require('./hooks');
-
-var _hooks2 = _interopRequireDefault(_hooks);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-exports.default = {
-  getArguments: _arguments2.default,
-  stripSlashes: _utils.stripSlashes,
-  each: _utils.each,
-  hooks: _hooks2.default,
-  matcher: _utils.matcher,
-  sorter: _utils.sorter
-};
-module.exports = exports['default'];
-},{"./arguments":31,"./hooks":33,"./utils":34}],33:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _utils = require('./utils');
-
-function getOrRemove(args) {
-  return {
-    id: args[0],
-    params: args[1],
-    callback: args[2]
-  };
-}
-
-function updateOrPatch(args) {
-  return {
-    id: args[0],
-    data: args[1],
-    params: args[2],
-    callback: args[3]
-  };
-}
-
-var converters = {
-  find: function find(args) {
-    return {
-      params: args[0],
-      callback: args[1]
-    };
-  },
-  create: function create(args) {
-    return {
-      data: args[0],
-      params: args[1],
-      callback: args[2]
-    };
-  },
-  get: getOrRemove,
-  remove: getOrRemove,
-  update: updateOrPatch,
-  patch: updateOrPatch
-};
-
-function hookObject(method, type, args, app) {
-  var hook = converters[method](args);
-
-  hook.method = method;
-  hook.type = type;
-
-  if (app) {
-    hook.app = app;
-  }
-
-  return hook;
-}
-
-function defaultMakeArguments(hook) {
-  var result = [];
-  if (typeof hook.id !== 'undefined') {
-    result.push(hook.id);
-  }
-
-  if (hook.data) {
-    result.push(hook.data);
-  }
-
-  result.push(hook.params || {});
-  result.push(hook.callback);
-
-  return result;
-}
-
-function makeArguments(hook) {
-  if (hook.method === 'find') {
-    return [hook.params, hook.callback];
-  }
-
-  if (hook.method === 'get' || hook.method === 'remove') {
-    return [hook.id, hook.params, hook.callback];
-  }
-
-  if (hook.method === 'update' || hook.method === 'patch') {
-    return [hook.id, hook.data, hook.params, hook.callback];
-  }
-
-  if (hook.method === 'create') {
-    return [hook.data, hook.params, hook.callback];
-  }
-
-  return defaultMakeArguments(hook);
-}
-
-function convertHookData(obj) {
-  var hook = {};
-
-  if (Array.isArray(obj)) {
-    hook = { all: obj };
-  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object') {
-    hook = { all: [obj] };
-  } else {
-    (0, _utils.each)(obj, function (value, key) {
-      hook[key] = !Array.isArray(value) ? [value] : value;
-    });
-  }
-
-  return hook;
-}
-
-exports.default = {
-  hookObject: hookObject,
-  hook: hookObject,
-  converters: converters,
-  defaultMakeArguments: defaultMakeArguments,
-  makeArguments: makeArguments,
-  convertHookData: convertHookData
-};
-module.exports = exports['default'];
-},{"./utils":34}],34:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-exports.stripSlashes = stripSlashes;
-exports.each = each;
-exports.matcher = matcher;
-exports.sorter = sorter;
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-function stripSlashes(name) {
-  return name.replace(/^(\/*)|(\/*)$/g, '');
-}
-
-function each(obj, callback) {
-  if (obj && typeof obj.forEach === 'function') {
-    obj.forEach(callback);
-  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object') {
-    Object.keys(obj).forEach(function (key) {
-      return callback(obj[key], key);
-    });
-  }
-}
-
-var _ = exports._ = {
-  some: function some(value, callback) {
-    return Object.keys(value).map(function (key) {
-      return [value[key], key];
-    }).some(function (current) {
-      return callback.apply(undefined, _toConsumableArray(current));
-    });
-  },
-  every: function every(value, callback) {
-    return Object.keys(value).map(function (key) {
-      return [value[key], key];
-    }).every(function (current) {
-      return callback.apply(undefined, _toConsumableArray(current));
-    });
-  },
-  isMatch: function isMatch(obj, item) {
-    return Object.keys(item).every(function (key) {
-      return obj[key] === item[key];
-    });
-  },
-  omit: function omit(obj) {
-    var result = _extends({}, obj);
-
-    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      keys[_key - 1] = arguments[_key];
-    }
-
-    keys.forEach(function (key) {
-      return delete result[key];
-    });
-    return result;
-  }
-};
-
-var specialFilters = exports.specialFilters = {
-  $in: function $in(key, ins) {
-    return function (current) {
-      return ins.indexOf(current[key]) !== -1;
-    };
-  },
-  $nin: function $nin(key, nins) {
-    return function (current) {
-      return nins.indexOf(current[key]) === -1;
-    };
-  },
-  $lt: function $lt(key, value) {
-    return function (current) {
-      return current[key] < value;
-    };
-  },
-  $lte: function $lte(key, value) {
-    return function (current) {
-      return current[key] <= value;
-    };
-  },
-  $gt: function $gt(key, value) {
-    return function (current) {
-      return current[key] > value;
-    };
-  },
-  $gte: function $gte(key, value) {
-    return function (current) {
-      return current[key] >= value;
-    };
-  },
-  $ne: function $ne(key, value) {
-    return function (current) {
-      return current[key] !== value;
-    };
-  }
-};
-
-function matcher(originalQuery) {
-  var query = _.omit(originalQuery, '$limit', '$skip', '$sort', '$select');
-
-  return function (item) {
-    if (query.$or && _.some(query.$or, function (or) {
-      return matcher(or)(item);
-    })) {
-      return true;
-    }
-
-    return _.every(query, function (value, key) {
-      if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
-        return _.every(value, function (target, filterType) {
-          if (specialFilters[filterType]) {
-            var filter = specialFilters[filterType](key, target);
-            return filter(item);
-          }
-
-          return false;
-        });
-      } else if (typeof item[key] !== 'undefined') {
-        return item[key] === query[key];
-      }
-
-      return false;
-    });
-  };
-}
-
-function sorter($sort) {
-  return function (first, second) {
-    var comparator = 0;
-    each($sort, function (modifier, key) {
-      modifier = parseInt(modifier, 10);
-
-      if (first[key] < second[key]) {
-        comparator -= 1 * modifier;
-      }
-
-      if (first[key] > second[key]) {
-        comparator += 1 * modifier;
-      }
-    });
-    return comparator;
-  };
-}
-},{}],35:[function(require,module,exports){
-arguments[4][18][0].apply(exports,arguments)
-},{"./lib/client":36,"dup":18}],36:[function(require,module,exports){
+},{"_process":48,"feathers-commons":11}],33:[function(require,module,exports){
+arguments[4][20][0].apply(exports,arguments)
+},{"./lib/client":34,"dup":20}],34:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4428,9 +4307,9 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":28}],37:[function(require,module,exports){
-arguments[4][4][0].apply(exports,arguments)
-},{"./lib/client/index":40,"dup":4}],38:[function(require,module,exports){
+},{"feathers-socket-commons/client":30}],35:[function(require,module,exports){
+arguments[4][22][0].apply(exports,arguments)
+},{"./lib/client/index":38,"dup":22}],36:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4582,7 +4461,7 @@ exports.default = {
   }
 };
 module.exports = exports['default'];
-},{"./mixins/index":43,"debug":1,"feathers-commons":9,"uberproto":54}],39:[function(require,module,exports){
+},{"./mixins/index":41,"debug":1,"feathers-commons":11,"uberproto":55}],37:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4636,7 +4515,7 @@ var _uberproto2 = _interopRequireDefault(_uberproto);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"events":3,"uberproto":54}],40:[function(require,module,exports){
+},{"events":3,"uberproto":55}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4660,7 +4539,7 @@ function createApplication() {
 
 createApplication.version = '2.0.1';
 module.exports = exports['default'];
-},{"../feathers":41,"./express":39}],41:[function(require,module,exports){
+},{"../feathers":39,"./express":37}],39:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4690,7 +4569,7 @@ function createApplication(app) {
   return app;
 }
 module.exports = exports['default'];
-},{"./application":38,"uberproto":54}],42:[function(require,module,exports){
+},{"./application":36,"uberproto":55}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4768,7 +4647,7 @@ function upperCase(name) {
 }
 
 module.exports = exports['default'];
-},{"events":3,"feathers-commons":9,"rubberduck":52}],43:[function(require,module,exports){
+},{"events":3,"feathers-commons":11,"rubberduck":53}],41:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4789,7 +4668,7 @@ exports.default = function () {
 };
 
 module.exports = exports['default'];
-},{"./event":42,"./normalizer":44,"./promise":45}],44:[function(require,module,exports){
+},{"./event":40,"./normalizer":42,"./promise":43}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4819,7 +4698,7 @@ exports.default = function (service) {
 var _feathersCommons = require('feathers-commons');
 
 module.exports = exports['default'];
-},{"feathers-commons":9}],45:[function(require,module,exports){
+},{"feathers-commons":11}],43:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4863,7 +4742,97 @@ function wrapper() {
 }
 
 module.exports = exports['default'];
-},{}],46:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
+/**
+ * The code was extracted from:
+ * https://github.com/davidchambers/Base64.js
+ */
+
+var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+
+function InvalidCharacterError(message) {
+  this.message = message;
+}
+
+InvalidCharacterError.prototype = new Error();
+InvalidCharacterError.prototype.name = 'InvalidCharacterError';
+
+function polyfill (input) {
+  var str = String(input).replace(/=+$/, '');
+  if (str.length % 4 == 1) {
+    throw new InvalidCharacterError("'atob' failed: The string to be decoded is not correctly encoded.");
+  }
+  for (
+    // initialize result and counters
+    var bc = 0, bs, buffer, idx = 0, output = '';
+    // get next character
+    buffer = str.charAt(idx++);
+    // character found in table? initialize bit storage and add its ascii value;
+    ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
+      // and if not first of each 4 characters,
+      // convert the first 8 bits to one ascii character
+      bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
+  ) {
+    // try to find character in table (0-63, not found => -1)
+    buffer = chars.indexOf(buffer);
+  }
+  return output;
+}
+
+
+module.exports = typeof window !== 'undefined' && window.atob && window.atob.bind(window) || polyfill;
+
+},{}],45:[function(require,module,exports){
+var atob = require('./atob');
+
+function b64DecodeUnicode(str) {
+  return decodeURIComponent(atob(str).replace(/(.)/g, function (m, p) {
+    var code = p.charCodeAt(0).toString(16).toUpperCase();
+    if (code.length < 2) {
+      code = '0' + code;
+    }
+    return '%' + code;
+  }));
+}
+
+module.exports = function(str) {
+  var output = str.replace(/-/g, "+").replace(/_/g, "/");
+  switch (output.length % 4) {
+    case 0:
+      break;
+    case 2:
+      output += "==";
+      break;
+    case 3:
+      output += "=";
+      break;
+    default:
+      throw "Illegal base64url string!";
+  }
+
+  try{
+    return b64DecodeUnicode(output);
+  } catch (err) {
+    return atob(output);
+  }
+};
+
+},{"./atob":44}],46:[function(require,module,exports){
+'use strict';
+
+var base64_url_decode = require('./base64_url_decode');
+
+module.exports = function (token,options) {
+  if (typeof token !== 'string') {
+    throw new Error('Invalid token specified');
+  }
+
+  options = options || {};
+  var pos = options.header === true ? 0 : 1;
+  return JSON.parse(base64_url_decode(token.split('.')[pos]));
+};
+
+},{"./base64_url_decode":45}],47:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -5014,7 +4983,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's'
 }
 
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -5196,7 +5165,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 'use strict';
 
 var Stringify = require('./stringify');
@@ -5207,7 +5176,7 @@ module.exports = {
     parse: Parse
 };
 
-},{"./parse":49,"./stringify":50}],49:[function(require,module,exports){
+},{"./parse":50,"./stringify":51}],50:[function(require,module,exports){
 'use strict';
 
 var Utils = require('./utils');
@@ -5376,7 +5345,7 @@ module.exports = function (str, opts) {
     return Utils.compact(obj);
 };
 
-},{"./utils":51}],50:[function(require,module,exports){
+},{"./utils":52}],51:[function(require,module,exports){
 'use strict';
 
 var Utils = require('./utils');
@@ -5515,7 +5484,7 @@ module.exports = function (object, opts) {
     return keys.join(delimiter);
 };
 
-},{"./utils":51}],51:[function(require,module,exports){
+},{"./utils":52}],52:[function(require,module,exports){
 'use strict';
 
 var hexTable = (function () {
@@ -5681,7 +5650,7 @@ exports.isBuffer = function (obj) {
     return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
 };
 
-},{}],52:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 var events = require('events');
 var utils = require('./utils');
 var wrap = exports.wrap = {
@@ -5793,7 +5762,7 @@ exports.emitter = function(obj) {
   return new Emitter(obj);
 };
 
-},{"./utils":53,"events":3}],53:[function(require,module,exports){
+},{"./utils":54,"events":3}],54:[function(require,module,exports){
 exports.toBase26 = function(num) {
   var outString = '';
   var letters = 'abcdefghijklmnopqrstuvwxyz';
@@ -5829,7 +5798,7 @@ exports.emitEvents = function(emitter, type, name, args) {
   }
 };
 
-},{}],54:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 /* global define */
 /**
  * A base object for ECMAScript 5 style prototypal inheritance.
@@ -5973,7 +5942,7 @@ exports.emitEvents = function(emitter, type, name, args) {
 
 }));
 
-},{}],55:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6000,16 +5969,16 @@ var _feathersHooks = require('feathers-hooks');
 
 var _feathersHooks2 = _interopRequireDefault(_feathersHooks);
 
-var _client9 = require('feathers-authentication/client');
+var _feathersAuthenticationClient = require('feathers-authentication-client');
 
-var _client10 = _interopRequireDefault(_client9);
+var _feathersAuthenticationClient2 = _interopRequireDefault(_feathersAuthenticationClient);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-Object.assign(_client2.default, { socketio: _client6.default, primus: _client8.default, rest: _client4.default, hooks: _feathersHooks2.default, authentication: _client10.default });
+Object.assign(_client2.default, { socketio: _client6.default, primus: _client8.default, rest: _client4.default, hooks: _feathersHooks2.default, authentication: _feathersAuthenticationClient2.default });
 
 exports.default = _client2.default;
 module.exports = exports['default'];
 
-},{"feathers-authentication/client":4,"feathers-hooks":17,"feathers-primus/client":18,"feathers-rest/client":20,"feathers-socketio/client":35,"feathers/client":37}]},{},[55])(55)
+},{"feathers-authentication-client":8,"feathers-hooks":19,"feathers-primus/client":20,"feathers-rest/client":22,"feathers-socketio/client":33,"feathers/client":35}]},{},[56])(56)
 });
