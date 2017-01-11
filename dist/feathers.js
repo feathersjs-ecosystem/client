@@ -5953,6 +5953,14 @@ var _client = require('feathers/client');
 
 var _client2 = _interopRequireDefault(_client);
 
+var _feathersHooks = require('feathers-hooks');
+
+var _feathersHooks2 = _interopRequireDefault(_feathersHooks);
+
+var _feathersAuthenticationClient = require('feathers-authentication-client');
+
+var _feathersAuthenticationClient2 = _interopRequireDefault(_feathersAuthenticationClient);
+
 var _client3 = require('feathers-rest/client');
 
 var _client4 = _interopRequireDefault(_client3);
@@ -5964,14 +5972,6 @@ var _client6 = _interopRequireDefault(_client5);
 var _client7 = require('feathers-primus/client');
 
 var _client8 = _interopRequireDefault(_client7);
-
-var _feathersHooks = require('feathers-hooks');
-
-var _feathersHooks2 = _interopRequireDefault(_feathersHooks);
-
-var _feathersAuthenticationClient = require('feathers-authentication-client');
-
-var _feathersAuthenticationClient2 = _interopRequireDefault(_feathersAuthenticationClient);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
