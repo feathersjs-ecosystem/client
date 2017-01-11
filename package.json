@@ -1,7 +1,7 @@
 {
   "name": "feathers-client",
   "description": "A module that consolidates Feathers client modules for REST (jQuery, Request, Superagent) and Websocket (Socket.io, Primus) connections",
-  "version": "2.0.0-pre.0",
+  "version": "2.0.0-pre.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/feathersjs/feathers-client.git"
