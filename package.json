@@ -1,7 +1,7 @@
 {
   "name": "feathers-client",
   "description": "A module that consolidates Feathers client modules for REST (jQuery, Request, Superagent) and Websocket (Socket.io, Primus) connections",
-  "version": "1.9.0",
+  "version": "2.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/feathersjs/feathers-client.git"
@@ -35,7 +35,7 @@
     "publish": "git push origin --tags && npm run changelog && git push origin",
     "bower": "node version && git add bower.json && git commit -am \"Update version\"",
     "changelog": "github_changelog_generator && git add CHANGELOG.md && git commit -am \"Updating changelog\"",
-    "release:prerelease": "npm run reinstall && npm run add-dist && npm version prerelease && npm run bower && npm publish",
+    "release:prerelease": "npm run reinstall && npm run add-dist && npm version prerelease && npm run bower && npm publish --tag pre",
     "release:patch": "npm run reinstall && npm run add-dist && npm version patch && npm run bower && npm publish",
     "release:minor": "npm run reinstall && npm run add-dist && npm version minor && npm run bower && npm publish",
     "release:major": "npm run reinstall && npm run add-dist && npm version major && npm run bower && npm publish",
