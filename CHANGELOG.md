@@ -1,5 +1,30 @@
 # Change Log
 
+## [v2.0.0-pre.2](https://github.com/feathersjs/feathers-client/tree/v2.0.0-pre.2) (2017-03-08)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v2.0.0-pre.1...v2.0.0-pre.2)
+
+**Closed issues:**
+
+- Authentication should be removed [\#136](https://github.com/feathersjs/feathers-client/issues/136)
+
+**Merged pull requests:**
+
+- Lock package.json versions [\#153](https://github.com/feathersjs/feathers-client/pull/153) ([daffl](https://github.com/daffl))
+- Add feathers-errors to the client export [\#152](https://github.com/feathersjs/feathers-client/pull/152) ([daffl](https://github.com/daffl))
+- Update feathers to version 2.1.1 🚀 [\#151](https://github.com/feathersjs/feathers-client/pull/151) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-socketio to version 1.5.2 🚀 [\#150](https://github.com/feathersjs/feathers-client/pull/150) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-hooks to version 1.8.1 🚀 [\#149](https://github.com/feathersjs/feathers-client/pull/149) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-rest to version 1.7.1 🚀 [\#148](https://github.com/feathersjs/feathers-client/pull/148) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-socketio to version 1.5.1 🚀 [\#147](https://github.com/feathersjs/feathers-client/pull/147) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-socketio to version 1.5.0 🚀 [\#146](https://github.com/feathersjs/feathers-client/pull/146) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-rest to version 1.7.0 🚀 [\#145](https://github.com/feathersjs/feathers-client/pull/145) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-primus to version 2.1.0 🚀 [\#144](https://github.com/feathersjs/feathers-client/pull/144) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-hooks to version 1.8.0 🚀 [\#143](https://github.com/feathersjs/feathers-client/pull/143) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers to version 2.1.0 🚀 [\#142](https://github.com/feathersjs/feathers-client/pull/142) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update feathers-socketio to version 1.4.3 🚀 [\#141](https://github.com/feathersjs/feathers-client/pull/141) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update browserify to version 14.1.0 🚀 [\#140](https://github.com/feathersjs/feathers-client/pull/140) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+- Update ws to version 2.0.0 🚀 [\#139](https://github.com/feathersjs/feathers-client/pull/139) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+
 ## [v2.0.0-pre.1](https://github.com/feathersjs/feathers-client/tree/v2.0.0-pre.1) (2017-01-11)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v1.9.0...v2.0.0-pre.1)
 
