@@ -69,7 +69,7 @@
   "typings": "index.d.ts",
   "dependencies": {
     "feathers": "2.1.1",
-    "feathers-authentication-client": "0.1.6",
+    "feathers-authentication-client": "0.2.0",
     "feathers-errors": "2.6.1",
     "feathers-hooks": "1.8.1",
     "feathers-primus": "2.1.0",
