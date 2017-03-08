@@ -184,7 +184,7 @@ function localstorage() {
 }
 
 }).call(this,require('_process'))
-},{"./debug":2,"_process":48}],2:[function(require,module,exports){
+},{"./debug":2,"_process":49}],2:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -193,7 +193,7 @@ function localstorage() {
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = createDebug.debug = createDebug.default = createDebug;
+exports = module.exports = createDebug.debug = createDebug['default'] = createDebug;
 exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
@@ -325,6 +325,9 @@ function createDebug(namespace) {
 function enable(namespaces) {
   exports.save(namespaces);
 
+  exports.names = [];
+  exports.skips = [];
+
   var split = (namespaces || '').split(/[\s,]+/);
   var len = split.length;
 
@@ -385,7 +388,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":47}],3:[function(require,module,exports){
+},{"ms":48}],3:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -851,13 +854,14 @@ var _passport2 = _interopRequireDefault(_passport);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var defaults = {
-  header: 'authorization',
+  header: 'Authorization',
   cookie: 'feathers-jwt',
   storageKey: 'feathers-jwt',
   jwtStrategy: 'jwt',
   path: '/authentication',
   entity: 'user',
-  service: 'users'
+  service: 'users',
+  timeout: 5000
 };
 
 function init() {
@@ -915,6 +919,8 @@ var _debug = require('debug');
 
 var _debug2 = _interopRequireDefault(_debug);
 
+var _utils = require('./utils');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -929,9 +935,14 @@ var Passport = function () {
       throw new Error('You have already registered authentication on this client app instance. You only need to do it once.');
     }
 
-    this.options = options;
-    this.app = app;
-    this.storage = app.get('storage') || this.getStorage(options.storage);
+    Object.assign(this, {
+      options: options,
+      app: app,
+      payloadIsValid: _utils.payloadIsValid,
+      getCookie: _utils.getCookie,
+      clearCookie: _utils.clearCookie,
+      storage: app.get('storage') || this.getStorage(options.storage)
+    });
 
     this.setJWT = this.setJWT.bind(this);
 
@@ -973,7 +984,7 @@ var Passport = function () {
         }
       });
 
-      if (socket.io) {
+      var socketUpgradeHandler = function socketUpgradeHandler() {
         socket.io.engine.on('upgrade', function () {
           debug('Socket upgrading');
 
@@ -992,11 +1003,19 @@ var Passport = function () {
             });
           }
         });
+      };
+
+      if (socket.io && socket.io.engine) {
+        socketUpgradeHandler();
+      } else {
+        socket.on('connect', socketUpgradeHandler);
       }
     }
   }, {
     key: 'connected',
     value: function connected() {
+      var _this2 = this;
+
       var app = this.app;
 
       if (app.rest) {
@@ -1017,6 +1036,11 @@ var Passport = function () {
       return new Promise(function (resolve, reject) {
         var connected = app.primus ? 'open' : 'connect';
         var disconnect = app.io ? 'disconnect' : 'end';
+        var timeout = setTimeout(function () {
+          debug('Socket connection timed out');
+          reject(new Error('Socket connection timed out'));
+        }, _this2.options.timeout);
+
         debug('Waiting for socket connection');
 
         var handleDisconnect = function handleDisconnect() {
@@ -1030,6 +1054,7 @@ var Passport = function () {
           debug('Socket connected');
           debug('Removing ' + disconnect + ' listener');
           socket.removeListener(disconnect, handleDisconnect);
+          clearTimeout(timeout);
           resolve(socket);
         });
       });
@@ -1037,7 +1062,7 @@ var Passport = function () {
   }, {
     key: 'authenticate',
     value: function authenticate() {
-      var _this2 = this;
+      var _this3 = this;
 
       var credentials = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
@@ -1053,20 +1078,23 @@ var Passport = function () {
             if (!accessToken) {
               return Promise.reject(new _feathersErrors2.default.NotAuthenticated('Could not find stored JWT and no authentication strategy was given'));
             }
-            return { strategy: _this2.options.jwtStrategy, accessToken: accessToken };
+            return { strategy: _this3.options.jwtStrategy, accessToken: accessToken };
           });
         }
       }
 
       return getCredentials.then(function (credentials) {
-        return _this2.connected(app).then(function (socket) {
+        return _this3.connected(app).then(function (socket) {
           if (app.rest) {
-            return app.service(_this2.options.path).create(credentials).then(_this2.setJWT);
+            return app.service(_this3.options.path).create(credentials).then(_this3.setJWT);
           }
 
           var emit = app.io ? 'emit' : 'send';
-          return _this2.authenticateSocket(credentials, socket, emit).then(_this2.setJWT);
+          return _this3.authenticateSocket(credentials, socket, emit).then(_this3.setJWT);
         });
+      }).then(function (payload) {
+        app.emit('authenticated', payload);
+        return payload;
       });
     }
 
@@ -1075,13 +1103,21 @@ var Passport = function () {
   }, {
     key: 'authenticateSocket',
     value: function authenticateSocket(credentials, socket, emit) {
+      var _this4 = this;
+
       return new Promise(function (resolve, reject) {
+        var timeout = setTimeout(function () {
+          debug('authenticateSocket timed out');
+          reject(new Error('Authentication timed out'));
+        }, _this4.options.timeout);
+
         debug('Attempting to authenticate socket');
         socket[emit]('authenticate', credentials, function (error, data) {
           if (error) {
             return reject(error);
           }
 
+          clearTimeout(timeout);
           socket.authenticated = true;
           debug('Socket authenticated!');
 
@@ -1092,13 +1128,22 @@ var Passport = function () {
   }, {
     key: 'logoutSocket',
     value: function logoutSocket(socket, emit) {
+      var _this5 = this;
+
       return new Promise(function (resolve, reject) {
+        var timeout = setTimeout(function () {
+          debug('logoutSocket timed out');
+          reject(new Error('Logout timed out'));
+        }, _this5.options.timeout);
+
         socket[emit]('logout', function (error) {
+          clearTimeout(timeout);
+          socket.authenticated = false;
+
           if (error) {
-            reject(error);
+            return reject(error);
           }
 
-          socket.authenticated = false;
           resolve();
         });
       });
@@ -1106,7 +1151,7 @@ var Passport = function () {
   }, {
     key: 'logout',
     value: function logout() {
-      var _this3 = this;
+      var _this6 = this;
 
       var app = this.app;
 
@@ -1120,8 +1165,12 @@ var Passport = function () {
           var method = app.io ? 'emit' : 'send';
           var socket = app.io ? app.io : app.primus;
 
-          return _this3.logoutSocket(socket, method);
+          return _this6.logoutSocket(socket, method);
         }
+      }).then(function (result) {
+        app.emit('logout', result);
+
+        return result;
       });
     }
   }, {
@@ -1139,7 +1188,7 @@ var Passport = function () {
   }, {
     key: 'getJWT',
     value: function getJWT() {
-      var _this4 = this;
+      var _this7 = this;
 
       var app = this.app;
       return new Promise(function (resolve) {
@@ -1149,10 +1198,10 @@ var Passport = function () {
           return resolve(accessToken);
         }
 
-        return Promise.resolve(_this4.storage.getItem(_this4.options.storageKey)).then(function (jwt) {
-          var token = jwt || _this4.getCookie(_this4.options.cookie);
+        return Promise.resolve(_this7.storage.getItem(_this7.options.storageKey)).then(function (jwt) {
+          var token = jwt || _this7.getCookie(_this7.options.cookie);
 
-          if (token && token !== 'null' && !_this4.payloadIsValid((0, _jwtDecode2.default)(token))) {
+          if (token && token !== 'null' && !_this7.payloadIsValid((0, _jwtDecode2.default)(token))) {
             token = undefined;
           }
 
@@ -1183,37 +1232,6 @@ var Passport = function () {
       }
     }
 
-    // Pass a decoded payload and it will return a boolean based on if it hasn't expired.
-
-  }, {
-    key: 'payloadIsValid',
-    value: function payloadIsValid(payload) {
-      return payload && payload.exp * 1000 > new Date().getTime();
-    }
-  }, {
-    key: 'getCookie',
-    value: function getCookie(name) {
-      if (typeof document !== 'undefined') {
-        var value = '; ' + document.cookie;
-        var parts = value.split('; ' + name + '=');
-
-        if (parts.length === 2) {
-          return parts.pop().split(';').shift();
-        }
-      }
-
-      return null;
-    }
-  }, {
-    key: 'clearCookie',
-    value: function clearCookie(name) {
-      if (typeof document !== 'undefined') {
-        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-      }
-
-      return null;
-    }
-
     // Returns a storage implementation
 
   }, {
@@ -1223,19 +1241,7 @@ var Passport = function () {
         return storage;
       }
 
-      return {
-        store: {},
-        getItem: function getItem(key) {
-          return this.store[key];
-        },
-        setItem: function setItem(key, value) {
-          return this.store[key] = value;
-        },
-        removeItem: function removeItem(key) {
-          delete this.store[key];
-          return this;
-        }
-      };
+      return new _utils.Storage();
     }
   }]);
 
@@ -1244,7 +1250,77 @@ var Passport = function () {
 
 exports.default = Passport;
 module.exports = exports['default'];
-},{"debug":1,"feathers-errors":14,"jwt-decode":46}],10:[function(require,module,exports){
+},{"./utils":10,"debug":1,"feathers-errors":15,"jwt-decode":47}],10:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+exports.payloadIsValid = payloadIsValid;
+exports.getCookie = getCookie;
+exports.clearCookie = clearCookie;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Storage = exports.Storage = function () {
+  function Storage() {
+    _classCallCheck(this, Storage);
+
+    this.store = {};
+  }
+
+  _createClass(Storage, [{
+    key: 'getItem',
+    value: function getItem(key) {
+      return this.store[key];
+    }
+  }, {
+    key: 'setItem',
+    value: function setItem(key, value) {
+      return this.store[key] = value;
+    }
+  }, {
+    key: 'removeItem',
+    value: function removeItem(key) {
+      delete this.store[key];
+      return this;
+    }
+  }]);
+
+  return Storage;
+}();
+
+// Pass a decoded payload and it will return a boolean based on if it hasn't expired.
+
+
+function payloadIsValid(payload) {
+  return payload && payload.exp * 1000 > new Date().getTime();
+}
+
+function getCookie(name) {
+  if (typeof document !== 'undefined') {
+    var value = '; ' + document.cookie;
+    var parts = value.split('; ' + name + '=');
+
+    if (parts.length === 2) {
+      return parts.pop().split(';').shift();
+    }
+  }
+
+  return null;
+}
+
+function clearCookie(name) {
+  if (typeof document !== 'undefined') {
+    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+  }
+
+  return null;
+}
+},{}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1343,7 +1419,7 @@ var converters = exports.converters = {
 function getArguments(method, args) {
   return converters[method](args);
 }
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1386,7 +1462,7 @@ exports.default = {
   merge: _utils.merge
 };
 module.exports = exports['default'];
-},{"./arguments":10,"./hooks":12,"./utils":13}],12:[function(require,module,exports){
+},{"./arguments":11,"./hooks":13,"./utils":14}],13:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1514,7 +1590,7 @@ exports.default = {
   convertHookData: convertHookData
 };
 module.exports = exports['default'];
-},{"./utils":13}],13:[function(require,module,exports){
+},{"./utils":14}],14:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -1788,7 +1864,7 @@ function makeUrl(path) {
   return protocol + '://' + host + port + '/' + stripSlashes(path);
 }
 }).call(this,require('_process'))
-},{"_process":48}],14:[function(require,module,exports){
+},{"_process":49}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2168,7 +2244,7 @@ exports.default = _extends({
   errors: errors
 }, errors);
 module.exports = exports['default'];
-},{"debug":1}],15:[function(require,module,exports){
+},{"debug":1}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2738,7 +2814,7 @@ function legacyPopulate(target, options) {
     });
   };
 }
-},{"./utils":17,"feathers-errors":14}],16:[function(require,module,exports){
+},{"./utils":18,"feathers-errors":15}],17:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -2937,7 +3013,7 @@ function getElapsed(options, startHrtime, depth) {
   }
 }
 }).call(this,require('_process'))
-},{"./bundled":15,"./utils":17,"_process":48,"feathers-errors":14}],17:[function(require,module,exports){
+},{"./bundled":16,"./utils":18,"_process":49,"feathers-errors":15}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3095,7 +3171,7 @@ var replaceItems = exports.replaceItems = function replaceItems(hook, items) {
     hook.result = items;
   }
 };
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3233,7 +3309,7 @@ function baseMixin(methods) {
 
   return Object.assign.apply(Object, [mixin].concat(objs));
 }
-},{"feathers-commons":11}],19:[function(require,module,exports){
+},{"feathers-commons":12}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3404,10 +3480,10 @@ configure.removeField = _bundled.removeField;
 
 exports.default = configure;
 module.exports = exports['default'];
-},{"./commons":18,"feathers-commons":11,"feathers-hooks-common/lib/bundled":15,"feathers-hooks-common/lib/populate":16,"uberproto":55}],20:[function(require,module,exports){
+},{"./commons":19,"feathers-commons":12,"feathers-hooks-common/lib/bundled":16,"feathers-hooks-common/lib/populate":17,"uberproto":57}],21:[function(require,module,exports){
 module.exports = require('./lib/client');
 
-},{"./lib/client":21}],21:[function(require,module,exports){
+},{"./lib/client":22}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3449,10 +3525,10 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":30}],22:[function(require,module,exports){
+},{"feathers-socket-commons/client":31}],23:[function(require,module,exports){
 module.exports = require('./lib/client/index');
 
-},{"./lib/client/index":26}],23:[function(require,module,exports){
+},{"./lib/client/index":27}],24:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3511,7 +3587,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":24}],24:[function(require,module,exports){
+},{"./base":25}],25:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3658,7 +3734,7 @@ var Base = function () {
 
 exports.default = Base;
 module.exports = exports['default'];
-},{"feathers-commons":11,"feathers-errors":14,"qs":49}],25:[function(require,module,exports){
+},{"feathers-commons":12,"feathers-errors":15,"qs":51}],26:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3732,7 +3808,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":24}],26:[function(require,module,exports){
+},{"./base":25}],27:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3808,7 +3884,7 @@ var transports = {
 };
 
 module.exports = exports['default'];
-},{"./axios":23,"./fetch":25,"./jquery":27,"./request":28,"./superagent":29}],27:[function(require,module,exports){
+},{"./axios":24,"./fetch":26,"./jquery":28,"./request":29,"./superagent":30}],28:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3882,7 +3958,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":24}],28:[function(require,module,exports){
+},{"./base":25}],29:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3948,7 +4024,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":24}],29:[function(require,module,exports){
+},{"./base":25}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4012,9 +4088,9 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":24}],30:[function(require,module,exports){
-arguments[4][20][0].apply(exports,arguments)
-},{"./lib/client":31,"dup":20}],31:[function(require,module,exports){
+},{"./base":25}],31:[function(require,module,exports){
+arguments[4][21][0].apply(exports,arguments)
+},{"./lib/client":32,"dup":21}],32:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4187,7 +4263,7 @@ var Service = function () {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./utils":32,"debug":1,"feathers-errors":14}],32:[function(require,module,exports){
+},{"./utils":33,"debug":1,"feathers-errors":15}],33:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -4259,9 +4335,9 @@ function normalizeArgs(args) {
   return args;
 }
 }).call(this,require('_process'))
-},{"_process":48,"feathers-commons":11}],33:[function(require,module,exports){
-arguments[4][20][0].apply(exports,arguments)
-},{"./lib/client":34,"dup":20}],34:[function(require,module,exports){
+},{"_process":49,"feathers-commons":12}],34:[function(require,module,exports){
+arguments[4][21][0].apply(exports,arguments)
+},{"./lib/client":35,"dup":21}],35:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4307,9 +4383,9 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":30}],35:[function(require,module,exports){
-arguments[4][22][0].apply(exports,arguments)
-},{"./lib/client/index":38,"dup":22}],36:[function(require,module,exports){
+},{"feathers-socket-commons/client":31}],36:[function(require,module,exports){
+arguments[4][23][0].apply(exports,arguments)
+},{"./lib/client/index":39,"dup":23}],37:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4461,7 +4537,7 @@ exports.default = {
   }
 };
 module.exports = exports['default'];
-},{"./mixins/index":41,"debug":1,"feathers-commons":11,"uberproto":55}],37:[function(require,module,exports){
+},{"./mixins/index":42,"debug":1,"feathers-commons":12,"uberproto":57}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4515,7 +4591,7 @@ var _uberproto2 = _interopRequireDefault(_uberproto);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"events":3,"uberproto":55}],38:[function(require,module,exports){
+},{"events":3,"uberproto":57}],39:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4539,7 +4615,7 @@ function createApplication() {
 
 createApplication.version = '2.0.1';
 module.exports = exports['default'];
-},{"../feathers":39,"./express":37}],39:[function(require,module,exports){
+},{"../feathers":40,"./express":38}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4569,7 +4645,7 @@ function createApplication(app) {
   return app;
 }
 module.exports = exports['default'];
-},{"./application":36,"uberproto":55}],40:[function(require,module,exports){
+},{"./application":37,"uberproto":57}],41:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4606,16 +4682,14 @@ exports.default = function (service) {
       // Pass the event and error event through
       emitter.on(eventName, function (results, args) {
         if (!results[0]) {
-          (function () {
-            // callback without error
-            var hook = hookObject(method, 'after', args);
-            var data = Array.isArray(results[1]) ? results[1] : [results[1]];
+          // callback without error
+          var hook = hookObject(method, 'after', args);
+          var data = Array.isArray(results[1]) ? results[1] : [results[1]];
 
-            hook.app = app;
-            data.forEach(function (current) {
-              return service.emit(event, current, hook);
-            });
-          })();
+          hook.app = app;
+          data.forEach(function (current) {
+            return service.emit(event, current, hook);
+          });
         } else {
           service.emit('serviceError', results[0]);
         }
@@ -4647,7 +4721,7 @@ function upperCase(name) {
 }
 
 module.exports = exports['default'];
-},{"events":3,"feathers-commons":11,"rubberduck":53}],41:[function(require,module,exports){
+},{"events":3,"feathers-commons":12,"rubberduck":55}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4668,7 +4742,7 @@ exports.default = function () {
 };
 
 module.exports = exports['default'];
-},{"./event":40,"./normalizer":42,"./promise":43}],42:[function(require,module,exports){
+},{"./event":41,"./normalizer":43,"./promise":44}],43:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4676,29 +4750,25 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function (service) {
-  var _this = this;
-
   if (typeof service.mixin === 'function') {
-    (function () {
-      var mixin = {};
+    var mixin = {};
 
-      _this.methods.forEach(function (method) {
-        if (typeof service[method] === 'function') {
-          mixin[method] = function () {
-            return this._super.apply(this, (0, _feathersCommons.getArguments)(method, arguments));
-          };
-        }
-      });
+    this.methods.forEach(function (method) {
+      if (typeof service[method] === 'function') {
+        mixin[method] = function () {
+          return this._super.apply(this, (0, _feathersCommons.getArguments)(method, arguments));
+        };
+      }
+    });
 
-      service.mixin(mixin);
-    })();
+    service.mixin(mixin);
   }
 };
 
 var _feathersCommons = require('feathers-commons');
 
 module.exports = exports['default'];
-},{"feathers-commons":11}],43:[function(require,module,exports){
+},{"feathers-commons":12}],44:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4706,20 +4776,16 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function (service) {
-  var _this = this;
-
   if (typeof service.mixin === 'function') {
-    (function () {
-      var mixin = {};
+    var mixin = {};
 
-      _this.methods.forEach(function (method) {
-        if (typeof service[method] === 'function') {
-          mixin[method] = wrapper;
-        }
-      });
+    this.methods.forEach(function (method) {
+      if (typeof service[method] === 'function') {
+        mixin[method] = wrapper;
+      }
+    });
 
-      service.mixin(mixin);
-    })();
+    service.mixin(mixin);
   }
 };
 
@@ -4742,7 +4808,7 @@ function wrapper() {
 }
 
 module.exports = exports['default'];
-},{}],44:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 /**
  * The code was extracted from:
  * https://github.com/davidchambers/Base64.js
@@ -4782,7 +4848,7 @@ function polyfill (input) {
 
 module.exports = typeof window !== 'undefined' && window.atob && window.atob.bind(window) || polyfill;
 
-},{}],45:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 var atob = require('./atob');
 
 function b64DecodeUnicode(str) {
@@ -4817,7 +4883,7 @@ module.exports = function(str) {
   }
 };
 
-},{"./atob":44}],46:[function(require,module,exports){
+},{"./atob":45}],47:[function(require,module,exports){
 'use strict';
 
 var base64_url_decode = require('./base64_url_decode');
@@ -4832,7 +4898,7 @@ module.exports = function (token,options) {
   return JSON.parse(base64_url_decode(token.split('.')[pos]));
 };
 
-},{"./base64_url_decode":45}],47:[function(require,module,exports){
+},{"./base64_url_decode":46}],48:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -4983,7 +5049,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's'
 }
 
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -5165,35 +5231,59 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 'use strict';
 
-var Stringify = require('./stringify');
-var Parse = require('./parse');
+var replace = String.prototype.replace;
+var percentTwenties = /%20/g;
 
 module.exports = {
-    stringify: Stringify,
-    parse: Parse
+    'default': 'RFC3986',
+    formatters: {
+        RFC1738: function (value) {
+            return replace.call(value, percentTwenties, '+');
+        },
+        RFC3986: function (value) {
+            return value;
+        }
+    },
+    RFC1738: 'RFC1738',
+    RFC3986: 'RFC3986'
 };
 
-},{"./parse":50,"./stringify":51}],50:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 'use strict';
 
-var Utils = require('./utils');
+var stringify = require('./stringify');
+var parse = require('./parse');
+var formats = require('./formats');
 
-var defaults = {
-    delimiter: '&',
-    depth: 5,
-    arrayLimit: 20,
-    parameterLimit: 1000,
-    strictNullHandling: false,
-    plainObjects: false,
-    allowPrototypes: false,
-    allowDots: false,
-    decoder: Utils.decode
+module.exports = {
+    formats: formats,
+    parse: parse,
+    stringify: stringify
 };
 
-var parseValues = function parseValues(str, options) {
+},{"./formats":50,"./parse":52,"./stringify":53}],52:[function(require,module,exports){
+'use strict';
+
+var utils = require('./utils');
+
+var has = Object.prototype.hasOwnProperty;
+
+var defaults = {
+    allowDots: false,
+    allowPrototypes: false,
+    arrayLimit: 20,
+    decoder: utils.decode,
+    delimiter: '&',
+    depth: 5,
+    parameterLimit: 1000,
+    plainObjects: false,
+    strictNullHandling: false
+};
+
+var parseValues = function parseQueryStringValues(str, options) {
     var obj = {};
     var parts = str.split(options.delimiter, options.parameterLimit === Infinity ? undefined : options.parameterLimit);
 
@@ -5201,28 +5291,25 @@ var parseValues = function parseValues(str, options) {
         var part = parts[i];
         var pos = part.indexOf(']=') === -1 ? part.indexOf('=') : part.indexOf(']=') + 1;
 
+        var key, val;
         if (pos === -1) {
-            obj[options.decoder(part)] = '';
-
-            if (options.strictNullHandling) {
-                obj[options.decoder(part)] = null;
-            }
+            key = options.decoder(part);
+            val = options.strictNullHandling ? null : '';
         } else {
-            var key = options.decoder(part.slice(0, pos));
-            var val = options.decoder(part.slice(pos + 1));
-
-            if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                obj[key] = [].concat(obj[key]).concat(val);
-            } else {
-                obj[key] = val;
-            }
+            key = options.decoder(part.slice(0, pos));
+            val = options.decoder(part.slice(pos + 1));
+        }
+        if (has.call(obj, key)) {
+            obj[key] = [].concat(obj[key]).concat(val);
+        } else {
+            obj[key] = val;
         }
     }
 
     return obj;
 };
 
-var parseObject = function parseObject(chain, val, options) {
+var parseObject = function parseObjectRecursive(chain, val, options) {
     if (!chain.length) {
         return val;
     }
@@ -5235,7 +5322,7 @@ var parseObject = function parseObject(chain, val, options) {
         obj = obj.concat(parseObject(chain, val, options));
     } else {
         obj = options.plainObjects ? Object.create(null) : {};
-        var cleanRoot = root[0] === '[' && root[root.length - 1] === ']' ? root.slice(1, root.length - 1) : root;
+        var cleanRoot = root.charAt(0) === '[' && root.charAt(root.length - 1) === ']' ? root.slice(1, -1) : root;
         var index = parseInt(cleanRoot, 10);
         if (
             !isNaN(index) &&
@@ -5254,36 +5341,37 @@ var parseObject = function parseObject(chain, val, options) {
     return obj;
 };
 
-var parseKeys = function parseKeys(givenKey, val, options) {
+var parseKeys = function parseQueryStringKeys(givenKey, val, options) {
     if (!givenKey) {
         return;
     }
 
     // Transform dot notation to bracket notation
-    var key = options.allowDots ? givenKey.replace(/\.([^\.\[]+)/g, '[$1]') : givenKey;
+    var key = options.allowDots ? givenKey.replace(/\.([^.[]+)/g, '[$1]') : givenKey;
 
     // The regex chunks
 
-    var parent = /^([^\[\]]*)/;
-    var child = /(\[[^\[\]]*\])/g;
+    var brackets = /(\[[^[\]]*])/;
+    var child = /(\[[^[\]]*])/g;
 
     // Get the parent
 
-    var segment = parent.exec(key);
+    var segment = brackets.exec(key);
+    var parent = segment ? key.slice(0, segment.index) : key;
 
     // Stash the parent if it exists
 
     var keys = [];
-    if (segment[1]) {
+    if (parent) {
         // If we aren't using plain objects, optionally prefix keys
         // that would overwrite object prototype properties
-        if (!options.plainObjects && Object.prototype.hasOwnProperty(segment[1])) {
+        if (!options.plainObjects && has.call(Object.prototype, parent)) {
             if (!options.allowPrototypes) {
                 return;
             }
         }
 
-        keys.push(segment[1]);
+        keys.push(parent);
     }
 
     // Loop through children appending to the array until we hit depth
@@ -5291,9 +5379,9 @@ var parseKeys = function parseKeys(givenKey, val, options) {
     var i = 0;
     while ((segment = child.exec(key)) !== null && i < options.depth) {
         i += 1;
-        if (!options.plainObjects && Object.prototype.hasOwnProperty(segment[1].replace(/\[|\]/g, ''))) {
+        if (!options.plainObjects && has.call(Object.prototype, segment[1].slice(1, -1))) {
             if (!options.allowPrototypes) {
-                continue;
+                return;
             }
         }
         keys.push(segment[1]);
@@ -5315,7 +5403,7 @@ module.exports = function (str, opts) {
         throw new TypeError('Decoder has to be a function.');
     }
 
-    options.delimiter = typeof options.delimiter === 'string' || Utils.isRegExp(options.delimiter) ? options.delimiter : defaults.delimiter;
+    options.delimiter = typeof options.delimiter === 'string' || utils.isRegExp(options.delimiter) ? options.delimiter : defaults.delimiter;
     options.depth = typeof options.depth === 'number' ? options.depth : defaults.depth;
     options.arrayLimit = typeof options.arrayLimit === 'number' ? options.arrayLimit : defaults.arrayLimit;
     options.parseArrays = options.parseArrays !== false;
@@ -5339,56 +5427,77 @@ module.exports = function (str, opts) {
     for (var i = 0; i < keys.length; ++i) {
         var key = keys[i];
         var newObj = parseKeys(key, tempObj[key], options);
-        obj = Utils.merge(obj, newObj, options);
+        obj = utils.merge(obj, newObj, options);
     }
 
-    return Utils.compact(obj);
+    return utils.compact(obj);
 };
 
-},{"./utils":52}],51:[function(require,module,exports){
+},{"./utils":54}],53:[function(require,module,exports){
 'use strict';
 
-var Utils = require('./utils');
+var utils = require('./utils');
+var formats = require('./formats');
 
 var arrayPrefixGenerators = {
-    brackets: function brackets(prefix) {
+    brackets: function brackets(prefix) { // eslint-disable-line func-name-matching
         return prefix + '[]';
     },
-    indices: function indices(prefix, key) {
+    indices: function indices(prefix, key) { // eslint-disable-line func-name-matching
         return prefix + '[' + key + ']';
     },
-    repeat: function repeat(prefix) {
+    repeat: function repeat(prefix) { // eslint-disable-line func-name-matching
         return prefix;
     }
 };
 
+var toISO = Date.prototype.toISOString;
+
 var defaults = {
     delimiter: '&',
-    strictNullHandling: false,
-    skipNulls: false,
     encode: true,
-    encoder: Utils.encode
+    encoder: utils.encode,
+    encodeValuesOnly: false,
+    serializeDate: function serializeDate(date) { // eslint-disable-line func-name-matching
+        return toISO.call(date);
+    },
+    skipNulls: false,
+    strictNullHandling: false
 };
 
-var stringify = function stringify(object, prefix, generateArrayPrefix, strictNullHandling, skipNulls, encoder, filter, sort, allowDots) {
+var stringify = function stringify( // eslint-disable-line func-name-matching
+    object,
+    prefix,
+    generateArrayPrefix,
+    strictNullHandling,
+    skipNulls,
+    encoder,
+    filter,
+    sort,
+    allowDots,
+    serializeDate,
+    formatter,
+    encodeValuesOnly
+) {
     var obj = object;
     if (typeof filter === 'function') {
         obj = filter(prefix, obj);
     } else if (obj instanceof Date) {
-        obj = obj.toISOString();
+        obj = serializeDate(obj);
     } else if (obj === null) {
         if (strictNullHandling) {
-            return encoder ? encoder(prefix) : prefix;
+            return encoder && !encodeValuesOnly ? encoder(prefix) : prefix;
         }
 
         obj = '';
     }
 
-    if (typeof obj === 'string' || typeof obj === 'number' || typeof obj === 'boolean' || Utils.isBuffer(obj)) {
+    if (typeof obj === 'string' || typeof obj === 'number' || typeof obj === 'boolean' || utils.isBuffer(obj)) {
         if (encoder) {
-            return [encoder(prefix) + '=' + encoder(obj)];
+            var keyValue = encodeValuesOnly ? prefix : encoder(prefix);
+            return [formatter(keyValue) + '=' + formatter(encoder(obj))];
         }
-        return [prefix + '=' + String(obj)];
+        return [formatter(prefix) + '=' + formatter(String(obj))];
     }
 
     var values = [];
@@ -5413,9 +5522,35 @@ var stringify = function stringify(object, prefix, generateArrayPrefix, strictNu
         }
 
         if (Array.isArray(obj)) {
-            values = values.concat(stringify(obj[key], generateArrayPrefix(prefix, key), generateArrayPrefix, strictNullHandling, skipNulls, encoder, filter, sort, allowDots));
+            values = values.concat(stringify(
+                obj[key],
+                generateArrayPrefix(prefix, key),
+                generateArrayPrefix,
+                strictNullHandling,
+                skipNulls,
+                encoder,
+                filter,
+                sort,
+                allowDots,
+                serializeDate,
+                formatter,
+                encodeValuesOnly
+            ));
         } else {
-            values = values.concat(stringify(obj[key], prefix + (allowDots ? '.' + key : '[' + key + ']'), generateArrayPrefix, strictNullHandling, skipNulls, encoder, filter, sort, allowDots));
+            values = values.concat(stringify(
+                obj[key],
+                prefix + (allowDots ? '.' + key : '[' + key + ']'),
+                generateArrayPrefix,
+                strictNullHandling,
+                skipNulls,
+                encoder,
+                filter,
+                sort,
+                allowDots,
+                serializeDate,
+                formatter,
+                encodeValuesOnly
+            ));
         }
     }
 
@@ -5425,25 +5560,35 @@ var stringify = function stringify(object, prefix, generateArrayPrefix, strictNu
 module.exports = function (object, opts) {
     var obj = object;
     var options = opts || {};
-    var delimiter = typeof options.delimiter === 'undefined' ? defaults.delimiter : options.delimiter;
-    var strictNullHandling = typeof options.strictNullHandling === 'boolean' ? options.strictNullHandling : defaults.strictNullHandling;
-    var skipNulls = typeof options.skipNulls === 'boolean' ? options.skipNulls : defaults.skipNulls;
-    var encode = typeof options.encode === 'boolean' ? options.encode : defaults.encode;
-    var encoder = encode ? (typeof options.encoder === 'function' ? options.encoder : defaults.encoder) : null;
-    var sort = typeof options.sort === 'function' ? options.sort : null;
-    var allowDots = typeof options.allowDots === 'undefined' ? false : options.allowDots;
-    var objKeys;
-    var filter;
 
     if (options.encoder !== null && options.encoder !== undefined && typeof options.encoder !== 'function') {
         throw new TypeError('Encoder has to be a function.');
     }
 
+    var delimiter = typeof options.delimiter === 'undefined' ? defaults.delimiter : options.delimiter;
+    var strictNullHandling = typeof options.strictNullHandling === 'boolean' ? options.strictNullHandling : defaults.strictNullHandling;
+    var skipNulls = typeof options.skipNulls === 'boolean' ? options.skipNulls : defaults.skipNulls;
+    var encode = typeof options.encode === 'boolean' ? options.encode : defaults.encode;
+    var encoder = typeof options.encoder === 'function' ? options.encoder : defaults.encoder;
+    var sort = typeof options.sort === 'function' ? options.sort : null;
+    var allowDots = typeof options.allowDots === 'undefined' ? false : options.allowDots;
+    var serializeDate = typeof options.serializeDate === 'function' ? options.serializeDate : defaults.serializeDate;
+    var encodeValuesOnly = typeof options.encodeValuesOnly === 'boolean' ? options.encodeValuesOnly : defaults.encodeValuesOnly;
+    if (typeof options.format === 'undefined') {
+        options.format = formats.default;
+    } else if (!Object.prototype.hasOwnProperty.call(formats.formatters, options.format)) {
+        throw new TypeError('Unknown format option provided.');
+    }
+    var formatter = formats.formatters[options.format];
+    var objKeys;
+    var filter;
+
     if (typeof options.filter === 'function') {
         filter = options.filter;
         obj = filter('', obj);
     } else if (Array.isArray(options.filter)) {
-        objKeys = filter = options.filter;
+        filter = options.filter;
+        objKeys = filter;
     }
 
     var keys = [];
@@ -5478,26 +5623,41 @@ module.exports = function (object, opts) {
             continue;
         }
 
-        keys = keys.concat(stringify(obj[key], key, generateArrayPrefix, strictNullHandling, skipNulls, encoder, filter, sort, allowDots));
+        keys = keys.concat(stringify(
+            obj[key],
+            key,
+            generateArrayPrefix,
+            strictNullHandling,
+            skipNulls,
+            encode ? encoder : null,
+            filter,
+            sort,
+            allowDots,
+            serializeDate,
+            formatter,
+            encodeValuesOnly
+        ));
     }
 
     return keys.join(delimiter);
 };
 
-},{"./utils":52}],52:[function(require,module,exports){
+},{"./formats":50,"./utils":54}],54:[function(require,module,exports){
 'use strict';
 
+var has = Object.prototype.hasOwnProperty;
+
 var hexTable = (function () {
-    var array = new Array(256);
+    var array = [];
     for (var i = 0; i < 256; ++i) {
-        array[i] = '%' + ((i < 16 ? '0' : '') + i.toString(16)).toUpperCase();
+        array.push('%' + ((i < 16 ? '0' : '') + i.toString(16)).toUpperCase());
     }
 
     return array;
 }());
 
 exports.arrayToObject = function (source, options) {
-    var obj = options.plainObjects ? Object.create(null) : {};
+    var obj = options && options.plainObjects ? Object.create(null) : {};
     for (var i = 0; i < source.length; ++i) {
         if (typeof source[i] !== 'undefined') {
             obj[i] = source[i];
@@ -5516,7 +5676,9 @@ exports.merge = function (target, source, options) {
         if (Array.isArray(target)) {
             target.push(source);
         } else if (typeof target === 'object') {
-            target[source] = true;
+            if (options.plainObjects || options.allowPrototypes || !has.call(Object.prototype, source)) {
+                target[source] = true;
+            }
         } else {
             return [target, source];
         }
@@ -5531,6 +5693,21 @@ exports.merge = function (target, source, options) {
     var mergeTarget = target;
     if (Array.isArray(target) && !Array.isArray(source)) {
         mergeTarget = exports.arrayToObject(target, options);
+    }
+
+    if (Array.isArray(target) && Array.isArray(source)) {
+        source.forEach(function (item, i) {
+            if (has.call(target, i)) {
+                if (target[i] && typeof target[i] === 'object') {
+                    target[i] = exports.merge(target[i], item, options);
+                } else {
+                    target.push(item);
+                }
+            } else {
+                target[i] = item;
+            }
+        });
+        return target;
     }
 
     return Object.keys(source).reduce(function (acc, key) {
@@ -5596,7 +5773,7 @@ exports.encode = function (str) {
 
         i += 1;
         c = 0x10000 + (((c & 0x3FF) << 10) | (string.charCodeAt(i) & 0x3FF));
-        out += hexTable[0xF0 | (c >> 18)] + hexTable[0x80 | ((c >> 12) & 0x3F)] + hexTable[0x80 | ((c >> 6) & 0x3F)] + hexTable[0x80 | (c & 0x3F)];
+        out += hexTable[0xF0 | (c >> 18)] + hexTable[0x80 | ((c >> 12) & 0x3F)] + hexTable[0x80 | ((c >> 6) & 0x3F)] + hexTable[0x80 | (c & 0x3F)]; // eslint-disable-line max-len
     }
 
     return out;
@@ -5630,10 +5807,9 @@ exports.compact = function (obj, references) {
     }
 
     var keys = Object.keys(obj);
-    for (var j = 0; j < keys.length; ++j) {
-        var key = keys[j];
+    keys.forEach(function (key) {
         obj[key] = exports.compact(obj[key], refs);
-    }
+    });
 
     return obj;
 };
@@ -5650,7 +5826,7 @@ exports.isBuffer = function (obj) {
     return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
 };
 
-},{}],53:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 var events = require('events');
 var utils = require('./utils');
 var wrap = exports.wrap = {
@@ -5762,7 +5938,7 @@ exports.emitter = function(obj) {
   return new Emitter(obj);
 };
 
-},{"./utils":54,"events":3}],54:[function(require,module,exports){
+},{"./utils":56,"events":3}],56:[function(require,module,exports){
 exports.toBase26 = function(num) {
   var outString = '';
   var letters = 'abcdefghijklmnopqrstuvwxyz';
@@ -5798,7 +5974,7 @@ exports.emitEvents = function(emitter, type, name, args) {
   }
 };
 
-},{}],55:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 /* global define */
 /**
  * A base object for ECMAScript 5 style prototypal inheritance.
@@ -5942,7 +6118,7 @@ exports.emitEvents = function(emitter, type, name, args) {
 
 }));
 
-},{}],56:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -5956,6 +6132,10 @@ var _client2 = _interopRequireDefault(_client);
 var _feathersHooks = require('feathers-hooks');
 
 var _feathersHooks2 = _interopRequireDefault(_feathersHooks);
+
+var _feathersErrors = require('feathers-errors');
+
+var _feathersErrors2 = _interopRequireDefault(_feathersErrors);
 
 var _feathersAuthenticationClient = require('feathers-authentication-client');
 
@@ -5975,10 +6155,17 @@ var _client8 = _interopRequireDefault(_client7);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-Object.assign(_client2.default, { socketio: _client6.default, primus: _client8.default, rest: _client4.default, hooks: _feathersHooks2.default, authentication: _feathersAuthenticationClient2.default });
+Object.assign(_client2.default, {
+  socketio: _client6.default,
+  primus: _client8.default,
+  rest: _client4.default,
+  hooks: _feathersHooks2.default,
+  authentication: _feathersAuthenticationClient2.default,
+  errors: _feathersErrors2.default
+});
 
 exports.default = _client2.default;
 module.exports = exports['default'];
 
-},{"feathers-authentication-client":8,"feathers-hooks":19,"feathers-primus/client":20,"feathers-rest/client":22,"feathers-socketio/client":33,"feathers/client":35}]},{},[56])(56)
+},{"feathers-authentication-client":8,"feathers-errors":15,"feathers-hooks":20,"feathers-primus/client":21,"feathers-rest/client":23,"feathers-socketio/client":34,"feathers/client":36}]},{},[58])(58)
 });
