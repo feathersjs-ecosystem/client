@@ -73,7 +73,7 @@
     "feathers-errors": "2.6.1",
     "feathers-hooks": "1.8.1",
     "feathers-primus": "2.1.0",
-    "feathers-rest": "1.7.1",
+    "feathers-rest": "1.7.2",
     "feathers-socketio": "1.5.2"
   },
   "devDependencies": {
