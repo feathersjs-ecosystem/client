@@ -150,14 +150,17 @@ function save(namespaces) {
  */
 
 function load() {
+  var r;
   try {
-    return exports.storage.debug;
+    r = exports.storage.debug;
   } catch(e) {}
 
   // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
-  if (typeof process !== 'undefined' && 'env' in process) {
-    return process.env.DEBUG;
+  if (!r && typeof process !== 'undefined' && 'env' in process) {
+    r = process.env.DEBUG;
   }
+
+  return r;
 }
 
 /**
@@ -1297,7 +1300,7 @@ var Storage = exports.Storage = function () {
 
 
 function payloadIsValid(payload) {
-  return payload && payload.exp * 1000 > new Date().getTime();
+  return payload && (!payload.exp || payload.exp * 1000 > new Date().getTime());
 }
 
 function getCookie(name) {
@@ -4888,15 +4891,28 @@ module.exports = function(str) {
 
 var base64_url_decode = require('./base64_url_decode');
 
+function InvalidTokenError(message) {
+  this.message = message;
+}
+
+InvalidTokenError.prototype = new Error();
+InvalidTokenError.prototype.name = 'InvalidTokenError';
+
 module.exports = function (token,options) {
   if (typeof token !== 'string') {
-    throw new Error('Invalid token specified');
+    throw new InvalidTokenError('Invalid token specified');
   }
 
   options = options || {};
   var pos = options.header === true ? 0 : 1;
-  return JSON.parse(base64_url_decode(token.split('.')[pos]));
+  try {
+    return JSON.parse(base64_url_decode(token.split('.')[pos]));
+  } catch (e) {
+    throw new InvalidTokenError('Invalid token specified: ' + e.message);
+  }
 };
+
+module.exports.InvalidTokenError = InvalidTokenError;
 
 },{"./base64_url_decode":46}],48:[function(require,module,exports){
 /**
