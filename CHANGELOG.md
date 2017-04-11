@@ -1,5 +1,16 @@
 # Change Log
 
+## [v2.0.0](https://github.com/feathersjs/feathers-client/tree/v2.0.0) (2017-04-11)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v2.0.0-pre.2...v2.0.0)
+
+**Closed issues:**
+
+- Bundled feathers.js - Socket Authentication with Local Strategy Always Times Out [\#155](https://github.com/feathersjs/feathers-client/issues/155)
+
+**Merged pull requests:**
+
+- Update feathers-rest to version 1.7.2 🚀 [\#160](https://github.com/feathersjs/feathers-client/pull/160) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
+
 ## [v2.0.0-pre.2](https://github.com/feathersjs/feathers-client/tree/v2.0.0-pre.2) (2017-03-08)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v2.0.0-pre.1...v2.0.0-pre.2)
 
