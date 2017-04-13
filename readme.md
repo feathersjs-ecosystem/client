@@ -1,5 +1,7 @@
 # feathers-client
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/feathersjs/feathers-client.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/feathersjs/feathers-client.png?branch=master)](https://travis-ci.org/feathersjs/feathers-client)
 [![Code Climate](https://codeclimate.com/github/feathersjs/feathers-client.png)](https://codeclimate.com/github/feathersjs/feathers-client)
 [![Test Coverage](https://codeclimate.com/github/feathersjs/feathers-client/badges/coverage.svg)](https://codeclimate.com/github/feathersjs/feathers-client/coverage)
