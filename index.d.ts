@@ -7,21 +7,21 @@ interface FeathersApp {
   get(type: string): any;
 
   // Services.
-  service(name: string): FeathersService;
-
+  service<T>(name: string): FeathersService<T>;
+  
   configure(fn: () => void): FeathersApp;
 }
 
-interface FeathersService extends events.EventEmitter {
+interface FeathersService<T> extends events.EventEmitter {
   // REST interface.
-  find(params?: any): Promise<any>;
-  get(id: string, params?: any): Promise<any>;
-  create(data: any, params?: any): Promise<any>;
-  update(id: string, data: any, params?:any): Promise<any>;
-  patch(id: string, data: any, params?:any) : Promise<any>;
-  remove(id: string, params?: any): Promise<any>;
+  find(params?: any): Promise<T>;
+  get(id: string, params?: any): Promise<T>;
+  create(data: T, params?: any): Promise<T>;
+  update(id: string, data: T, params?:any): Promise<T>;
+  patch(id: string, data: T, params?:any) : Promise<T>;
+  remove(id: string, params?: any): Promise<T>;
 
   // Realtime interface.
-  on(eventType: string, callback: (data: any) => void);
+  on(eventType: string, callback: (data: T) => void);
   timeout?: number;
 }
