@@ -187,7 +187,7 @@ function localstorage() {
 }
 
 }).call(this,require('_process'))
-},{"./debug":2,"_process":49}],2:[function(require,module,exports){
+},{"./debug":2,"_process":46}],2:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -391,7 +391,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":48}],3:[function(require,module,exports){
+},{"ms":45}],3:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -1253,7 +1253,7 @@ var Passport = function () {
 
 exports.default = Passport;
 module.exports = exports['default'];
-},{"./utils":10,"debug":1,"feathers-errors":15,"jwt-decode":47}],10:[function(require,module,exports){
+},{"./utils":10,"debug":1,"feathers-errors":15,"jwt-decode":44}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1867,7 +1867,7 @@ function makeUrl(path) {
   return protocol + '://' + host + port + '/' + stripSlashes(path);
 }
 }).call(this,require('_process'))
-},{"_process":49}],15:[function(require,module,exports){
+},{"_process":46}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2253,933 +2253,6 @@ module.exports = exports['default'];
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.lowerCase = lowerCase;
-exports.removeQuery = removeQuery;
-exports.pluckQuery = pluckQuery;
-exports.remove = remove;
-exports.pluck = pluck;
-exports.disable = disable;
-exports.legacyPopulate = legacyPopulate;
-
-var _utils = require('./utils');
-
-/* eslint-env es6, node */
-/* eslint brace-style: 0, consistent-return: 0, no-console: 0, no-param-reassign: 0, no-var: 0 */
-
-var errors = require('feathers-errors').errors;
-
-
-/**
- * Lowercase the given fields either in the data submitted (as a before hook for create,
- * update or patch) or in the result (as an after hook). If the data is an array or
- * a paginated find result the hook will lowercase the field for every item.
- *
- * @param {Array.<string|Function>} fields - Field names to lowercase. Dot notation is supported.
- * @returns {Function} hook function(hook).
- *
- * DEPRECATED: The last param may be a function to determine if the current hook should be updated.
- * Its signature is func(hook) and it returns either a boolean or a promise resolving to a boolean.
- * This boolean determines if the hook is updated.
- *
- * hooks.lowerCase('group', hook => hook.data.status === 1);
- * hooks.lowerCase('group', hook => new Promise(resolve => {
- *   setTimeout(() => { resolve(true); }, 100)
- * }));
- *
- */
-function lowerCase() {
-  for (var _len = arguments.length, fields = Array(_len), _key = 0; _key < _len; _key++) {
-    fields[_key] = arguments[_key];
-  }
-
-  var lowerCaseFields = function lowerCaseFields(data) {
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = fields[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var field = _step.value;
-
-        var value = (0, _utils.getByDot)(data, field);
-
-        if (value !== undefined) {
-          if (typeof value !== 'string' && value !== null) {
-            throw new errors.BadRequest('Expected string data. (lowercase ' + field + ')');
-          }
-
-          (0, _utils.setByDot)(data, field, value ? value.toLowerCase() : value);
-        }
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
-    }
-  };
-
-  var callback = function callback() {
-    return true;
-  };
-  if (typeof fields[fields.length - 1] === 'function') {
-    callback = fields.pop();
-    console.error('DEPRECATED Predicate func will be removed next version. (lowerCase)');
-  }
-
-  return function (hook) {
-    var items = hook.type === 'before' ? hook.data : hook.result;
-
-    var update = function update(condition) {
-      if (items && condition) {
-        if (hook.method === 'find' || Array.isArray(items)) {
-          // data.data if the find method is paginated
-          (items.data || items).forEach(lowerCaseFields);
-        } else {
-          lowerCaseFields(items);
-        }
-      }
-      return hook;
-    };
-
-    var check = callback(hook);
-
-    return check && typeof check.then === 'function' ? check.then(update) : update(check);
-  };
-}
-
-/**
- * Remove the given fields from the query params.
- * Can be used as a before hook for any service method.
- *
- * @param {Array.<string|Function>} fields - Field names to remove. Dot notation is supported.
- * @returns {Function} hook function(hook)
- *
- * DEPRECATED: The last param may be a function to determine if the current hook should be updated.
- * Its signature is func(hook) and it returns either a boolean or a promise resolving to a boolean.
- * This boolean determines if the hook is updated.
- *
- * hooks.lowerCase('group', hook => hook.data.status === 1);
- * hooks.lowerCase('group', hook => new Promise(resolve => {
- *   setTimeout(() => { resolve(true); }, 100)
- * }));
- */
-function removeQuery() {
-  for (var _len2 = arguments.length, fields = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-    fields[_key2] = arguments[_key2];
-  }
-
-  var removeQueries = function removeQueries(data) {
-    var _iteratorNormalCompletion2 = true;
-    var _didIteratorError2 = false;
-    var _iteratorError2 = undefined;
-
-    try {
-      for (var _iterator2 = fields[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-        var field = _step2.value;
-
-        var value = (0, _utils.getByDot)(data, field); // prevent setByDot creating nested empty objects
-        if (value !== undefined) {
-          (0, _utils.setByDot)(data, field, undefined, true);
-        }
-      }
-    } catch (err) {
-      _didIteratorError2 = true;
-      _iteratorError2 = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion2 && _iterator2.return) {
-          _iterator2.return();
-        }
-      } finally {
-        if (_didIteratorError2) {
-          throw _iteratorError2;
-        }
-      }
-    }
-  };
-
-  var callback = function callback() {
-    return true;
-  };
-  if (typeof fields[fields.length - 1] === 'function') {
-    callback = fields.pop();
-    console.error('DEPRECATED Predicate func will be removed next version. (removeQuery)');
-  }
-
-  return function (hook) {
-    if (hook.type === 'after') {
-      var provider = hook.params.provider || 'server';
-      throw new errors.GeneralError('Provider \'' + provider + '\' cannot remove query params on after hook. (removeQuery)');
-    }
-    var result = hook.params.query;
-    var update = function update(condition) {
-      if (result && condition) {
-        removeQueries(result);
-      }
-      return hook;
-    };
-
-    var check = callback(hook);
-
-    return check && typeof check.then === 'function' ? check.then(update) : update(check);
-  };
-}
-
-/**
- * Discard all other fields except for the given fields from the query params.
- * Can be used as a before hook for any service method.
- *
- * @param {Array.<string|Function>} fields - Field names to retain. Dot notation is supported.
- * @returns {Function} hook function(hook)
- *
- * DEPRECATED: The last param may be a function to determine if the current hook should be updated.
- * Its signature is func(hook) and it returns either a boolean or a promise resolving to a boolean.
- * This boolean determines if the hook is updated.
- *
- * hooks.lowerCase('group', hook => hook.data.status === 1);
- * hooks.lowerCase('group', hook => new Promise(resolve => {
- *   setTimeout(() => { resolve(true); }, 100)
- * }));
- */
-function pluckQuery() {
-  for (var _len3 = arguments.length, fields = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-    fields[_key3] = arguments[_key3];
-  }
-
-  var pluckQueries = function pluckQueries(data) {
-    var plucked = {};
-
-    fields.forEach(function (field) {
-      var value = (0, _utils.getByDot)(data, field); // prevent setByDot creating nested empty objects
-      if (value !== undefined) {
-        (0, _utils.setByDot)(plucked, field, value);
-      }
-    });
-
-    return plucked;
-  };
-
-  var callback = function callback() {
-    return true;
-  };
-  if (typeof fields[fields.length - 1] === 'function') {
-    callback = fields.pop();
-    console.error('DEPRECATED Predicate func will be removed next version. (pluckQuery)');
-  }
-
-  return function (hook) {
-    if (hook.type === 'after') {
-      throw new errors.GeneralError('Provider \'' + hook.params.provider + '\' can not pluck query params on after hook. (pluckQuery)');
-    }
-    var result = hook.params.query;
-    var update = function update(condition) {
-      if (result && condition) {
-        hook.params.query = pluckQueries(result);
-      }
-      return hook;
-    };
-
-    var check = callback(hook);
-
-    return check && typeof check.then === 'function' ? check.then(update) : update(check);
-  };
-}
-
-/**
- * Remove the given fields either from the data submitted (as a before hook for create,
- * update or patch) or from the result (as an after hook). If the data is an array or
- * a paginated find result the hook will remove the field for every item.
- *
- * @param {Array.<string|Function>} fields - Field names to remove. Dot notation is supported.
- * @returns {Function} hook function(hook)
- *
- * The last param may be a function to determine if the current hook should be updated.
- * Its signature is func(hook) and it returns either a boolean or a promise resolving to a boolean.
- * This boolean determines if the hook is updated.
- *
- * hooks.lowerCase('group', hook => hook.data.status === 1);
- * hooks.lowerCase('group', hook => new Promise(resolve => {
- *   setTimeout(() => { resolve(true); }, 100)
- * }));
- *
- * The items are only updated for external requests, e.g. hook.params.provider is rest or socketio,
- * or if the decision function mentioned above returns true.
- */
-function remove() {
-  for (var _len4 = arguments.length, fields = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-    fields[_key4] = arguments[_key4];
-  }
-
-  var removeFields = function removeFields(data) {
-    var _iteratorNormalCompletion3 = true;
-    var _didIteratorError3 = false;
-    var _iteratorError3 = undefined;
-
-    try {
-      for (var _iterator3 = fields[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-        var field = _step3.value;
-
-        var value = (0, _utils.getByDot)(data, field);
-        if (value !== undefined) {
-          // prevent setByDot creating nested empty objects
-          (0, _utils.setByDot)(data, field, undefined, true);
-        }
-      }
-    } catch (err) {
-      _didIteratorError3 = true;
-      _iteratorError3 = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion3 && _iterator3.return) {
-          _iterator3.return();
-        }
-      } finally {
-        if (_didIteratorError3) {
-          throw _iteratorError3;
-        }
-      }
-    }
-  };
-
-  // when deprecating, remember hook should not run if called from server
-  var callback = function callback(hook) {
-    return !!hook.params.provider;
-  }; // important condition
-  if (typeof fields[fields.length - 1] === 'function') {
-    callback = fields.pop();
-  }
-
-  return function (hook) {
-    var result = hook.type === 'before' ? hook.data : hook.result;
-    var update = function update(condition) {
-      if (result && condition) {
-        if (Array.isArray(result)) {
-          result.forEach(removeFields);
-        } else {
-          removeFields(result);
-
-          if (result.data) {
-            if (Array.isArray(result.data)) {
-              result.data.forEach(removeFields);
-            } else {
-              removeFields(result.data);
-            }
-          }
-        }
-      }
-      return hook;
-    };
-
-    var check = callback(hook);
-
-    return check && typeof check.then === 'function' ? check.then(update) : update(check);
-  };
-}
-
-/**
- * Discard all other fields except for the provided fields either from the data submitted
- * (as a before hook for create, update or patch) or from the result (as an after hook).
- * If the data is an array or a paginated find result the hook will remove the field for every item.
- *
- * @param {Array.<string|Function>} fields - Field names to remove. Dot notation is supported.
- * @returns {Function} hook function(hook)
- *
- * DEPRECATED: The last param may be a function to determine if the current hook should be updated.
- * Its signature is func(hook) and it returns either a boolean or a promise resolving to a boolean.
- * This boolean determines if the hook is updated.
- *
- * hooks.lowerCase('group', hook => hook.data.status === 1);
- * hooks.lowerCase('group', hook => new Promise(resolve => {
- *   setTimeout(() => { resolve(true); }, 100)
- * }));
- *
- * The items are only updated for external requests, e.g. hook.params.provider is rest or socketio,
- * or if the decision function mentioned above returns true.
- */
-function pluck() {
-  for (var _len5 = arguments.length, fields = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-    fields[_key5] = arguments[_key5];
-  }
-
-  var pluckFields = function pluckFields(data) {
-    var plucked = {};
-
-    fields.forEach(function (field) {
-      var value = (0, _utils.getByDot)(data, field);
-      if (value !== undefined) {
-        // prevent setByDot creating nested empty objects
-        (0, _utils.setByDot)(plucked, field, value);
-      }
-    });
-
-    return plucked;
-  };
-
-  // when deprecating, remember hook should not run if called from server
-  var callback = function callback(hook) {
-    return !!hook.params.provider;
-  };
-  if (typeof fields[fields.length - 1] === 'function') {
-    callback = fields.pop();
-    console.error('DEPRECATED Predicate func will be removed next version. (pluck)');
-  }
-
-  return function (hook) {
-    var update = function update(condition) {
-      if (condition) {
-        var items = (0, _utils.getItems)(hook);
-
-        if (items) {
-          if (Array.isArray(items)) {
-            (0, _utils.replaceItems)(hook, items.map(pluckFields));
-          } else {
-            (0, _utils.replaceItems)(hook, pluckFields(items));
-          }
-        }
-      }
-
-      return hook;
-    };
-
-    var check = callback(hook);
-
-    return check && typeof check.then === 'function' ? check.then(update) : update(check);
-  };
-}
-
-/**
- * Disable access to a service method completely, for a specific provider,
- * or for a custom condition.
- *
- * @param {string|function} [realm] - Provider, or function(hook):boolean|Promise
- *    The first provider or the custom condition.
- *    null = disable completely,
- *    'external' = disable external access,
- *    string = disable that provider e.g. 'rest',
- *    func(hook) = returns boolean or promise resolving to a boolean. false = disable access.
- * @param {string|string[]} [args] - Additional provider names.
- * @returns {Function} hook function(hook)
- *
- * The function may be invoked with
- * - no param, or with undefined or null. All providers are disallowed, even the server.
- * - multiple params of provider names, e.g. rest, socketio. They are all disabled.
- * - 'external'. All client interfaces are disabled.
- * - a function whose signature is func(hook). It returns either a boolean or a promise which
- * resolves to a boolean. If false, the operation is disabled. This is the only way to disable
- * calls from the server.
- */
-function disable(realm) {
-  if (!realm) {
-    return function (hook) {
-      throw new errors.MethodNotAllowed('Calling \'' + hook.method + '\' not allowed. (disable)');
-    };
-  }
-
-  if (typeof realm === 'function') {
-    return function (hook) {
-      var result = realm(hook);
-      var update = function update(check) {
-        if (!check) {
-          throw new errors.MethodNotAllowed('Calling \'' + hook.method + '\' not allowed. (disable)');
-        }
-      };
-
-      if (result && typeof result.then === 'function') {
-        return result.then(update);
-      }
-
-      update(result);
-    };
-  }
-
-  for (var _len6 = arguments.length, args = Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
-    args[_key6 - 1] = arguments[_key6];
-  }
-
-  var providers = [realm].concat(args);
-
-  return function (hook) {
-    var provider = hook.params.provider;
-
-    if (realm === 'external' && provider || providers.indexOf(provider) !== -1) {
-      throw new errors.MethodNotAllowed('Provider \'' + hook.params.provider + '\' can not call \'' + hook.method + '\'. (disable)\'');
-    }
-  };
-}
-
-/**
- * The populate hook uses a property from the result (or every item if it is a list)
- * to retrieve a single related object from a service and add it to the original object.
- * It is meant to be used as an after hook on any service method.
- *
- * @param {string} target - The prop name to contain the populated item or array of populated items.
- *    This is also the default for options.field if that is not specified.
- * @param {Object} options - options
- *    For a mongoose model, these are the options for item.toObject().
- *    For a Sequelize model, these are the options for item.toJSON().
- * @param {string} options.service - The service for the related object, e.g. '/messages'.
- * @param {string|Array.<string>} options.field - The field containing the key(s)
- *    for the item(s) in options.service.
- * @returns {Function} hook function(hook):Promise resolving to the hook.
- *
- * 'options.field' is the foreign key for one related item in options.service, i.e. item[options.field] === foreignItem[idField].
- * 'target' is set to this related item once it is read successfully.
- *
- * If 'options.field' is not present in the hook result item, the hook is ignored.
- *
- * So if the hook result has the message item
- *    { _id: '1...1', senderId: 'a...a', text: 'Jane, are you there?' }
- * and the /users service has the item
- *    { _id: 'a...a', name: 'John Doe'}
- * and then the hook is run
- *    hooks.populate('sender', { field: 'userId', service: '/users' })
- * the hook result will contain
- *    { _id: '1...1', senderId : 'a...a', text: 'Jane, are you there?',
- *      sender: { _id: 'a...a', name: 'John Doe'} }
- *
- * If 'senderId' is an array of keys, then 'sender' will be an array of populated items.
- */
-function legacyPopulate(target, options) {
-  options = Object.assign({}, options);
-
-  console.error('Calling populate(target, options) is now DEPRECATED and will be removed in the future. ' + 'Refer to docs.feathersjs.com for more information. (legacyPopulate)');
-
-  if (!options.service) {
-    throw new Error('You need to provide a service. (populate)');
-  }
-
-  var field = options.field || target;
-
-  return function (hook) {
-    function populate1(item) {
-      if (!item[field]) {
-        return Promise.resolve(item);
-      }
-
-      // Find by the field value by default or a custom query
-      var id = item[field];
-
-      // If it's a mongoose model then
-      if (typeof item.toObject === 'function') {
-        item = item.toObject(options);
-      }
-      // If it's a Sequelize model
-      else if (typeof item.toJSON === 'function') {
-          item = item.toJSON(options);
-        }
-      // Remove any query from params as it's not related
-      var params = Object.assign({}, hook.params, { query: undefined });
-      // If the relationship is an array of ids, fetch and resolve an object for each,
-      // otherwise just fetch the object.
-      var promise = Array.isArray(id) ? Promise.all(id.map(function (objectID) {
-        return hook.app.service(options.service).get(objectID, params);
-      })) : hook.app.service(options.service).get(id, params);
-      return promise.then(function (relatedItem) {
-        if (relatedItem) {
-          item[target] = relatedItem;
-        }
-        return item;
-      });
-    }
-
-    if (hook.type !== 'after') {
-      throw new errors.GeneralError('Can not populate on before hook. (populate)');
-    }
-
-    var isPaginated = hook.method === 'find' && hook.result.data;
-    var data = isPaginated ? hook.result.data : hook.result;
-
-    if (Array.isArray(data)) {
-      return Promise.all(data.map(populate1)).then(function (results) {
-        if (isPaginated) {
-          hook.result.data = results;
-        } else {
-          hook.result = results;
-        }
-
-        return hook;
-      });
-    }
-
-    // Handle single objects.
-    return populate1(hook.result).then(function (item) {
-      hook.result = item;
-      return hook;
-    });
-  };
-}
-},{"./utils":18,"feathers-errors":15}],17:[function(require,module,exports){
-(function (process){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.populate = undefined;
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _feathersErrors = require('feathers-errors');
-
-var _feathersErrors2 = _interopRequireDefault(_feathersErrors);
-
-var _utils = require('./utils');
-
-var _bundled = require('./bundled');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-var populate = exports.populate = function populate(options) {
-  for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-    rest[_key - 1] = arguments[_key];
-  }
-
-  if (typeof options === 'string') {
-    return _bundled.legacyPopulate.apply(undefined, [options].concat(rest));
-  }
-
-  return function (hook) {
-    var optionsDefault = {
-      schema: {},
-      checkPermissions: function checkPermissions() {
-        return true;
-      },
-      profile: false
-    };
-
-    if (hook.params._populate === 'skip') {
-      // this service call made from another populate
-      return hook;
-    }
-
-    return Promise.resolve().then(function () {
-      // 'options.schema' resolves to { permissions: '...', include: [ ... ] }
-
-      var items = (0, _utils.getItems)(hook);
-      var options1 = Object.assign({}, optionsDefault, options);
-      var schema = options1.schema,
-          checkPermissions = options1.checkPermissions;
-
-      var schema1 = typeof schema === 'function' ? schema(hook, options1) : schema;
-      var permissions = schema1.permissions || null;
-
-      if (typeof checkPermissions !== 'function') {
-        throw new _feathersErrors2.default.BadRequest('Permissions param is not a function. (populate)');
-      }
-
-      if (permissions && !checkPermissions(hook, hook.path, permissions, 0)) {
-        throw new _feathersErrors2.default.BadRequest('Permissions do not allow this populate. (populate)');
-      }
-
-      if ((typeof schema1 === 'undefined' ? 'undefined' : _typeof(schema1)) !== 'object') {
-        throw new _feathersErrors2.default.BadRequest('Schema does not resolve to an object. (populate)');
-      }
-
-      return !schema1.include || !Object.keys(schema1.include).length ? items : populateItemArray(options1, hook, items, schema1.include, 0);
-    }).then(function (items) {
-      (0, _utils.replaceItems)(hook, items);
-      return hook;
-    });
-  };
-};
-
-function populateItemArray(options, hook, items, includeSchema, depth) {
-  // 'items' is an item or an array of items
-  // 'includeSchema' is like [ { nameAs: 'author', ... }, { nameAs: 'readers', ... } ]
-
-  if (!Array.isArray(items)) {
-    return populateItem(options, hook, items, includeSchema, depth + 1);
-  }
-
-  return Promise.all(items.map(function (item) {
-    return populateItem(options, hook, item, includeSchema, depth + 1);
-  }));
-}
-
-function populateItem(options, hook, item, includeSchema, depth) {
-  // 'item' is one item
-  // 'includeSchema' is like [ { nameAs: 'author', ... }, { nameAs: 'readers', ... } ]
-
-  var elapsed = {};
-  var startAtAllIncludes = process.hrtime();
-  item._include = [];
-
-  return Promise.all(includeSchema.map(function (childSchema) {
-    var startAtThisInclude = process.hrtime();
-    return populateAddChild(options, hook, item, childSchema, depth).then(function (result) {
-      var nameAs = childSchema.nameAs || childSchema.service;
-      elapsed[nameAs] = getElapsed(options, startAtThisInclude, depth);
-
-      return result;
-    });
-  })).then(function (children) {
-    // 'children' is like [{ authorInfo: {...}, readersInfo: [{...}, {...}] }]
-    if (options.profile !== false) {
-      elapsed.total = getElapsed(options, startAtAllIncludes, depth);
-      item._elapsed = elapsed;
-    }
-
-    return Object.assign.apply(Object, [item].concat(_toConsumableArray(children)));
-  });
-}
-
-function populateAddChild(options, hook, parentItem, childSchema, depth) {
-  /*
-  'parentItem' is the item we are adding children to
-  'childSchema' is like
-    { service: 'comments',
-      permissions: '...',
-      nameAs: 'comments',
-      asArray: true,
-      parentField: 'id',
-      childField: 'postId',
-      query: { $limit: 5, $select: ['title', 'content', 'postId'], $sort: { createdAt: -1 } },
-      select: (hook, parent, depth) => ({ something: { $exists: false }}),
-      include: [ ... ],
-    }
-  */
-
-  // note: parentField & childField are req'd, plus parentItem[parentField} !== undefined .
-  // childSchema.select may override their relationship but some relationship must be given.
-  if (!childSchema.service || !childSchema.parentField || !childSchema.childField) {
-    throw new _feathersErrors2.default.BadRequest('Child schema is missing a required property. (populate)');
-  }
-
-  if (childSchema.permissions && !options.checkPermissions(hook, childSchema.service, childSchema.permissions, depth)) {
-    throw new _feathersErrors2.default.BadRequest('Permissions for ' + childSchema.service + ' do not allow include. (populate)');
-  }
-
-  var nameAs = childSchema.nameAs || childSchema.service;
-  parentItem._include.push(nameAs);
-
-  var promise = Promise.resolve().then(function () {
-    return childSchema.select ? childSchema.select(hook, parentItem, depth) : {};
-  }).then(function (selectQuery) {
-    var parentVal = (0, _utils.getByDot)(parentItem, childSchema.parentField);
-
-    if (parentVal === undefined) {
-      throw new _feathersErrors2.default.BadRequest('ParentField ' + childSchema.parentField + ' for ' + nameAs + ' depth ' + depth + ' is undefined. (populate)');
-    }
-
-    var query = Object.assign({}, childSchema.query, _defineProperty({}, childSchema.childField, Array.isArray(parentVal) ? { $in: parentVal } : parentVal), selectQuery // dynamic options override static ones
-    );
-
-    var serviceHandle = hook.app.service(childSchema.service);
-
-    if (!serviceHandle) {
-      throw new _feathersErrors2.default.BadRequest('Service ' + childSchema.service + ' is not configured. (populate)');
-    }
-
-    return serviceHandle.find({ query: query, _populate: 'skip' });
-  }).then(function (result) {
-    result = result.data || result;
-
-    if (result.length === 1 && !childSchema.asArray) {
-      result = result[0];
-    }
-
-    return result;
-  });
-
-  if (childSchema.include) {
-    promise = promise.then(function (items) {
-      return populateItemArray(options, hook, items, childSchema.include, depth);
-    });
-  }
-
-  return promise.then(function (items) {
-    return _defineProperty({}, nameAs, items);
-  });
-}
-
-// Helpers
-
-function getElapsed(options, startHrtime, depth) {
-  if (options.profile === true) {
-    var elapsed = process.hrtime(startHrtime);
-    return elapsed[0] * 1e9 + elapsed[1];
-  } else if (options.profile !== false) {
-    return depth; // for testing _elapsed
-  }
-}
-}).call(this,require('_process'))
-},{"./bundled":16,"./utils":18,"_process":49,"feathers-errors":15}],18:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-/* eslint no-param-reassign: 0 */
-
-/**
- * Get a value from an object using dot notation, e.g. employee.address.city
- *
- * @param {Object} obj - The object containing the value
- * @param {string} path - The path to the value, e.g. employee.address.city
- * @returns {*} The value, or undefined if the path does not exist
- *
- * There is no way to differentiate between non-existent paths and a value of undefined
- */
-var getByDot = exports.getByDot = function getByDot(obj, path) {
-  if (path.indexOf('.') === -1) {
-    return obj[path];
-  }
-
-  return path.split('.').reduce(function (obj1, part) {
-    return (typeof obj1 === 'undefined' ? 'undefined' : _typeof(obj1)) === 'object' ? obj1[part] : undefined;
-  }, obj);
-};
-
-/**
- * Set a value in an object using dot notation, e.g. employee.address.city.
- *
- * @param {Object} obj - The object
- * @param {string} path - The path where to place the value, e.g. employee.address.city
- * @param {*} value - The value.
- * @param {boolean} ifDelete - Delete the prop at path if value is undefined.
- * @returns {Object} The modified object.
- *
- * To delete a prop, set value = undefined and ifDelete = true. Note that
- * new empty inner objects will still be created,
- * e.g. setByDot({}, 'a.b.c', undefined, true) will return {a: b: {} }
- */
-var setByDot = exports.setByDot = function setByDot(obj, path, value, ifDelete) {
-  if (path.indexOf('.') === -1) {
-    obj[path] = value;
-
-    if (value === undefined && ifDelete) {
-      delete obj[path];
-    }
-
-    return;
-  }
-
-  var parts = path.split('.');
-  var lastIndex = parts.length - 1;
-  return parts.reduce(function (obj1, part, i) {
-    if (i !== lastIndex) {
-      if (!obj1.hasOwnProperty(part) || _typeof(obj1[part]) !== 'object') {
-        obj1[part] = {};
-      }
-      return obj1[part];
-    }
-
-    obj1[part] = value;
-    if (value === undefined && ifDelete) {
-      delete obj1[part];
-    }
-    return obj1;
-  }, obj);
-};
-
-/**
- * Restrict the calling hook to a hook type (before, after) and a set of
- * hook methods (find, get, create, update, patch, remove).
- *
- * @param {object} hook object
- * @param {string|null} type permitted. 'before', 'after' or null for either.
- * @param {array|string} methods permitted. find, get, create, update, patch, remove or null for any
- * @param {string} label identifying hook in error messages. optional.
- *
- * Example:
- * const checkContext = require('feathers-hooks-common/utils').checkContext;
- *
- * const includeCreatedAtHook = (options) => {
- *   const fieldName = (options && options.as) ? options.as : 'createdAt';
- *   return (hook) => {
- *     checkContext(hook, 'before', 'create', 'includeCreatedAtHook');
- *     hook.data[fieldName] = new Date());
- *   };
- * },
- *
- * Examples:
- * checkContext(hook, 'before', ['update', 'patch'], 'hookName');
- * checkContext(hook, null, ['update', 'patch']);
- * checkContext(hook, 'before', null, 'hookName');
- * checkContext(hook, 'before');
- */
-
-var checkContext = exports.checkContext = function checkContext(hook) {
-  var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-  var methods = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-  var label = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'anonymous';
-
-  if (type && hook.type !== type) {
-    throw new Error('The \'' + label + '\' hook can only be used as a \'' + type + '\' hook.');
-  }
-
-  if (!methods) {
-    return;
-  }
-
-  var myMethods = Array.isArray(methods) ? methods : [methods]; // safe enough for allowed values
-
-  if (myMethods.length > 0 && myMethods.indexOf(hook.method) === -1) {
-    var msg = JSON.stringify(myMethods);
-    throw new Error('The \'' + label + '\' hook can only be used on the \'' + msg + '\' service method(s).');
-  }
-};
-
-/**
- * Return the data items in a hook.
- * hook.data if type=before.
- * hook.result.data if type=after, method=find with pagination.
- * hook.result otherwise if type=after.
- *
- * @param {Object} hook - The hook.
- * @returns {Object|Array.<Object>} The data item or array of data items
- */
-var getItems = exports.getItems = function getItems(hook) {
-  var items = hook.type === 'before' ? hook.data : hook.result;
-  return items && hook.method === 'find' ? items.data || items : items;
-};
-
-/**
- * Replace the data items in a hook. Companion to getItems.
- *
- * @param {Object} hook - The hook.
- * @param {Object|Array.<Object>} items - The data item or array of data items
- *
- * If you update an after find paginated hook with an item rather than an array of items,
- * the hook will have an array consisting of that one item.
- */
-var replaceItems = exports.replaceItems = function replaceItems(hook, items) {
-  if (hook.type === 'before') {
-    hook.data = items;
-  } else if (hook.method === 'find' && hook.result && hook.result.data) {
-    if (Array.isArray(items)) {
-      hook.result.data = items;
-      hook.result.total = items.length;
-    } else {
-      hook.result.data = [items];
-      hook.result.total = 1;
-    }
-  } else {
-    hook.result = items;
-  }
-};
-},{}],19:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -3312,7 +2385,7 @@ function baseMixin(methods) {
 
   return Object.assign.apply(Object, [mixin].concat(objs));
 }
-},{"feathers-commons":12}],20:[function(require,module,exports){
+},{"feathers-commons":12}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3324,10 +2397,6 @@ var _uberproto = require('uberproto');
 var _uberproto2 = _interopRequireDefault(_uberproto);
 
 var _feathersCommons = require('feathers-commons');
-
-var _populate = require('feathers-hooks-common/lib/populate');
-
-var _bundled = require('feathers-hooks-common/lib/bundled');
 
 var _commons = require('./commons');
 
@@ -3472,21 +2541,12 @@ function configure() {
   };
 }
 
-configure.removeQuery = _bundled.removeQuery;
-configure.pluckQuery = _bundled.pluckQuery;
-configure.lowerCase = _bundled.lowerCase;
-configure.remove = _bundled.remove;
-configure.pluck = _bundled.pluck;
-configure.disable = _bundled.disable;
-configure.populate = _populate.populate;
-configure.removeField = _bundled.removeField;
-
 exports.default = configure;
 module.exports = exports['default'];
-},{"./commons":19,"feathers-commons":12,"feathers-hooks-common/lib/bundled":16,"feathers-hooks-common/lib/populate":17,"uberproto":57}],21:[function(require,module,exports){
+},{"./commons":16,"feathers-commons":12,"uberproto":54}],18:[function(require,module,exports){
 module.exports = require('./lib/client');
 
-},{"./lib/client":22}],22:[function(require,module,exports){
+},{"./lib/client":19}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3528,10 +2588,10 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":31}],23:[function(require,module,exports){
+},{"feathers-socket-commons/client":28}],20:[function(require,module,exports){
 module.exports = require('./lib/client/index');
 
-},{"./lib/client/index":27}],24:[function(require,module,exports){
+},{"./lib/client/index":24}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3590,7 +2650,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":25}],25:[function(require,module,exports){
+},{"./base":22}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3737,7 +2797,7 @@ var Base = function () {
 
 exports.default = Base;
 module.exports = exports['default'];
-},{"feathers-commons":12,"feathers-errors":15,"qs":51}],26:[function(require,module,exports){
+},{"feathers-commons":12,"feathers-errors":15,"qs":48}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3811,7 +2871,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":25}],27:[function(require,module,exports){
+},{"./base":22}],24:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3887,7 +2947,7 @@ var transports = {
 };
 
 module.exports = exports['default'];
-},{"./axios":24,"./fetch":26,"./jquery":28,"./request":29,"./superagent":30}],28:[function(require,module,exports){
+},{"./axios":21,"./fetch":23,"./jquery":25,"./request":26,"./superagent":27}],25:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3961,7 +3021,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":25}],29:[function(require,module,exports){
+},{"./base":22}],26:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4027,7 +3087,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":25}],30:[function(require,module,exports){
+},{"./base":22}],27:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4091,9 +3151,9 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":25}],31:[function(require,module,exports){
-arguments[4][21][0].apply(exports,arguments)
-},{"./lib/client":32,"dup":21}],32:[function(require,module,exports){
+},{"./base":22}],28:[function(require,module,exports){
+arguments[4][18][0].apply(exports,arguments)
+},{"./lib/client":29,"dup":18}],29:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4266,7 +3326,7 @@ var Service = function () {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./utils":33,"debug":1,"feathers-errors":15}],33:[function(require,module,exports){
+},{"./utils":30,"debug":1,"feathers-errors":15}],30:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -4338,9 +3398,9 @@ function normalizeArgs(args) {
   return args;
 }
 }).call(this,require('_process'))
-},{"_process":49,"feathers-commons":12}],34:[function(require,module,exports){
-arguments[4][21][0].apply(exports,arguments)
-},{"./lib/client":35,"dup":21}],35:[function(require,module,exports){
+},{"_process":46,"feathers-commons":12}],31:[function(require,module,exports){
+arguments[4][18][0].apply(exports,arguments)
+},{"./lib/client":32,"dup":18}],32:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4386,9 +3446,9 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":31}],36:[function(require,module,exports){
-arguments[4][23][0].apply(exports,arguments)
-},{"./lib/client/index":39,"dup":23}],37:[function(require,module,exports){
+},{"feathers-socket-commons/client":28}],33:[function(require,module,exports){
+arguments[4][20][0].apply(exports,arguments)
+},{"./lib/client/index":36,"dup":20}],34:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4540,7 +3600,7 @@ exports.default = {
   }
 };
 module.exports = exports['default'];
-},{"./mixins/index":42,"debug":1,"feathers-commons":12,"uberproto":57}],38:[function(require,module,exports){
+},{"./mixins/index":39,"debug":1,"feathers-commons":12,"uberproto":54}],35:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4594,7 +3654,7 @@ var _uberproto2 = _interopRequireDefault(_uberproto);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"events":3,"uberproto":57}],39:[function(require,module,exports){
+},{"events":3,"uberproto":54}],36:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4618,7 +3678,7 @@ function createApplication() {
 
 createApplication.version = '2.0.1';
 module.exports = exports['default'];
-},{"../feathers":40,"./express":38}],40:[function(require,module,exports){
+},{"../feathers":37,"./express":35}],37:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4648,7 +3708,7 @@ function createApplication(app) {
   return app;
 }
 module.exports = exports['default'];
-},{"./application":37,"uberproto":57}],41:[function(require,module,exports){
+},{"./application":34,"uberproto":54}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4724,7 +3784,7 @@ function upperCase(name) {
 }
 
 module.exports = exports['default'];
-},{"events":3,"feathers-commons":12,"rubberduck":55}],42:[function(require,module,exports){
+},{"events":3,"feathers-commons":12,"rubberduck":52}],39:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4745,7 +3805,7 @@ exports.default = function () {
 };
 
 module.exports = exports['default'];
-},{"./event":41,"./normalizer":43,"./promise":44}],43:[function(require,module,exports){
+},{"./event":38,"./normalizer":40,"./promise":41}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4771,7 +3831,7 @@ exports.default = function (service) {
 var _feathersCommons = require('feathers-commons');
 
 module.exports = exports['default'];
-},{"feathers-commons":12}],44:[function(require,module,exports){
+},{"feathers-commons":12}],41:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -4811,7 +3871,7 @@ function wrapper() {
 }
 
 module.exports = exports['default'];
-},{}],45:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 /**
  * The code was extracted from:
  * https://github.com/davidchambers/Base64.js
@@ -4851,7 +3911,7 @@ function polyfill (input) {
 
 module.exports = typeof window !== 'undefined' && window.atob && window.atob.bind(window) || polyfill;
 
-},{}],46:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 var atob = require('./atob');
 
 function b64DecodeUnicode(str) {
@@ -4886,7 +3946,7 @@ module.exports = function(str) {
   }
 };
 
-},{"./atob":45}],47:[function(require,module,exports){
+},{"./atob":42}],44:[function(require,module,exports){
 'use strict';
 
 var base64_url_decode = require('./base64_url_decode');
@@ -4914,7 +3974,7 @@ module.exports = function (token,options) {
 
 module.exports.InvalidTokenError = InvalidTokenError;
 
-},{"./base64_url_decode":46}],48:[function(require,module,exports){
+},{"./base64_url_decode":43}],45:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -5065,7 +4125,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's'
 }
 
-},{}],49:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -5247,7 +4307,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],50:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 'use strict';
 
 var replace = String.prototype.replace;
@@ -5267,7 +4327,7 @@ module.exports = {
     RFC3986: 'RFC3986'
 };
 
-},{}],51:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 'use strict';
 
 var stringify = require('./stringify');
@@ -5280,7 +4340,7 @@ module.exports = {
     stringify: stringify
 };
 
-},{"./formats":50,"./parse":52,"./stringify":53}],52:[function(require,module,exports){
+},{"./formats":47,"./parse":49,"./stringify":50}],49:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -5449,7 +4509,7 @@ module.exports = function (str, opts) {
     return utils.compact(obj);
 };
 
-},{"./utils":54}],53:[function(require,module,exports){
+},{"./utils":51}],50:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -5658,7 +4718,7 @@ module.exports = function (object, opts) {
     return keys.join(delimiter);
 };
 
-},{"./formats":50,"./utils":54}],54:[function(require,module,exports){
+},{"./formats":47,"./utils":51}],51:[function(require,module,exports){
 'use strict';
 
 var has = Object.prototype.hasOwnProperty;
@@ -5842,7 +4902,7 @@ exports.isBuffer = function (obj) {
     return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
 };
 
-},{}],55:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 var events = require('events');
 var utils = require('./utils');
 var wrap = exports.wrap = {
@@ -5954,7 +5014,7 @@ exports.emitter = function(obj) {
   return new Emitter(obj);
 };
 
-},{"./utils":56,"events":3}],56:[function(require,module,exports){
+},{"./utils":53,"events":3}],53:[function(require,module,exports){
 exports.toBase26 = function(num) {
   var outString = '';
   var letters = 'abcdefghijklmnopqrstuvwxyz';
@@ -5990,7 +5050,7 @@ exports.emitEvents = function(emitter, type, name, args) {
   }
 };
 
-},{}],57:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 /* global define */
 /**
  * A base object for ECMAScript 5 style prototypal inheritance.
@@ -6134,7 +5194,7 @@ exports.emitEvents = function(emitter, type, name, args) {
 
 }));
 
-},{}],58:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -6183,5 +5243,5 @@ Object.assign(_client2.default, {
 exports.default = _client2.default;
 module.exports = exports['default'];
 
-},{"feathers-authentication-client":8,"feathers-errors":15,"feathers-hooks":20,"feathers-primus/client":21,"feathers-rest/client":23,"feathers-socketio/client":34,"feathers/client":36}]},{},[58])(58)
+},{"feathers-authentication-client":8,"feathers-errors":15,"feathers-hooks":17,"feathers-primus/client":18,"feathers-rest/client":20,"feathers-socketio/client":31,"feathers/client":33}]},{},[55])(55)
 });
