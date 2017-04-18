@@ -1,5 +1,18 @@
 # Change Log
 
+## [v2.1.0](https://github.com/feathersjs/feathers-client/tree/v2.1.0) (2017-04-18)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v2.0.0...v2.1.0)
+
+**Closed issues:**
+
+- implementation of feathers client in angular-2 [\#135](https://github.com/feathersjs/feathers-client/issues/135)
+
+**Merged pull requests:**
+
+- Update feathers-hooks to the latest version 🚀 [\#162](https://github.com/feathersjs/feathers-client/pull/162) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
+- Update dependencies to enable Greenkeeper 🌴 [\#161](https://github.com/feathersjs/feathers-client/pull/161) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
+- Added generics to typescript definition. [\#158](https://github.com/feathersjs/feathers-client/pull/158) ([noah79](https://github.com/noah79))
+
 ## [v2.0.0](https://github.com/feathersjs/feathers-client/tree/v2.0.0) (2017-04-11)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v2.0.0-pre.2...v2.0.0)
 
