@@ -68,7 +68,6 @@ describe('Universal Feathers client browser tests', function () {
             assert.equal(error.code, 500);
             assert.equal(error.message, 'Error');
             assert.equal(error.className, 'general-error');
-            assert.notEqual(error.stack, undefined);
             assert.equal(error instanceof feathers.errors.GeneralError, true);
             assert.equal(error instanceof feathers.errors.FeathersError, true);
           });
