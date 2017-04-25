@@ -1,5 +1,14 @@
 # Change Log
 
+## [v2.2.0](https://github.com/feathersjs/feathers-client/tree/v2.2.0) (2017-04-25)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v2.1.0...v2.2.0)
+
+**Merged pull requests:**
+
+- Update feathers-errors to the latest version 🚀 [\#165](https://github.com/feathersjs/feathers-client/pull/165) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
+- Add feathers-errors test [\#164](https://github.com/feathersjs/feathers-client/pull/164) ([christopherjbaker](https://github.com/christopherjbaker))
+- Update semistandard to the latest version 🚀 [\#163](https://github.com/feathersjs/feathers-client/pull/163) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
+
 ## [v2.1.0](https://github.com/feathersjs/feathers-client/tree/v2.1.0) (2017-04-18)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v2.0.0...v2.1.0)
 
