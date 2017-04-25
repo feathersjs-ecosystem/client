@@ -59,5 +59,21 @@ describe('Universal Feathers client browser tests', function () {
 
       myservice.create({ description: 'Test todo' });
     });
+
+    describe('Feathers Errors', () => {
+      describe('successful error creation', () => {
+        describe('without custom message', () => {
+          it('default error', () => {
+            var error = new feathers.errors.GeneralError();
+            assert.equal(error.code, 500);
+            assert.equal(error.message, 'Error');
+            assert.equal(error.className, 'general-error');
+            assert.notEqual(error.stack, undefined);
+            assert.equal(error instanceof feathers.errors.GeneralError, true);
+            assert.equal(error instanceof feathers.errors.FeathersError, true);
+          });
+        });
+      });
+    });
   });
 });
