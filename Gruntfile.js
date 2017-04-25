@@ -20,9 +20,8 @@ module.exports = function (grunt) {
     platform: 'Windows 10',
     version: '11'
   }, {
-    browserName: 'internet explorer',
-    platform: 'Vista',
-    version: '9'
+    browserName: 'MicrosoftEdge',
+    platform: 'Windows 10'
   }
   ];
 
