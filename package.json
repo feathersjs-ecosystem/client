@@ -74,7 +74,7 @@
     "feathers-hooks": "2.0.1",
     "feathers-primus": "2.1.0",
     "feathers-rest": "1.7.2",
-    "feathers-socketio": "1.5.2"
+    "feathers-socketio": "2.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.1.4",
