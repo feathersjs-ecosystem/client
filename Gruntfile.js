@@ -19,11 +19,7 @@ module.exports = function (grunt) {
     browserName: 'internet explorer',
     platform: 'Windows 10',
     version: '11'
-  }, {
-    browserName: 'MicrosoftEdge',
-    platform: 'Windows 10'
-  }
-  ];
+  }];
 
   grunt.registerTask('server', 'Start the test server', function () {
     server.listen(3000).on('listening', () => {
