@@ -42,20 +42,20 @@ function useColors() {
   // NB: In an Electron preload script, document will be defined but not fully
   // initialized. Since we know we're in Chrome, we'll just detect this case
   // explicitly
-  if (typeof window !== 'undefined' && window && typeof window.process !== 'undefined' && window.process.type === 'renderer') {
+  if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
     return true;
   }
 
   // is webkit? http://stackoverflow.com/a/16459606/376773
   // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
-  return (typeof document !== 'undefined' && document && 'WebkitAppearance' in document.documentElement.style) ||
+  return (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
     // is firebug? http://stackoverflow.com/a/398120/376773
-    (typeof window !== 'undefined' && window && window.console && (console.firebug || (console.exception && console.table))) ||
+    (typeof window !== 'undefined' && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
     // is firefox >= v31?
     // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-    (typeof navigator !== 'undefined' && navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
+    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
     // double check webkit in userAgent just in case we are in a worker
-    (typeof navigator !== 'undefined' && navigator && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
+    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
 }
 
 /**
@@ -187,7 +187,7 @@ function localstorage() {
 }
 
 }).call(this,require('_process'))
-},{"./debug":2,"_process":46}],2:[function(require,module,exports){
+},{"./debug":2,"_process":47}],2:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -391,7 +391,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":45}],3:[function(require,module,exports){
+},{"ms":46}],3:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -1194,7 +1194,7 @@ var Passport = function () {
       var _this7 = this;
 
       var app = this.app;
-      return new Promise(function (resolve) {
+      return new Promise(function (resolve, reject) {
         var accessToken = app.get('accessToken');
 
         if (accessToken) {
@@ -1209,7 +1209,7 @@ var Passport = function () {
           }
 
           return resolve(token);
-        });
+        }).catch(reject);
       });
     }
 
@@ -1253,7 +1253,7 @@ var Passport = function () {
 
 exports.default = Passport;
 module.exports = exports['default'];
-},{"./utils":10,"debug":1,"feathers-errors":15,"jwt-decode":44}],10:[function(require,module,exports){
+},{"./utils":10,"debug":1,"feathers-errors":15,"jwt-decode":45}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1867,7 +1867,7 @@ function makeUrl(path) {
   return protocol + '://' + host + port + '/' + stripSlashes(path);
 }
 }).call(this,require('_process'))
-},{"_process":46}],15:[function(require,module,exports){
+},{"_process":47}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1909,11 +1909,16 @@ function FeathersError(msg, name, code, className, data) {
     // NOTE(EK): To make sure that we are not messing
     // with immutable data, just make a copy.
     // https://github.com/feathersjs/feathers-errors/issues/19
-    newData = _extends({}, data);
+    newData = JSON.parse(JSON.stringify(data));
 
     if (newData.errors) {
       errors = newData.errors;
       delete newData.errors;
+    } else if (data.errors) {
+      // The errors property from data could be
+      // stripped away while cloning resulting newData not to have it
+      // For example: when cloning arrays this property
+      errors = JSON.parse(JSON.stringify(data.errors));
     }
   }
 
@@ -1935,16 +1940,18 @@ FeathersError.prototype = new Error();
 
 // NOTE (EK): A little hack to get around `message` not
 // being included in the default toJSON call.
-FeathersError.prototype.toJSON = function () {
-  return {
-    name: this.name,
-    message: this.message,
-    code: this.code,
-    className: this.className,
-    data: this.data,
-    errors: this.errors
-  };
-};
+Object.defineProperty(FeathersError.prototype, 'toJSON', {
+  value: function value() {
+    return {
+      name: this.name,
+      message: this.message,
+      code: this.code,
+      className: this.className,
+      data: this.data,
+      errors: this.errors
+    };
+  }
+});
 
 // 400 - Bad Request
 function BadRequest(message, data) {
@@ -2277,6 +2284,10 @@ function isPromise(result) {
 }
 
 function hookMixin(service) {
+  if (typeof service.hooks === 'function') {
+    return;
+  }
+
   var app = this;
   var methods = app.methods;
   var old = {
@@ -2411,7 +2422,7 @@ function configure() {
 
 exports.default = configure;
 module.exports = exports['default'];
-},{"./commons":16,"feathers-commons":12,"uberproto":54}],18:[function(require,module,exports){
+},{"./commons":16,"feathers-commons":12,"uberproto":55}],18:[function(require,module,exports){
 module.exports = require('./lib/client');
 
 },{"./lib/client":19}],19:[function(require,module,exports){
@@ -2456,10 +2467,76 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":28}],20:[function(require,module,exports){
+},{"feathers-socket-commons/client":29}],20:[function(require,module,exports){
 module.exports = require('./lib/client/index');
 
-},{"./lib/client/index":24}],21:[function(require,module,exports){
+},{"./lib/client/index":25}],21:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _base = require('./base');
+
+var _base2 = _interopRequireDefault(_base);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Service = function (_Base) {
+  _inherits(Service, _Base);
+
+  function Service() {
+    _classCallCheck(this, Service);
+
+    return _possibleConstructorReturn(this, (Service.__proto__ || Object.getPrototypeOf(Service)).apply(this, arguments));
+  }
+
+  _createClass(Service, [{
+    key: 'request',
+    value: function request(options) {
+      var http = this.connection;
+      var Headers = this.options.Headers;
+
+      if (!http || !Headers) {
+        throw new Error('Please pass angular\'s \'http\' (instance) and and object with \'Headers\' (class) to feathers-rest');
+      }
+
+      var url = options.url;
+      var requestOptions = {
+        method: options.method,
+        body: options.body,
+        headers: new Headers(_extends({ Accept: 'application/json' }, this.options.headers, options.headers))
+      };
+
+      return new Promise(function (resolve, reject) {
+        http.request(url, requestOptions).subscribe(resolve, reject);
+      }).then(function (res) {
+        return res.json();
+      }).catch(function (error) {
+        var response = error.response || error;
+
+        throw response instanceof Error ? response : response.json() || response;
+      });
+    }
+  }]);
+
+  return Service;
+}(_base2.default);
+
+exports.default = Service;
+module.exports = exports['default'];
+},{"./base":23}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2518,7 +2595,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":22}],22:[function(require,module,exports){
+},{"./base":23}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2665,7 +2742,7 @@ var Base = function () {
 
 exports.default = Base;
 module.exports = exports['default'];
-},{"feathers-commons":12,"feathers-errors":15,"qs":48}],23:[function(require,module,exports){
+},{"feathers-commons":12,"feathers-errors":15,"qs":49}],24:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2739,7 +2816,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":22}],24:[function(require,module,exports){
+},{"./base":23}],25:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2804,6 +2881,10 @@ var _axios = require('./axios');
 
 var _axios2 = _interopRequireDefault(_axios);
 
+var _angular = require('./angular');
+
+var _angular2 = _interopRequireDefault(_angular);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var transports = {
@@ -2811,11 +2892,12 @@ var transports = {
   superagent: _superagent2.default,
   request: _request2.default,
   fetch: _fetch2.default,
-  axios: _axios2.default
+  axios: _axios2.default,
+  angular: _angular2.default
 };
 
 module.exports = exports['default'];
-},{"./axios":21,"./fetch":23,"./jquery":25,"./request":26,"./superagent":27}],25:[function(require,module,exports){
+},{"./angular":21,"./axios":22,"./fetch":24,"./jquery":26,"./request":27,"./superagent":28}],26:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2889,7 +2971,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":22}],26:[function(require,module,exports){
+},{"./base":23}],27:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2955,7 +3037,7 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":22}],27:[function(require,module,exports){
+},{"./base":23}],28:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3019,9 +3101,9 @@ var Service = function (_Base) {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./base":22}],28:[function(require,module,exports){
+},{"./base":23}],29:[function(require,module,exports){
 arguments[4][18][0].apply(exports,arguments)
-},{"./lib/client":29,"dup":18}],29:[function(require,module,exports){
+},{"./lib/client":30,"dup":18}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3194,7 +3276,7 @@ var Service = function () {
 
 exports.default = Service;
 module.exports = exports['default'];
-},{"./utils":30,"debug":1,"feathers-errors":15}],30:[function(require,module,exports){
+},{"./utils":31,"debug":1,"feathers-errors":15}],31:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -3266,9 +3348,9 @@ function normalizeArgs(args) {
   return args;
 }
 }).call(this,require('_process'))
-},{"_process":46,"feathers-commons":12}],31:[function(require,module,exports){
+},{"_process":47,"feathers-commons":12}],32:[function(require,module,exports){
 arguments[4][18][0].apply(exports,arguments)
-},{"./lib/client":32,"dup":18}],32:[function(require,module,exports){
+},{"./lib/client":33,"dup":18}],33:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3314,9 +3396,9 @@ var _client2 = _interopRequireDefault(_client);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"feathers-socket-commons/client":28}],33:[function(require,module,exports){
+},{"feathers-socket-commons/client":29}],34:[function(require,module,exports){
 arguments[4][20][0].apply(exports,arguments)
-},{"./lib/client/index":36,"dup":20}],34:[function(require,module,exports){
+},{"./lib/client/index":37,"dup":20}],35:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3468,7 +3550,7 @@ exports.default = {
   }
 };
 module.exports = exports['default'];
-},{"./mixins/index":39,"debug":1,"feathers-commons":12,"uberproto":54}],35:[function(require,module,exports){
+},{"./mixins/index":40,"debug":1,"feathers-commons":12,"uberproto":55}],36:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3522,7 +3604,7 @@ var _uberproto2 = _interopRequireDefault(_uberproto);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = exports['default'];
-},{"events":3,"uberproto":54}],36:[function(require,module,exports){
+},{"events":3,"uberproto":55}],37:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3546,7 +3628,7 @@ function createApplication() {
 
 createApplication.version = '2.0.1';
 module.exports = exports['default'];
-},{"../feathers":37,"./express":35}],37:[function(require,module,exports){
+},{"../feathers":38,"./express":36}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3576,7 +3658,7 @@ function createApplication(app) {
   return app;
 }
 module.exports = exports['default'];
-},{"./application":34,"uberproto":54}],38:[function(require,module,exports){
+},{"./application":35,"uberproto":55}],39:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3652,7 +3734,7 @@ function upperCase(name) {
 }
 
 module.exports = exports['default'];
-},{"events":3,"feathers-commons":12,"rubberduck":52}],39:[function(require,module,exports){
+},{"events":3,"feathers-commons":12,"rubberduck":53}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3673,7 +3755,7 @@ exports.default = function () {
 };
 
 module.exports = exports['default'];
-},{"./event":38,"./normalizer":40,"./promise":41}],40:[function(require,module,exports){
+},{"./event":39,"./normalizer":41,"./promise":42}],41:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3699,7 +3781,7 @@ exports.default = function (service) {
 var _feathersCommons = require('feathers-commons');
 
 module.exports = exports['default'];
-},{"feathers-commons":12}],41:[function(require,module,exports){
+},{"feathers-commons":12}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3739,7 +3821,7 @@ function wrapper() {
 }
 
 module.exports = exports['default'];
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 /**
  * The code was extracted from:
  * https://github.com/davidchambers/Base64.js
@@ -3779,7 +3861,7 @@ function polyfill (input) {
 
 module.exports = typeof window !== 'undefined' && window.atob && window.atob.bind(window) || polyfill;
 
-},{}],43:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 var atob = require('./atob');
 
 function b64DecodeUnicode(str) {
@@ -3814,7 +3896,7 @@ module.exports = function(str) {
   }
 };
 
-},{"./atob":42}],44:[function(require,module,exports){
+},{"./atob":43}],45:[function(require,module,exports){
 'use strict';
 
 var base64_url_decode = require('./base64_url_decode');
@@ -3842,16 +3924,16 @@ module.exports = function (token,options) {
 
 module.exports.InvalidTokenError = InvalidTokenError;
 
-},{"./base64_url_decode":43}],45:[function(require,module,exports){
+},{"./base64_url_decode":44}],46:[function(require,module,exports){
 /**
  * Helpers.
  */
 
-var s = 1000
-var m = s * 60
-var h = m * 60
-var d = h * 24
-var y = d * 365.25
+var s = 1000;
+var m = s * 60;
+var h = m * 60;
+var d = h * 24;
+var y = d * 365.25;
 
 /**
  * Parse or format the given `val`.
@@ -3867,18 +3949,19 @@ var y = d * 365.25
  * @api public
  */
 
-module.exports = function (val, options) {
-  options = options || {}
-  var type = typeof val
+module.exports = function(val, options) {
+  options = options || {};
+  var type = typeof val;
   if (type === 'string' && val.length > 0) {
-    return parse(val)
+    return parse(val);
   } else if (type === 'number' && isNaN(val) === false) {
-    return options.long ?
-			fmtLong(val) :
-			fmtShort(val)
+    return options.long ? fmtLong(val) : fmtShort(val);
   }
-  throw new Error('val is not a non-empty string or a valid number. val=' + JSON.stringify(val))
-}
+  throw new Error(
+    'val is not a non-empty string or a valid number. val=' +
+      JSON.stringify(val)
+  );
+};
 
 /**
  * Parse the given `str` and return milliseconds.
@@ -3889,53 +3972,55 @@ module.exports = function (val, options) {
  */
 
 function parse(str) {
-  str = String(str)
-  if (str.length > 10000) {
-    return
+  str = String(str);
+  if (str.length > 100) {
+    return;
   }
-  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str)
+  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(
+    str
+  );
   if (!match) {
-    return
+    return;
   }
-  var n = parseFloat(match[1])
-  var type = (match[2] || 'ms').toLowerCase()
+  var n = parseFloat(match[1]);
+  var type = (match[2] || 'ms').toLowerCase();
   switch (type) {
     case 'years':
     case 'year':
     case 'yrs':
     case 'yr':
     case 'y':
-      return n * y
+      return n * y;
     case 'days':
     case 'day':
     case 'd':
-      return n * d
+      return n * d;
     case 'hours':
     case 'hour':
     case 'hrs':
     case 'hr':
     case 'h':
-      return n * h
+      return n * h;
     case 'minutes':
     case 'minute':
     case 'mins':
     case 'min':
     case 'm':
-      return n * m
+      return n * m;
     case 'seconds':
     case 'second':
     case 'secs':
     case 'sec':
     case 's':
-      return n * s
+      return n * s;
     case 'milliseconds':
     case 'millisecond':
     case 'msecs':
     case 'msec':
     case 'ms':
-      return n
+      return n;
     default:
-      return undefined
+      return undefined;
   }
 }
 
@@ -3949,18 +4034,18 @@ function parse(str) {
 
 function fmtShort(ms) {
   if (ms >= d) {
-    return Math.round(ms / d) + 'd'
+    return Math.round(ms / d) + 'd';
   }
   if (ms >= h) {
-    return Math.round(ms / h) + 'h'
+    return Math.round(ms / h) + 'h';
   }
   if (ms >= m) {
-    return Math.round(ms / m) + 'm'
+    return Math.round(ms / m) + 'm';
   }
   if (ms >= s) {
-    return Math.round(ms / s) + 's'
+    return Math.round(ms / s) + 's';
   }
-  return ms + 'ms'
+  return ms + 'ms';
 }
 
 /**
@@ -3976,7 +4061,7 @@ function fmtLong(ms) {
     plural(ms, h, 'hour') ||
     plural(ms, m, 'minute') ||
     plural(ms, s, 'second') ||
-    ms + ' ms'
+    ms + ' ms';
 }
 
 /**
@@ -3985,15 +4070,15 @@ function fmtLong(ms) {
 
 function plural(ms, n, name) {
   if (ms < n) {
-    return
+    return;
   }
   if (ms < n * 1.5) {
-    return Math.floor(ms / n) + ' ' + name
+    return Math.floor(ms / n) + ' ' + name;
   }
-  return Math.ceil(ms / n) + ' ' + name + 's'
+  return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],46:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -4164,6 +4249,10 @@ process.off = noop;
 process.removeListener = noop;
 process.removeAllListeners = noop;
 process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
 
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
@@ -4175,7 +4264,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 'use strict';
 
 var replace = String.prototype.replace;
@@ -4195,7 +4284,7 @@ module.exports = {
     RFC3986: 'RFC3986'
 };
 
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 'use strict';
 
 var stringify = require('./stringify');
@@ -4208,7 +4297,7 @@ module.exports = {
     stringify: stringify
 };
 
-},{"./formats":47,"./parse":49,"./stringify":50}],49:[function(require,module,exports){
+},{"./formats":48,"./parse":50,"./stringify":51}],50:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -4377,7 +4466,7 @@ module.exports = function (str, opts) {
     return utils.compact(obj);
 };
 
-},{"./utils":51}],50:[function(require,module,exports){
+},{"./utils":52}],51:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -4586,7 +4675,7 @@ module.exports = function (object, opts) {
     return keys.join(delimiter);
 };
 
-},{"./formats":47,"./utils":51}],51:[function(require,module,exports){
+},{"./formats":48,"./utils":52}],52:[function(require,module,exports){
 'use strict';
 
 var has = Object.prototype.hasOwnProperty;
@@ -4770,7 +4859,7 @@ exports.isBuffer = function (obj) {
     return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
 };
 
-},{}],52:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 var events = require('events');
 var utils = require('./utils');
 var wrap = exports.wrap = {
@@ -4882,7 +4971,7 @@ exports.emitter = function(obj) {
   return new Emitter(obj);
 };
 
-},{"./utils":53,"events":3}],53:[function(require,module,exports){
+},{"./utils":54,"events":3}],54:[function(require,module,exports){
 exports.toBase26 = function(num) {
   var outString = '';
   var letters = 'abcdefghijklmnopqrstuvwxyz';
@@ -4918,7 +5007,7 @@ exports.emitEvents = function(emitter, type, name, args) {
   }
 };
 
-},{}],54:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 /* global define */
 /**
  * A base object for ECMAScript 5 style prototypal inheritance.
@@ -5062,7 +5151,7 @@ exports.emitEvents = function(emitter, type, name, args) {
 
 }));
 
-},{}],55:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -5109,5 +5198,5 @@ Object.assign(_client2.default, {
 exports.default = _client2.default;
 module.exports = exports['default'];
 
-},{"feathers-authentication-client":8,"feathers-errors":15,"feathers-hooks":17,"feathers-primus/client":18,"feathers-rest/client":20,"feathers-socketio/client":31,"feathers/client":33}]},{},[55])(55)
+},{"feathers-authentication-client":8,"feathers-errors":15,"feathers-hooks":17,"feathers-primus/client":18,"feathers-rest/client":20,"feathers-socketio/client":32,"feathers/client":34}]},{},[56])(56)
 });
