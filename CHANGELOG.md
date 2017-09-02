@@ -1,5 +1,24 @@
 # Change Log
 
+## [v2.4.0](https://github.com/feathersjs/feathers-client/tree/v2.4.0) (2017-09-02)
+[Full Changelog](https://github.com/feathersjs/feathers-client/compare/v2.3.0...v2.4.0)
+
+**Closed issues:**
+
+- Feathers Authentication returning NotFound: Page not found [\#188](https://github.com/feathersjs/feathers-client/issues/188)
+- Typescript import build error [\#179](https://github.com/feathersjs/feathers-client/issues/179)
+
+**Merged pull requests:**
+
+- Update feathers to the latest version 🚀 [\#195](https://github.com/feathersjs/feathers-client/pull/195) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Add default export to TypeScript definition [\#194](https://github.com/feathersjs/feathers-client/pull/194) ([jonlambert](https://github.com/jonlambert))
+- Update ws to the latest version 🚀 [\#193](https://github.com/feathersjs/feathers-client/pull/193) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update feathers-errors to the latest version 🚀 [\#192](https://github.com/feathersjs/feathers-client/pull/192) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update feathers-errors to the latest version 🚀 [\#191](https://github.com/feathersjs/feathers-client/pull/191) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- fix\(package\): update feathers to version 2.1.7 [\#190](https://github.com/feathersjs/feathers-client/pull/190) ([daffl](https://github.com/daffl))
+- Update feathers-hooks to the latest version 🚀 [\#187](https://github.com/feathersjs/feathers-client/pull/187) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update feathers-errors to the latest version 🚀 [\#186](https://github.com/feathersjs/feathers-client/pull/186) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
 ## [v2.3.0](https://github.com/feathersjs/feathers-client/tree/v2.3.0) (2017-07-04)
 [Full Changelog](https://github.com/feathersjs/feathers-client/compare/v2.2.0...v2.3.0)
 
