@@ -70,7 +70,7 @@
   "dependencies": {
     "feathers": "2.2.0",
     "feathers-authentication-client": "^0.3.1",
-    "feathers-errors": "2.9.1",
+    "feathers-errors": "2.9.2",
     "feathers-hooks": "2.0.2",
     "feathers-primus": "2.2.0",
     "feathers-rest": "1.8.0",
