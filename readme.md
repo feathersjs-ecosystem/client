@@ -27,8 +27,8 @@ While Feathers and its modules can be used on the client with an NPM compatible 
 In the browser a client that connects to the local server via websockets can be initialized like this:
 
 ```html
-<script type="text/javascript" src="/socket.io/socket.io.js"></script>
-<script type="text/javascript" src="//cdn.rawgit.com/feathersjs/feathers-client/v1.1.0/dist/feathers.js"></script>
+<script type="text/javascript" src="//unpkg.com/socket.io-client@1.7.3/dist/socket.io.js"></script>
+<script type="text/javascript" src="//unpkg.com/feathers-client@^2.0.0/dist/feathers.js"></script>
 <script type="text/javascript">
   var socket = io();
   var client = feathers()
