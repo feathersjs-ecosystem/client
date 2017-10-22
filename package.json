@@ -71,7 +71,7 @@
     "feathers": "2.2.3",
     "feathers-authentication-client": "^0.3.1",
     "feathers-errors": "2.9.2",
-    "feathers-hooks": "2.1.0",
+    "feathers-hooks": "2.1.1",
     "feathers-primus": "2.2.0",
     "feathers-rest": "1.8.0",
     "feathers-socketio": "2.0.0"
