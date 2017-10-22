@@ -19,7 +19,7 @@ declare module 'feathers-client' {
     get(id: string, params?: any): Promise<T>;
     create(data: T, params?: any): Promise<T>;
     update(id: string, data: T, params?: any): Promise<T>;
-    patch(id: string, data: T, params?: any) : Promise<T>;
+    patch<K extends keyof T>(id: string, data:Pick<T, K>, params?: any) : Promise<T>;
     remove(id: string, params?: any): Promise<T>;
   
     // Realtime interface.
