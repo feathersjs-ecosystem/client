@@ -39,7 +39,7 @@ module.exports = function (grunt) {
           ],
           browsers: browsers,
           build: process.env.TRAVIS_JOB_ID,
-          testname: 'feathers-client mocha tests',
+          testname: '@feathersjs/client mocha tests',
           throttled: 1
         }
       }

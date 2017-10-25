@@ -1,16 +1,16 @@
 {
-  "name": "feathers-client",
+  "name": "@feathersjs/client",
   "description": "A module that consolidates Feathers client modules for REST (jQuery, Request, Superagent) and Websocket (Socket.io, Primus) connections",
   "version": "2.4.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/feathersjs/feathers-client.git"
+    "url": "https://github.com/feathersjs/client.git"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/feathersjs/feathers-client/issues"
+    "url": "https://github.com/feathersjs/client/issues"
   },
-  "homepage": "https://github.com/feathersjs/feathers-client",
+  "homepage": "https://github.com/feathersjs/client",
   "keywords": [
     "feathers",
     "feathers-plugin",
@@ -20,41 +20,34 @@
   ],
   "author": "Feathers contributors",
   "engines": {
-    "node": ">= 4"
+    "node": ">= 6"
   },
   "main": "lib/client.js",
   "scripts": {
     "clean": "shx rm -rf dist/ && shx mkdir -p dist",
-    "browserify:test": "browserify test/browser/test.js -t babelify --outfile dist/browser.test.js",
-    "browserify:dist": "browserify src/client.js -t babelify --standalone feathers --outfile dist/feathers.js",
-    "browserify:min": "browserify src/client.js -t babelify --standalone feathers | uglifyjs > dist/feathers.min.js",
+    "browserify:test": "browserify browser/test.js -t babelify --outfile dist/browser.test.js",
+    "browserify:dist": "browserify lib/client.js -t babelify --standalone feathers --outfile dist/feathers.js",
+    "browserify:min": "browserify lib/client.js -t babelify --standalone feathers | uglifyjs > dist/feathers.min.js",
     "browserify": "npm run browserify:dist && npm run browserify:min && npm run browserify:test",
     "reinstall": "shx rm -rf node_modules && npm install",
     "add-dist": "npm run clean && npm run browserify:dist && npm run browserify:min && git add dist/ --force && git commit -am \"Updating dist\"",
-    "prepublish": "npm run compile",
     "publish": "git push origin --tags && npm run changelog && git push origin",
     "bower": "node version && git add bower.json && git commit -am \"Update version\"",
     "changelog": "github_changelog_generator && git add CHANGELOG.md && git commit -am \"Updating changelog\"",
-    "release:prerelease": "npm run reinstall && npm run add-dist && npm version prerelease && npm run bower && npm publish --tag pre",
-    "release:patch": "npm run reinstall && npm run add-dist && npm version patch && npm run bower && npm publish",
-    "release:minor": "npm run reinstall && npm run add-dist && npm version minor && npm run bower && npm publish",
-    "release:major": "npm run reinstall && npm run add-dist && npm version major && npm run bower && npm publish",
-    "compile": "shx rm -rf lib/ && babel -d lib/ src/",
-    "watch": "babel --watch -d lib/ src/",
-    "lint": "eslint-if-supported semistandard --fix",
+    "release:prerelease": "npm run reinstall && npm run add-dist && npm version prerelease && npm run bower && npm publish --tag pre --access public",
+    "release:patch": "npm run reinstall && npm run add-dist && npm version patch && npm run bower && npm publish --access public",
+    "release:minor": "npm run reinstall && npm run add-dist && npm version minor && npm run bower && npm publish --access public",
+    "release:major": "npm run reinstall && npm run add-dist && npm version major && npm run bower && npm publish --access public",
+    "lint": "semistandard --fix",
     "mocha": "mocha --opts mocha.opts",
     "saucelabs": "grunt",
-    "test": "npm run clean && npm run browserify && npm run lint && npm run coverage",
+    "test": "npm run lint && npm run coverage",
     "ci": "npm test && npm run saucelabs",
     "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- --opts mocha.opts"
   },
   "semistandard": {
     "env": [
       "mocha"
-    ],
-    "ignore": [
-      "/lib",
-      "/dist"
     ]
   },
   "directories": {
@@ -77,14 +70,8 @@
     "feathers-socketio": "2.0.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.1.4",
-    "babel-core": "^6.1.4",
-    "babel-plugin-add-module-exports": "^0.2.0",
-    "babel-preset-es2015": "^6.24.1",
-    "babelify": "^8.0.0",
     "body-parser": "^1.12.4",
     "browserify": "^14.1.0",
-    "eslint-if-supported": "^1.0.1",
     "feathers-memory": "^1.0.0",
     "grunt": "^1.0.1",
     "grunt-cli": "^1.2.0",

@@ -1,7 +1,7 @@
 {
   "name": "feathers-client",
   "version": "2.4.0",
-  "repo": "feathersjs/feathers-client",
+  "repo": "feathersjs/client",
   "keywords": [
     "feathers",
     "jquery",

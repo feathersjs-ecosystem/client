@@ -1,4 +1,2 @@
---recursive test/*/**.test.js
---compilers js:babel-core/register
---timeout 10000
+--recursive test/
 --exit

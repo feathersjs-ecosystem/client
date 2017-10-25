@@ -1,9 +1,8 @@
-import socketio from 'feathers-socketio';
-import io from 'socket.io-client';
-import baseTests from 'feathers-commons/lib/test/client';
-
-import app from '../fixture';
-import feathers from '../../src/client';
+const socketio = require('feathers-socketio');
+const io = require('socket.io-client');
+const baseTests = require('feathers-commons/lib/test/client');
+const app = require('../fixture');
+const feathers = require('../../lib/client');
 
 describe('Socket.io connector', function () {
   const socket = io('http://localhost:9988');

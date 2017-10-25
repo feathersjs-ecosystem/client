@@ -1,5 +1,5 @@
-import assert from 'assert';
-import baseTests from 'feathers-commons/lib/test/client';
+const assert = require('assert');
+const baseTests = require('feathers-commons/lib/test/client');
 
 const feathers = window.feathers;
 const socket = window.io();

@@ -1,8 +1,7 @@
-import fetch from 'node-fetch';
-import baseTests from 'feathers-commons/lib/test/client';
-
-import app from '../fixture';
-import feathers from '../../src/client';
+const fetch = require('node-fetch');
+const baseTests = require('feathers-commons/lib/test/client');
+const app = require('../fixture');
+const feathers = require('../../lib/client');
 
 describe('fetch REST connector', function () {
   const rest = feathers.rest('http://localhost:8889');

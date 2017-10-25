@@ -1,8 +1,7 @@
-import superagent from 'superagent';
-import baseTests from 'feathers-commons/lib/test/client';
-
-import app from '../fixture';
-import feathers from '../../src/client';
+const superagent = require('superagent');
+const baseTests = require('feathers-commons/lib/test/client');
+const app = require('../fixture');
+const feathers = require('../../lib/client');
 
 describe('Superagent REST connector', function () {
   const rest = feathers.rest('http://localhost:8889');
