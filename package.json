@@ -25,9 +25,9 @@
   "main": "lib/client.js",
   "scripts": {
     "clean": "shx rm -rf dist/ && shx mkdir -p dist",
-    "browserify:test": "browserify browser/test.js -t babelify --outfile dist/browser.test.js",
-    "browserify:dist": "browserify lib/client.js -t babelify --standalone feathers --outfile dist/feathers.js",
-    "browserify:min": "browserify lib/client.js -t babelify --standalone feathers | uglifyjs > dist/feathers.min.js",
+    "browserify:test": "browserify browser/test.js --outfile dist/browser.test.js",
+    "browserify:dist": "browserify lib/client.js --standalone feathers --outfile dist/feathers.js",
+    "browserify:min": "browserify lib/client.js --standalone feathers | uglifyjs > dist/feathers.min.js",
     "browserify": "npm run browserify:dist && npm run browserify:min && npm run browserify:test",
     "reinstall": "shx rm -rf node_modules && npm install",
     "add-dist": "npm run clean && npm run browserify:dist && npm run browserify:min && git add dist/ --force && git commit -am \"Updating dist\"",
