@@ -22,7 +22,7 @@ module.exports = function (grunt) {
   }];
 
   grunt.registerTask('server', 'Start the test server', function () {
-    server.listen(3000).on('listening', () => {
+    server.on('listening', () => {
       console.log('Test server listening on port 3000');
     });
   });
@@ -35,7 +35,7 @@ module.exports = function (grunt) {
       all: {
         options: {
           urls: [
-            'http://127.0.0.1:3000/test/browser/index.html'
+            'http://127.0.0.1:3000/browser/index.html'
           ],
           browsers: browsers,
           build: process.env.TRAVIS_JOB_ID,

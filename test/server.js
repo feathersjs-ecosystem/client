@@ -4,4 +4,4 @@ const app = createApp(function () {
   this.configure(socketio());
 });
 
-module.exports = app;
+module.exports = app.listen(3000);
