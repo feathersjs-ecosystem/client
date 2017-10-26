@@ -7,6 +7,7 @@ before_script:
 after_script:
   - 'codeclimate-test-reporter < coverage/lcov.info'
 addons:
+  sauce_connect: true
   code_climate:
     repo_token: 8b52d247742e799ab703c2c2fcce5a8c176a6f9887df645ba17745f68af4cdc2
 notifications:

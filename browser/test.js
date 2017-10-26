@@ -1,11 +1,11 @@
-const assert = require('assert');
-const baseTests = require('feathers-commons/lib/test/client');
+var assert = require('assert');
+var baseTests = require('feathers-commons/lib/test/client');
 
-const feathers = window.feathers;
-const socket = window.io();
+var feathers = window.feathers;
+var socket = window.io();
 
 describe('Universal Feathers client browser tests', function () {
-  const app = feathers()
+  var app = feathers()
     .configure(feathers.socketio(socket))
     .configure(feathers.hooks())
     .use('/myservice', {
@@ -47,7 +47,7 @@ describe('Universal Feathers client browser tests', function () {
     });
 
     it('create and event with hook', done => {
-      const myservice = app.service('myservice');
+      var myservice = app.service('myservice');
 
       myservice.once('created', data => {
         assert.deepEqual(data, {
