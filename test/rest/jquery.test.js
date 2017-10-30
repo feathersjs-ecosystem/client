@@ -1,7 +1,8 @@
 const jsdom = require('jsdom');
-const baseTests = require('feathers-commons/lib/test/client');
+const baseTests = require('@feathersjs/commons/lib/test/client');
+
 const app = require('../fixture');
-const feathers = require('../../lib/client');
+const feathers = require('../../');
 
 describe('jQuery REST connector', function () {
   const rest = feathers.rest('http://localhost:7676');

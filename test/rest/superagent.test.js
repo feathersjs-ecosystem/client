@@ -1,7 +1,8 @@
 const superagent = require('superagent');
-const baseTests = require('feathers-commons/lib/test/client');
+const baseTests = require('@feathersjs/commons/lib/test/client');
+
 const app = require('../fixture');
-const feathers = require('../../lib/client');
+const feathers = require('../../');
 
 describe('Superagent REST connector', function () {
   const rest = feathers.rest('http://localhost:8889');

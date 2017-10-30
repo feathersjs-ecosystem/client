@@ -7,7 +7,6 @@ var socket = window.io();
 describe('Universal Feathers client browser tests', function () {
   var app = feathers()
     .configure(feathers.socketio(socket))
-    .configure(feathers.hooks())
     .use('/myservice', {
       get (id) {
         return Promise.resolve({
@@ -20,13 +19,16 @@ describe('Universal Feathers client browser tests', function () {
       }
     });
 
-  app.service('myservice').before({
-    create (hook) {
-      hook.data.hook = true;
-    }
-  }).after({
-    get (hook) {
-      hook.result.ran = true;
+  app.service('myservice').hooks({
+    before: {
+      create (hook) {
+        hook.data.hook = true;
+      }
+    },
+    after: {
+      get (hook) {
+        hook.result.ran = true;
+      }
     }
   });
 

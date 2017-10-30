@@ -1,7 +1,8 @@
-const primus = require('feathers-primus');
-const baseTests = require('feathers-commons/lib/test/client');
+const primus = require('@feathersjs/primus');
+const baseTests = require('@feathersjs/commons/lib/test/client');
+
 const app = require('../fixture');
-const feathers = require('../../lib/client');
+const feathers = require('../../');
 
 describe('Primus connector', function () {
   const client = feathers();

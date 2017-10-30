@@ -1,9 +1,8 @@
-const feathers = require('feathers');
-const hooks = require('feathers-hooks');
-const rest = require('feathers-rest');
-const bodyParser = require('body-parser');
-const memory = require('feathers-memory');
 const path = require('path');
+const feathers = require('@feathersjs/feathers');
+const express = require('@feathersjs/express');
+const rest = require('@feathersjs/express/rest');
+const memory = require('feathers-memory');
 
 // eslint-disable-next-line no-extend-native
 Object.defineProperty(Error.prototype, 'toJSON', {
@@ -33,9 +32,7 @@ module.exports = function (configurer) {
     }
   });
 
-  var app = feathers()
-    .configure(hooks())
-    // Set up REST and SocketIO APIs
+  var app = express(feathers())
     .configure(rest());
 
   if (typeof configurer === 'function') {
@@ -43,10 +40,10 @@ module.exports = function (configurer) {
   }
 
   // Parse HTTP bodies
-  app.use(bodyParser.json())
-    .use(bodyParser.urlencoded({ extended: true }))
+  app.use(express.json())
+    .use(express.urlencoded({ extended: true }))
     // Host the current directory (for index.html)
-    .use(feathers.static(path.join(__dirname, '..')))
+    .use(express.static(path.join(__dirname, '..')))
     // Host our Todos service on the /todos path
     .use('/todos', todoService);
 
@@ -57,15 +54,25 @@ module.exports = function (configurer) {
   const service = app.service('todos');
 
   service.create(testTodo);
-  service.after({
-    remove (hook) {
-      if (hook.id === null) {
-        service._uId = 0;
-        return service.create(testTodo)
-          .then(() => hook);
+  service.hooks({
+    after: {
+      remove (hook) {
+        if (hook.id === null) {
+          service._uId = 0;
+          return service.create(testTodo)
+            .then(() => hook);
+        }
       }
     }
   });
+
+  app.on('connection', connection =>
+    app.channel('general').join(connection)
+  );
+
+  if (service.publish) {
+    service.publish(() => app.channel('general'));
+  }
 
   return app;
 };

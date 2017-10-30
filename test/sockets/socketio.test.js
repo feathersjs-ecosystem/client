@@ -1,8 +1,9 @@
-const socketio = require('feathers-socketio');
 const io = require('socket.io-client');
-const baseTests = require('feathers-commons/lib/test/client');
+const socketio = require('@feathersjs/socketio');
+const baseTests = require('@feathersjs/commons/lib/test/client');
+
 const app = require('../fixture');
-const feathers = require('../../lib/client');
+const feathers = require('../../');
 
 describe('Socket.io connector', function () {
   const socket = io('http://localhost:9988');
