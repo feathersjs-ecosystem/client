@@ -3,8 +3,6 @@
 [![Greenkeeper badge](https://badges.greenkeeper.io/feathersjs/client.svg)](https://greenkeeper.io/)
 
 [![Build Status](https://travis-ci.org/feathersjs/client.png?branch=master)](https://travis-ci.org/feathersjs/client)
-[![Code Climate](https://codeclimate.com/github/feathersjs/client.png)](https://codeclimate.com/github/feathersjs/client)
-[![Test Coverage](https://codeclimate.com/github/feathersjs/client/badges/coverage.svg)](https://codeclimate.com/github/feathersjs/client/coverage)
 [![Dependency Status](https://img.shields.io/david/feathersjs/client.svg?style=flat-square)](https://david-dm.org/feathersjs/client)
 [![Download Status](https://img.shields.io/npm/dm/@feathersjs/client.svg?style=flat-square)](https://www.npmjs.com/package/@feathersjs/client)
 [![Slack Status](http://slack.feathersjs.com/badge.svg)](http://slack.feathersjs.com)
@@ -17,12 +15,12 @@
 
 While Feathers and its modules can be used on the client with an NPM compatible module loader like [Browserify](http://browserify.org/), [Webpack](https://webpack.github.io/) or [StealJS](http://stealjs.com), `@feathersjs/client` consolidates a standard set of client plugins into a single distributable that can be used standalone in the browser or with other module loaders (like [RequireJS](http://requirejs.org/)) that don't support NPM. The following modules are included:
 
-- [feathers](https://github.com/feathersjs/feathers) as `feathers` (or the default module export)
-- [feathers-hooks](https://github.com/feathersjs/feathers-hooks) as `feathers.hooks`
-- [feathers-authentication](https://github.com/feathersjs/feathers-authentication) as `feathers.authentication`
-- [feathers-rest](https://github.com/feathersjs/feathers-rest) as `feathers.rest`
-- [feathers-socketio](https://github.com/feathersjs/feathers-socketio) as `feathers.socketio`
-- [feathers-primus](https://github.com/feathersjs/feathers-primus) as `feathers.primus`
+- [@feathersjs/feathers](https://github.com/feathersjs/feathers) as `feathers` (or the default module export)
+- [@feathersjs/errors](https://github.com/feathersjs/errors) as `feathers.errors`
+- [@feathersjs/rest-client](https://github.com/feathersjs/rest-client) as `feathers.rest`
+- [@feathersjs/socketio-client](https://github.com/feathersjs/socketio-client) as `feathers.socketio`
+- [@feathers/primus-client](https://github.com/feathersjs/primus-client) as `feathers.primus`
+- [@feathersjs/authentication](https://github.com/feathersjs/feathers-authentication) as `feathers.authentication`
 
 In the browser a client that connects to the local server via websockets can be initialized like this:
 
@@ -32,7 +30,6 @@ In the browser a client that connects to the local server via websockets can be 
 <script type="text/javascript">
   var socket = io();
   var client = feathers()
-    .configure(feathers.hooks())
     .configure(feathers.socketio(socket));
   var todoService = client.service('todos');
   
@@ -50,6 +47,6 @@ For the full documentation see [the Feathers documentation](http://docs.feathers
 
 ## License
 
-Copyright (c) 2015 [Feathers contributors](https://github.com/feathersjs/client/graphs/contributors)
+Copyright (c) 2017 [Feathers contributors](https://github.com/feathersjs/client/graphs/contributors)
 
 Licensed under the [MIT license](LICENSE).
