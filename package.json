@@ -31,7 +31,7 @@
     "release:patch": "npm run reinstall && npm run add-dist && npm version patch && npm run bower && npm publish --access public",
     "release:minor": "npm run reinstall && npm run add-dist && npm version minor && npm run bower && npm publish --access public",
     "release:major": "npm run reinstall && npm run add-dist && npm version major && npm run bower && npm publish --access public",
-    "lint": "semistandard --fix",
+    "lint": "semistandard --fix test/ index.js",
     "mocha": "mocha --opts mocha.opts",
     "saucelabs": "grunt",
     "test": "npm run lint && npm run coverage",
