@@ -35,7 +35,7 @@
     "mocha": "mocha --opts mocha.opts",
     "saucelabs": "grunt",
     "test": "npm run lint && npm run coverage",
-    "ci": "npm test",
+    "ci": "npm test && npm run saucelabs",
     "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- --opts mocha.opts",
     "build": "npm run clean && npm run webpack",
     "build:test": "cd browser && webpack",
