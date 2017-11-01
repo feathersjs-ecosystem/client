@@ -621,7 +621,7 @@ module.exports = Object.assign({}, utils, args, { hooks: hooks, filterQuery: fil
 "use strict";
 
 
-module.exports = '3.0.0-pre.3';
+module.exports = '3.0.0';
 
 /***/ }),
 /* 5 */
