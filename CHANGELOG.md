@@ -1,5 +1,12 @@
 # Change Log
 
+## [v3.0.0](https://github.com/feathersjs/client/tree/v3.0.0) (2017-11-01)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.0.0-pre.1...v3.0.0)
+
+**Merged pull requests:**
+
+- Update dependencies for release [\#214](https://github.com/feathersjs/client/pull/214) ([daffl](https://github.com/daffl))
+
 ## [v3.0.0-pre.1](https://github.com/feathersjs/client/tree/v3.0.0-pre.1) (2017-10-30)
 [Full Changelog](https://github.com/feathersjs/client/compare/v2.4.0...v3.0.0-pre.1)
 
