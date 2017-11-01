@@ -20,13 +20,13 @@ While Feathers and its modules can be used on the client with an NPM compatible 
 - [@feathersjs/rest-client](https://github.com/feathersjs/rest-client) as `feathers.rest`
 - [@feathersjs/socketio-client](https://github.com/feathersjs/socketio-client) as `feathers.socketio`
 - [@feathers/primus-client](https://github.com/feathersjs/primus-client) as `feathers.primus`
-- [@feathersjs/authentication](https://github.com/feathersjs/feathers-authentication) as `feathers.authentication`
+- [@feathersjs/authentication-client](https://github.com/feathersjs/authentication-client) as `feathers.authentication`
 
 In the browser a client that connects to the local server via websockets can be initialized like this:
 
 ```html
 <script type="text/javascript" src="//unpkg.com/socket.io-client@1.7.3/dist/socket.io.js"></script>
-<script type="text/javascript" src="//unpkg.com/@feathersjs/client@^2.0.0/dist/feathers.js"></script>
+<script type="text/javascript" src="//unpkg.com/@feathersjs/client@^3.0.0/dist/feathers.js"></script>
 <script type="text/javascript">
   var socket = io();
   var client = feathers()

@@ -3,7 +3,7 @@ const webpack = require('webpack');
 const merge = require('webpack-merge');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
-function createConfig(name, isProduction = false) {
+function createConfig (name, isProduction = false) {
   const output = name === 'index' ? 'feathers' : name;
   const commons = {
     entry: `./${name}.js`,
