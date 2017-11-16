@@ -50,7 +50,7 @@
     "ignore": "jsdom"
   },
   "dependencies": {
-    "@feathersjs/feathers": "3.0.0",
+    "@feathersjs/feathers": "3.0.1",
     "@feathersjs/errors": "3.0.0",
     "@feathersjs/authentication-client": "1.0.0",
     "@feathersjs/primus-client": "1.0.0",
