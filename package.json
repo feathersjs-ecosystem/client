@@ -19,7 +19,7 @@
   "engines": {
     "node": ">= 6"
   },
-  "main": "lib.js",
+  "main": "index.js",
   "scripts": {
     "clean": "shx rm -rf dist/ && shx mkdir -p dist",
     "reinstall": "shx rm -rf node_modules && npm install",
