@@ -9,3 +9,5 @@ test/
 coverage/
 .github/
 browser/
+test/
+src/

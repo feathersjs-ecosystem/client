@@ -1,1 +1,1 @@
-module.exports = require('@feathersjs/primus-client');
+module.exports = require('./dist/primus');

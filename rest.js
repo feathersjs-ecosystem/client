@@ -1,1 +1,1 @@
-module.exports = require('@feathersjs/rest-client');
+module.exports = require('./dist/rest');

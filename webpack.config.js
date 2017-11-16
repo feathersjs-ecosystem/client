@@ -6,7 +6,7 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 function createConfig (name, isProduction = false) {
   const output = name === 'index' ? 'feathers' : name;
   const commons = {
-    entry: `./${name}.js`,
+    entry: `./src/${name}.js`,
     output: {
       library: 'feathers',
       libraryTarget: 'umd',

@@ -50,12 +50,12 @@
     "ignore": "jsdom"
   },
   "dependencies": {
-    "@feathersjs/feathers": "3.0.1",
+    "@feathersjs/authentication-client": "1.0.1",
     "@feathersjs/errors": "3.0.0",
-    "@feathersjs/authentication-client": "1.0.0",
-    "@feathersjs/primus-client": "1.0.0",
-    "@feathersjs/rest-client": "1.3.0",
-    "@feathersjs/socketio-client": "1.0.0"
+    "@feathersjs/feathers": "3.0.1",
+    "@feathersjs/primus-client": "1.0.1",
+    "@feathersjs/rest-client": "1.3.2",
+    "@feathersjs/socketio-client": "1.0.1"
   },
   "devDependencies": {
     "@feathersjs/commons": "^1.2.0",

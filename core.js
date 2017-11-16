@@ -1,1 +1,1 @@
-module.exports = require('@feathersjs/feathers');
+module.exports = require('./dist/core');

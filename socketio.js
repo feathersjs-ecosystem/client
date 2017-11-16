@@ -1,1 +1,1 @@
-module.exports = require('@feathersjs/socketio-client');
+module.exports = require('./dist/socketio');

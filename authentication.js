@@ -1,1 +1,1 @@
-module.exports = require('@feathersjs/authentication-client');
+module.exports = require('./dist/authentication');
