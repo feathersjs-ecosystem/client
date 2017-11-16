@@ -1209,7 +1209,7 @@ process.umask = function() { return 0; };
 "use strict";
 
 
-module.exports = '3.0.0';
+module.exports = '3.0.1';
 
 /***/ }),
 /* 8 */
@@ -1504,6 +1504,9 @@ createApplication.version = version;
 
 module.exports = createApplication;
 
+// For better ES module (TypeScript) compatibility
+module.exports.default = createApplication;
+
 /***/ }),
 /* 13 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -1584,6 +1587,10 @@ var application = {
     var _this = this;
 
     var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    if (typeof path !== 'string' || stripSlashes(path) === '') {
+      throw new Error('\'' + path + '\' is not a valid service path.');
+    }
 
     var location = stripSlashes(path);
     var isSubApp = typeof service.service === 'function' && service.services;

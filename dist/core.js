@@ -621,7 +621,7 @@ module.exports = Object.assign({}, utils, args, { hooks: hooks, filterQuery: fil
 "use strict";
 
 
-module.exports = '3.0.0';
+module.exports = '3.0.1';
 
 /***/ }),
 /* 5 */
@@ -657,6 +657,9 @@ function createApplication() {
 createApplication.version = version;
 
 module.exports = createApplication;
+
+// For better ES module (TypeScript) compatibility
+module.exports.default = createApplication;
 
 /***/ }),
 /* 7 */
@@ -738,6 +741,10 @@ var application = {
     var _this = this;
 
     var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    if (typeof path !== 'string' || stripSlashes(path) === '') {
+      throw new Error('\'' + path + '\' is not a valid service path.');
+    }
 
     var location = stripSlashes(path);
     var isSubApp = typeof service.service === 'function' && service.services;
