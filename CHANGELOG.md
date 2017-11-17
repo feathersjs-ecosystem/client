@@ -1,5 +1,14 @@
 # Change Log
 
+## [v3.1.0](https://github.com/feathersjs/client/tree/v3.1.0) (2017-11-16)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.0.0...v3.1.0)
+
+**Merged pull requests:**
+
+- Link client packages directly to builds and update all dependencies [\#219](https://github.com/feathersjs/client/pull/219) ([daffl](https://github.com/daffl))
+- Update @feathersjs/feathers to the latest version 🚀 [\#217](https://github.com/feathersjs/client/pull/217) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update package.json [\#215](https://github.com/feathersjs/client/pull/215) ([frank-dspeed](https://github.com/frank-dspeed))
+
 ## [v3.0.0](https://github.com/feathersjs/client/tree/v3.0.0) (2017-11-01)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.0.0-pre.1...v3.0.0)
 
