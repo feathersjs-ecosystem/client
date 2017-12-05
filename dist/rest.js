@@ -850,7 +850,7 @@ var transports = {
   angularHttpClient: AngularHttpClient
 };
 
-module.exports = function () {
+function restClient() {
   var base = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
 
   var result = { Base: Base };
@@ -886,7 +886,10 @@ module.exports = function () {
   });
 
   return result;
-};
+}
+
+module.exports = restClient;
+module.exports.default = restClient;
 
 /***/ }),
 /* 7 */

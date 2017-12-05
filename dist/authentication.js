@@ -305,7 +305,7 @@ var defaults = {
   timeout: 5000
 };
 
-module.exports = function init() {
+function init() {
   var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   var options = Object.assign({}, defaults, config);
@@ -339,8 +339,11 @@ module.exports = function init() {
       });
     }
   };
-};
+}
 
+module.exports = init;
+
+module.exports.default = init;
 module.exports.defaults = defaults;
 
 /***/ }),

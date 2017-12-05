@@ -621,7 +621,7 @@ module.exports = Object.assign({}, utils, args, { hooks: hooks, filterQuery: fil
 "use strict";
 
 
-module.exports = '3.0.1';
+module.exports = '3.0.2';
 
 /***/ }),
 /* 5 */
@@ -1823,7 +1823,11 @@ var eventHook = exports.eventHook = function eventHook() {
 
     // If this event is not being sent yet and we are not in an error hook
     if (eventName && isHookEvent && hook.type !== 'error') {
-      service.emit(eventName, hook.result, hook);
+      var results = Array.isArray(hook.result) ? hook.result : [hook.result];
+
+      results.forEach(function (element) {
+        return service.emit(eventName, element, hook);
+      });
     }
   };
 };

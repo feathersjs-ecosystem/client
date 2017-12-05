@@ -293,7 +293,7 @@ module.exports = __webpack_require__(2);
 
 var Service = __webpack_require__(3);
 
-module.exports = function (connection, options) {
+function socketioClient(connection, options) {
   if (!connection) {
     throw new Error('Socket.io connection needs to be provided');
   }
@@ -328,7 +328,10 @@ module.exports = function (connection, options) {
   initialize.service = defaultService;
 
   return initialize;
-};
+}
+
+module.exports = socketioClient;
+module.exports.default = socketioClient;
 
 /***/ }),
 /* 3 */

@@ -1209,7 +1209,7 @@ process.umask = function() { return 0; };
 "use strict";
 
 
-module.exports = '3.0.1';
+module.exports = '3.0.2';
 
 /***/ }),
 /* 8 */
@@ -2467,7 +2467,11 @@ var eventHook = exports.eventHook = function eventHook() {
 
     // If this event is not being sent yet and we are not in an error hook
     if (eventName && isHookEvent && hook.type !== 'error') {
-      service.emit(eventName, hook.result, hook);
+      var results = Array.isArray(hook.result) ? hook.result : [hook.result];
+
+      results.forEach(function (element) {
+        return service.emit(eventName, element, hook);
+      });
     }
   };
 };
@@ -3020,7 +3024,7 @@ var defaults = {
   timeout: 5000
 };
 
-module.exports = function init() {
+function init() {
   var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   var options = Object.assign({}, defaults, config);
@@ -3054,8 +3058,11 @@ module.exports = function init() {
       });
     }
   };
-};
+}
 
+module.exports = init;
+
+module.exports.default = init;
 module.exports.defaults = defaults;
 
 /***/ }),
@@ -3702,7 +3709,7 @@ var transports = {
   angularHttpClient: AngularHttpClient
 };
 
-module.exports = function () {
+function restClient() {
   var base = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
 
   var result = { Base: Base };
@@ -3738,7 +3745,10 @@ module.exports = function () {
   });
 
   return result;
-};
+}
+
+module.exports = restClient;
+module.exports.default = restClient;
 
 /***/ }),
 /* 33 */
@@ -4560,7 +4570,7 @@ module.exports = AngularHttpService;
 
 var Service = __webpack_require__(10);
 
-module.exports = function (connection, options) {
+function socketioClient(connection, options) {
   if (!connection) {
     throw new Error('Socket.io connection needs to be provided');
   }
@@ -4595,7 +4605,10 @@ module.exports = function (connection, options) {
   initialize.service = defaultService;
 
   return initialize;
-};
+}
+
+module.exports = socketioClient;
+module.exports.default = socketioClient;
 
 /***/ }),
 /* 44 */
@@ -4761,7 +4774,7 @@ module.exports = function () {
 
 var Service = __webpack_require__(10);
 
-module.exports = function (connection, options) {
+function primusClient(connection, options) {
   if (!connection) {
     throw new Error('Primus connection needs to be provided');
   }
@@ -4787,7 +4800,10 @@ module.exports = function (connection, options) {
   initialize.service = defaultService;
 
   return initialize;
-};
+}
+
+module.exports = primusClient;
+module.exports.default = primusClient;
 
 /***/ })
 /******/ ]);
