@@ -1,5 +1,15 @@
 # Change Log
 
+## [v3.1.1](https://github.com/feathersjs/client/tree/v3.1.1) (2017-12-05)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.1.0...v3.1.1)
+
+**Merged pull requests:**
+
+- Update @feathersjs/feathers to the latest version 🚀 [\#224](https://github.com/feathersjs/client/pull/224) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update feathers-memory to the latest version 🚀 [\#223](https://github.com/feathersjs/client/pull/223) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/errors to the latest version 🚀 [\#222](https://github.com/feathersjs/client/pull/222) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/errors to the latest version 🚀 [\#221](https://github.com/feathersjs/client/pull/221) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
 ## [v3.1.0](https://github.com/feathersjs/client/tree/v3.1.0) (2017-11-16)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.0.0...v3.1.0)
 
