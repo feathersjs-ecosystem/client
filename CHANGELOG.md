@@ -1,5 +1,17 @@
 # Change Log
 
+## [v3.1.2](https://github.com/feathersjs/client/tree/v3.1.2) (2018-01-02)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.1.1...v3.1.2)
+
+**Closed issues:**
+
+- Socket.io on iOS and Firefox don't work [\#225](https://github.com/feathersjs/client/issues/225)
+
+**Merged pull requests:**
+
+- Update @feathersjs/feathers to the latest version 🚀 [\#227](https://github.com/feathersjs/client/pull/227) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update semistandard to the latest version 🚀 [\#226](https://github.com/feathersjs/client/pull/226) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
 ## [v3.1.1](https://github.com/feathersjs/client/tree/v3.1.1) (2017-12-05)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.1.0...v3.1.1)
 
