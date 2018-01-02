@@ -1209,7 +1209,7 @@ process.umask = function() { return 0; };
 "use strict";
 
 
-module.exports = '3.0.2';
+module.exports = '3.0.3';
 
 /***/ }),
 /* 8 */
@@ -2907,7 +2907,6 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
       // Create the hook object that gets passed through
       var hookObject = createHookObject(method, args, {
         type: 'before', // initial hook object type
-        returnHook: returnHook,
         service: service,
         app: app
       });
@@ -2950,8 +2949,8 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
       }).then(function (hookObject) {
         return (
           // Finally, return the result
-          // Or the hook object if the `__returnHook` flag is set
-          hookObject.returnHook ? hookObject : hookObject.result
+          // Or the hook object if the `returnHook` flag is set
+          returnHook ? hookObject : hookObject.result
         );
       })
       // Handle errors
@@ -2970,16 +2969,14 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
         });
 
         return processHooks.call(service, hookChain, errorHookObject).then(function (hook) {
-          if (errorHookObject.returnHook) {
-            // Return either the complete hook if the `__returnHook` flag is set
-            return Promise.reject(hook);
-          } else if (hook.result) {
-            // Return the result if it is set so you can swallow errors
-            return Promise.resolve(hook.result);
+          if (returnHook) {
+            // Either resolve or reject with the hook object
+            return hook.result ? hook : Promise.reject(hook);
           }
 
-          // If none of the above, return the error
-          return Promise.reject(hook.error);
+          // Otherwise return either the result if set (to swallow errors)
+          // Or reject with the hook error
+          return hook.result ? hook.result : Promise.reject(hook.error);
         });
       });
     };
