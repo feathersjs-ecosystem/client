@@ -55,7 +55,7 @@
     "@feathersjs/feathers": "3.0.3",
     "@feathersjs/primus-client": "1.0.2",
     "@feathersjs/rest-client": "1.3.2",
-    "@feathersjs/socketio-client": "1.0.1"
+    "@feathersjs/socketio-client": "1.0.2"
   },
   "devDependencies": {
     "@feathersjs/commons": "^1.2.0",
