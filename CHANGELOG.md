@@ -1,5 +1,27 @@
 # Change Log
 
+## [v3.2.0](https://github.com/feathersjs/client/tree/v3.2.0) (2018-01-24)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.1.2...v3.2.0)
+
+**Closed issues:**
+
+- Index.d.ts has a lack of return-type annotation [\#238](https://github.com/feathersjs/client/issues/238)
+- feathers rest client call get but server execute find [\#237](https://github.com/feathersjs/client/issues/237)
+- EventEmitter memory leak detected [\#236](https://github.com/feathersjs/client/issues/236)
+
+**Merged pull requests:**
+
+- Update @feathersjs/errors to the latest version 🚀 [\#240](https://github.com/feathersjs/client/pull/240) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update mocha to the latest version 🚀 [\#239](https://github.com/feathersjs/client/pull/239) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update ws to the latest version 🚀 [\#235](https://github.com/feathersjs/client/pull/235) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#234](https://github.com/feathersjs/client/pull/234) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/rest-client to the latest version 🚀 [\#233](https://github.com/feathersjs/client/pull/233) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#232](https://github.com/feathersjs/client/pull/232) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/authentication-client to the latest version 🚀 [\#231](https://github.com/feathersjs/client/pull/231) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/socketio-client to the latest version 🚀 [\#230](https://github.com/feathersjs/client/pull/230) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/primus-client to the latest version 🚀 [\#229](https://github.com/feathersjs/client/pull/229) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/errors to the latest version 🚀 [\#228](https://github.com/feathersjs/client/pull/228) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
 ## [v3.1.2](https://github.com/feathersjs/client/tree/v3.1.2) (2018-01-02)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.1.1...v3.1.2)
 
