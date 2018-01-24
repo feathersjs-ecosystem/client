@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@feathersjs/authentication-client": "1.0.2",
-    "@feathersjs/errors": "3.2.1",
+    "@feathersjs/errors": "3.2.2",
     "@feathersjs/feathers": "3.0.5",
     "@feathersjs/primus-client": "1.0.2",
     "@feathersjs/rest-client": "1.3.3",
