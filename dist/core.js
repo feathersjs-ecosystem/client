@@ -77,6 +77,208 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
+"use strict";
+
+
+var utils = __webpack_require__(1);
+var hooks = __webpack_require__(7);
+var args = __webpack_require__(8);
+var filterQuery = __webpack_require__(9);
+
+module.exports = Object.assign({}, utils, args, { hooks: hooks, filterQuery: filterQuery });
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+// Removes all leading and trailing slashes from a path
+exports.stripSlashes = function stripSlashes(name) {
+  return name.replace(/^(\/*)|(\/*)$/g, '');
+};
+
+// A set of lodash-y utility functions that use ES6
+var _ = exports._ = {
+  each: function each(obj, callback) {
+    if (obj && typeof obj.forEach === 'function') {
+      obj.forEach(callback);
+    } else if (_.isObject(obj)) {
+      Object.keys(obj).forEach(function (key) {
+        return callback(obj[key], key);
+      });
+    }
+  },
+  some: function some(value, callback) {
+    return Object.keys(value).map(function (key) {
+      return [value[key], key];
+    }).some(function (_ref) {
+      var val = _ref[0],
+          key = _ref[1];
+      return callback(val, key);
+    });
+  },
+  every: function every(value, callback) {
+    return Object.keys(value).map(function (key) {
+      return [value[key], key];
+    }).every(function (_ref2) {
+      var val = _ref2[0],
+          key = _ref2[1];
+      return callback(val, key);
+    });
+  },
+  keys: function keys(obj) {
+    return Object.keys(obj);
+  },
+  values: function values(obj) {
+    return _.keys(obj).map(function (key) {
+      return obj[key];
+    });
+  },
+  isMatch: function isMatch(obj, item) {
+    return _.keys(item).every(function (key) {
+      return obj[key] === item[key];
+    });
+  },
+  isEmpty: function isEmpty(obj) {
+    return _.keys(obj).length === 0;
+  },
+  isObject: function isObject(item) {
+    return (typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object' && !Array.isArray(item) && item !== null;
+  },
+  extend: function extend() {
+    return Object.assign.apply(Object, arguments);
+  },
+  omit: function omit(obj) {
+    var result = _.extend({}, obj);
+
+    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      keys[_key - 1] = arguments[_key];
+    }
+
+    keys.forEach(function (key) {
+      return delete result[key];
+    });
+    return result;
+  },
+  pick: function pick(source) {
+    var result = {};
+
+    for (var _len2 = arguments.length, keys = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+      keys[_key2 - 1] = arguments[_key2];
+    }
+
+    keys.forEach(function (key) {
+      if (source[key] !== undefined) {
+        result[key] = source[key];
+      }
+    });
+    return result;
+  },
+
+
+  // Recursively merge the source object into the target object
+  merge: function merge(target, source) {
+    if (_.isObject(target) && _.isObject(source)) {
+      Object.keys(source).forEach(function (key) {
+        if (_.isObject(source[key])) {
+          if (!target[key]) {
+            var _Object$assign;
+
+            Object.assign(target, (_Object$assign = {}, _Object$assign[key] = {}, _Object$assign));
+          }
+
+          _.merge(target[key], source[key]);
+        } else {
+          var _Object$assign2;
+
+          Object.assign(target, (_Object$assign2 = {}, _Object$assign2[key] = source[key], _Object$assign2));
+        }
+      });
+    }
+    return target;
+  }
+};
+
+// Return a function that filters a result object or array
+// and picks only the fields passed as `params.query.$select`
+// and additional `otherFields`
+exports.select = function select(params) {
+  var fields = params && params.query && params.query.$select;
+
+  for (var _len3 = arguments.length, otherFields = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+    otherFields[_key3 - 1] = arguments[_key3];
+  }
+
+  if (Array.isArray(fields) && otherFields.length) {
+    fields.push.apply(fields, otherFields);
+  }
+
+  var convert = function convert(result) {
+    if (!Array.isArray(fields)) {
+      return result;
+    }
+
+    return _.pick.apply(_, [result].concat(fields));
+  };
+
+  return function (result) {
+    if (Array.isArray(result)) {
+      return result.map(convert);
+    }
+
+    return convert(result);
+  };
+};
+
+// An in-memory sorting function according to the
+// $sort special query parameter
+exports.sorter = function sorter($sort) {
+  return function (first, second) {
+    var comparator = 0;
+    _.each($sort, function (modifier, key) {
+      modifier = parseInt(modifier, 10);
+
+      if (first[key] < second[key]) {
+        comparator -= 1 * modifier;
+      }
+
+      if (first[key] > second[key]) {
+        comparator += 1 * modifier;
+      }
+    });
+    return comparator;
+  };
+};
+
+// Duck-checks if an object looks like a promise
+exports.isPromise = function isPromise(result) {
+  return _.isObject(result) && typeof result.then === 'function';
+};
+
+exports.makeUrl = function makeUrl(path) {
+  var app = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  var get = typeof app.get === 'function' ? app.get.bind(app) : function () {};
+  var env = get('env') || process.env.NODE_ENV;
+  var host = get('host') || process.env.HOST_NAME || 'localhost';
+  var protocol = env === 'development' || env === 'test' || env === undefined ? 'http' : 'https';
+  var PORT = get('port') || process.env.PORT || 3030;
+  var port = env === 'development' || env === 'test' || env === undefined ? ':' + PORT : '';
+
+  path = path || '';
+
+  return protocol + '://' + host + port + '/' + exports.stripSlashes(path);
+};
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* global define */
 /**
  * A base object for ECMAScript 5 style prototypal inheritance.
@@ -225,193 +427,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 
 /***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-// Removes all leading and trailing slashes from a path
-exports.stripSlashes = function stripSlashes(name) {
-  return name.replace(/^(\/*)|(\/*)$/g, '');
-};
-
-// A set of lodash-y utility functions that use ES6
-var _ = exports._ = {
-  each: function each(obj, callback) {
-    if (obj && typeof obj.forEach === 'function') {
-      obj.forEach(callback);
-    } else if (_.isObject(obj)) {
-      Object.keys(obj).forEach(function (key) {
-        return callback(obj[key], key);
-      });
-    }
-  },
-  some: function some(value, callback) {
-    return Object.keys(value).map(function (key) {
-      return [value[key], key];
-    }).some(function (_ref) {
-      var val = _ref[0],
-          key = _ref[1];
-      return callback(val, key);
-    });
-  },
-  every: function every(value, callback) {
-    return Object.keys(value).map(function (key) {
-      return [value[key], key];
-    }).every(function (_ref2) {
-      var val = _ref2[0],
-          key = _ref2[1];
-      return callback(val, key);
-    });
-  },
-  keys: function keys(obj) {
-    return Object.keys(obj);
-  },
-  values: function values(obj) {
-    return _.keys(obj).map(function (key) {
-      return obj[key];
-    });
-  },
-  isMatch: function isMatch(obj, item) {
-    return _.keys(item).every(function (key) {
-      return obj[key] === item[key];
-    });
-  },
-  isEmpty: function isEmpty(obj) {
-    return _.keys(obj).length === 0;
-  },
-  isObject: function isObject(item) {
-    return (typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object' && !Array.isArray(item) && item !== null;
-  },
-  extend: function extend() {
-    return Object.assign.apply(Object, arguments);
-  },
-  omit: function omit(obj) {
-    var result = _.extend({}, obj);
-
-    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      keys[_key - 1] = arguments[_key];
-    }
-
-    keys.forEach(function (key) {
-      return delete result[key];
-    });
-    return result;
-  },
-  pick: function pick(source) {
-    var result = {};
-
-    for (var _len2 = arguments.length, keys = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-      keys[_key2 - 1] = arguments[_key2];
-    }
-
-    keys.forEach(function (key) {
-      result[key] = source[key];
-    });
-    return result;
-  },
-
-
-  // Recursively merge the source object into the target object
-  merge: function merge(target, source) {
-    if (_.isObject(target) && _.isObject(source)) {
-      Object.keys(source).forEach(function (key) {
-        if (_.isObject(source[key])) {
-          if (!target[key]) {
-            var _Object$assign;
-
-            Object.assign(target, (_Object$assign = {}, _Object$assign[key] = {}, _Object$assign));
-          }
-
-          _.merge(target[key], source[key]);
-        } else {
-          var _Object$assign2;
-
-          Object.assign(target, (_Object$assign2 = {}, _Object$assign2[key] = source[key], _Object$assign2));
-        }
-      });
-    }
-    return target;
-  }
-};
-
-// Return a function that filters a result object or array
-// and picks only the fields passed as `params.query.$select`
-// and additional `otherFields`
-exports.select = function select(params) {
-  var fields = params && params.query && params.query.$select;
-
-  for (var _len3 = arguments.length, otherFields = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-    otherFields[_key3 - 1] = arguments[_key3];
-  }
-
-  if (Array.isArray(fields) && otherFields.length) {
-    fields.push.apply(fields, otherFields);
-  }
-
-  var convert = function convert(result) {
-    if (!Array.isArray(fields)) {
-      return result;
-    }
-
-    return _.pick.apply(_, [result].concat(fields));
-  };
-
-  return function (result) {
-    if (Array.isArray(result)) {
-      return result.map(convert);
-    }
-
-    return convert(result);
-  };
-};
-
-// An in-memory sorting function according to the
-// $sort special query parameter
-exports.sorter = function sorter($sort) {
-  return function (first, second) {
-    var comparator = 0;
-    _.each($sort, function (modifier, key) {
-      modifier = parseInt(modifier, 10);
-
-      if (first[key] < second[key]) {
-        comparator -= 1 * modifier;
-      }
-
-      if (first[key] > second[key]) {
-        comparator += 1 * modifier;
-      }
-    });
-    return comparator;
-  };
-};
-
-// Duck-checks if an object looks like a promise
-exports.isPromise = function isPromise(result) {
-  return _.isObject(result) && typeof result.then === 'function';
-};
-
-exports.makeUrl = function makeUrl(path) {
-  var app = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  var get = typeof app.get === 'function' ? app.get.bind(app) : function () {};
-  var env = get('env') || process.env.NODE_ENV;
-  var host = get('host') || process.env.HOST_NAME || 'localhost';
-  var protocol = env === 'development' || env === 'test' || env === undefined ? 'http' : 'https';
-  var PORT = get('port') || process.env.PORT || 3030;
-  var port = env === 'development' || env === 'test' || env === undefined ? ':' + PORT : '';
-
-  path = path || '';
-
-  return protocol + '://' + host + port + '/' + exports.stripSlashes(path);
-};
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
-
-/***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -601,27 +617,13 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var utils = __webpack_require__(1);
-var hooks = __webpack_require__(11);
-var args = __webpack_require__(12);
-var filterQuery = __webpack_require__(13);
-
-module.exports = Object.assign({}, utils, args, { hooks: hooks, filterQuery: filterQuery });
-
-/***/ }),
 /* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-module.exports = '3.0.5';
+module.exports = '3.1.0';
 
 /***/ }),
 /* 5 */
@@ -639,8 +641,11 @@ module.exports = __webpack_require__(6);
 "use strict";
 
 
-var Proto = __webpack_require__(0);
-var Application = __webpack_require__(7);
+var _require = __webpack_require__(0),
+    hooks = _require.hooks;
+
+var Proto = __webpack_require__(2);
+var Application = __webpack_require__(10);
 var version = __webpack_require__(4);
 
 function createApplication() {
@@ -655,6 +660,7 @@ function createApplication() {
 }
 
 createApplication.version = version;
+createApplication.SKIP = hooks.SKIP;
 
 module.exports = createApplication;
 
@@ -668,12 +674,422 @@ module.exports.default = createApplication;
 "use strict";
 
 
-var debug = __webpack_require__(8)('feathers:application');
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _require = __webpack_require__(3),
+var _require$_ = __webpack_require__(1)._,
+    each = _require$_.each,
+    pick = _require$_.pick;
+
+function convertGetOrRemove(args) {
+  var id = args[0],
+      _args$ = args[1],
+      params = _args$ === undefined ? {} : _args$;
+
+
+  return { id: id, params: params };
+}
+
+function convertUpdateOrPatch(args) {
+  var id = args[0],
+      data = args[1],
+      _args$2 = args[2],
+      params = _args$2 === undefined ? {} : _args$2;
+
+
+  return { id: id, data: data, params: params };
+}
+
+// To skip further hooks
+var SKIP = exports.SKIP = typeof Symbol !== 'undefined' ? Symbol('__feathersSkipHooks') : '__feathersSkipHooks';
+
+// Converters from service method arguments to hook object properties
+exports.converters = {
+  find: function find(args) {
+    var _args$3 = args[0],
+        params = _args$3 === undefined ? {} : _args$3;
+
+
+    return { params: params };
+  },
+  create: function create(args) {
+    var data = args[0],
+        _args$4 = args[1],
+        params = _args$4 === undefined ? {} : _args$4;
+
+
+    return { data: data, params: params };
+  },
+
+  get: convertGetOrRemove,
+  remove: convertGetOrRemove,
+  update: convertUpdateOrPatch,
+  patch: convertUpdateOrPatch
+};
+
+// Create a hook object for a method with arguments `args`
+// `data` is additional data that will be added
+exports.createHookObject = function createHookObject(method, args) {
+  var data = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+  var hook = exports.converters[method](args);
+
+  Object.defineProperty(hook, 'toJSON', {
+    value: function value() {
+      return pick(this, 'type', 'method', 'path', 'params', 'id', 'data', 'result', 'error');
+    }
+  });
+
+  return Object.assign(hook, data, {
+    method: method,
+    // A dynamic getter that returns the path of the service
+    get path() {
+      var app = data.app,
+          service = data.service;
+
+
+      if (!service || !app || !app.services) {
+        return null;
+      }
+
+      return Object.keys(app.services).find(function (path) {
+        return app.services[path] === service;
+      });
+    }
+  });
+};
+
+// Fallback used by `makeArguments` which usually won't be used
+exports.defaultMakeArguments = function defaultMakeArguments(hook) {
+  var result = [];
+
+  if (typeof hook.id !== 'undefined') {
+    result.push(hook.id);
+  }
+
+  if (hook.data) {
+    result.push(hook.data);
+  }
+
+  result.push(hook.params || {});
+
+  return result;
+};
+
+// Turns a hook object back into a list of arguments
+// to call a service method with
+exports.makeArguments = function makeArguments(hook) {
+  switch (hook.method) {
+    case 'find':
+      return [hook.params];
+    case 'get':
+    case 'remove':
+      return [hook.id, hook.params];
+    case 'update':
+    case 'patch':
+      return [hook.id, hook.data, hook.params];
+    case 'create':
+      return [hook.data, hook.params];
+  }
+
+  return exports.defaultMakeArguments(hook);
+};
+
+// Converts different hook registration formats into the
+// same internal format
+exports.convertHookData = function convertHookData(obj) {
+  var hook = {};
+
+  if (Array.isArray(obj)) {
+    hook = { all: obj };
+  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object') {
+    hook = { all: [obj] };
+  } else {
+    each(obj, function (value, key) {
+      hook[key] = !Array.isArray(value) ? [value] : value;
+    });
+  }
+
+  return hook;
+};
+
+// Duck-checks a given object to be a hook object
+// A valid hook object has `type` and `method`
+exports.isHookObject = function isHookObject(hookObject) {
+  return (typeof hookObject === 'undefined' ? 'undefined' : _typeof(hookObject)) === 'object' && typeof hookObject.method === 'string' && typeof hookObject.type === 'string';
+};
+
+// Returns all service and application hooks combined
+// for a given method and type `appLast` sets if the hooks
+// from `app` should be added last (or first by default)
+exports.getHooks = function getHooks(app, service, type, method) {
+  var appLast = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
+
+  var appHooks = app.__hooks[type][method] || [];
+  var serviceHooks = service.__hooks[type][method] || [];
+
+  if (appLast) {
+    // Run hooks in the order of service -> app -> finally
+    return serviceHooks.concat(appHooks);
+  }
+
+  return appHooks.concat(serviceHooks);
+};
+
+exports.processHooks = function processHooks(hooks, initialHookObject) {
+  var _this = this;
+
+  var hookObject = initialHookObject;
+  var updateCurrentHook = function updateCurrentHook(current) {
+    // Either use the returned hook object or the current
+    // hook object from the chain if the hook returned undefined
+    if (current) {
+      if (current === SKIP) {
+        return SKIP;
+      }
+
+      if (!exports.isHookObject(current)) {
+        throw new Error(hookObject.type + ' hook for \'' + hookObject.method + '\' method returned invalid hook object');
+      }
+
+      hookObject = current;
+    }
+
+    return hookObject;
+  };
+  // First step of the hook chain with the initial hook object
+  var promise = Promise.resolve(hookObject);
+
+  // Go through all hooks and chain them into our promise
+  hooks.forEach(function (fn) {
+    var hook = fn.bind(_this);
+
+    if (hook.length === 2) {
+      // function(hook, next)
+      promise = promise.then(function (hookObject) {
+        return hookObject === SKIP ? SKIP : new Promise(function (resolve, reject) {
+          hook(hookObject, function (error, result) {
+            return error ? reject(error) : resolve(result);
+          });
+        });
+      });
+    } else {
+      // function(hook)
+      promise = promise.then(function (hookObject) {
+        return hookObject === SKIP ? SKIP : hook(hookObject);
+      });
+    }
+
+    // Use the returned hook object or the old one
+    promise = promise.then(updateCurrentHook);
+  });
+
+  return promise.then(function () {
+    return hookObject;
+  }).catch(function (error) {
+    // Add the hook information to any errors
+    error.hook = hookObject;
+    throw error;
+  });
+};
+
+// Add `.hooks` functionality to an object
+exports.enableHooks = function enableHooks(obj, methods, types) {
+  if (typeof obj.hooks === 'function') {
+    return obj;
+  }
+
+  var __hooks = {};
+
+  types.forEach(function (type) {
+    // Initialize properties where hook functions are stored
+    __hooks[type] = {};
+  });
+
+  // Add non-enumerable `__hooks` property to the object
+  Object.defineProperty(obj, '__hooks', {
+    value: __hooks
+  });
+
+  return Object.assign(obj, {
+    hooks: function hooks(allHooks) {
+      var _this2 = this;
+
+      each(allHooks, function (obj, type) {
+        if (!_this2.__hooks[type]) {
+          throw new Error('\'' + type + '\' is not a valid hook type');
+        }
+
+        var hooks = exports.convertHookData(obj);
+
+        each(hooks, function (value, method) {
+          if (method !== 'all' && methods.indexOf(method) === -1) {
+            throw new Error('\'' + method + '\' is not a valid hook method');
+          }
+        });
+
+        methods.forEach(function (method) {
+          var myHooks = _this2.__hooks[type][method] || (_this2.__hooks[type][method] = []);
+
+          if (hooks.all) {
+            myHooks.push.apply(myHooks, hooks.all);
+          }
+
+          if (hooks[method]) {
+            myHooks.push.apply(myHooks, hooks[method]);
+          }
+        });
+      });
+
+      return this;
+    }
+  });
+};
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var paramCounts = {
+  find: 1,
+  get: 2,
+  create: 2,
+  update: 3,
+  patch: 3,
+  remove: 2
+};
+
+function isObjectOrArray(value) {
+  return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value !== null;
+}
+
+exports.validateArguments = function validateArguments(method, args) {
+  // Check if the last argument is a callback which are no longer supported
+  if (typeof args[args.length - 1] === 'function') {
+    throw new Error('Callbacks are no longer supported. Use Promises or async/await instead.');
+  }
+
+  var methodParamCount = paramCounts[method];
+
+  // Check the number of arguments and throw an error if too many are provided
+  if (methodParamCount && args.length > methodParamCount) {
+    throw new Error('Too many arguments for \'' + method + '\' method');
+  }
+
+  // `params` is always the last argument
+  var params = args[methodParamCount - 1];
+
+  // Check if `params` is an object (can be undefined though)
+  if (params !== undefined && !isObjectOrArray(params)) {
+    throw new Error('Params for \'' + method + '\' method must be an object');
+  }
+
+  // Validate other arguments for each method
+  switch (method) {
+    case 'create':
+      if (!isObjectOrArray(args[0])) {
+        throw new Error('A data object must be provided to the \'create\' method');
+      }
+      break;
+    case 'get':
+    case 'remove':
+    case 'update':
+    case 'patch':
+      if (args[0] === undefined) {
+        throw new Error('An id must be provided to the \'' + method + '\' method');
+      }
+
+      if ((method === 'update' || method === 'patch') && !isObjectOrArray(args[1])) {
+        throw new Error('A data object must be provided to the \'' + method + '\' method');
+      }
+  }
+
+  return true;
+};
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _require = __webpack_require__(1),
+    _ = _require._;
+
+// Officially supported query parameters ($populate is kind of special)
+
+
+var PROPERTIES = ['$sort', '$limit', '$skip', '$select', '$populate'];
+
+function parse(number) {
+  if (typeof number !== 'undefined') {
+    return Math.abs(parseInt(number, 10));
+  }
+}
+
+// Returns the pagination limit and will take into account the
+// default and max pagination settings
+function getLimit(limit, paginate) {
+  if (paginate && paginate.default) {
+    var lower = typeof limit === 'number' ? limit : paginate.default;
+    var upper = typeof paginate.max === 'number' ? paginate.max : Number.MAX_VALUE;
+
+    return Math.min(lower, upper);
+  }
+
+  return limit;
+}
+
+// Makes sure that $sort order is always converted to an actual number
+function convertSort(sort) {
+  if ((typeof sort === 'undefined' ? 'undefined' : _typeof(sort)) !== 'object' || Array.isArray(sort)) {
+    return sort;
+  }
+
+  var result = {};
+
+  Object.keys(sort).forEach(function (key) {
+    result[key] = _typeof(sort[key]) === 'object' ? sort[key] : parseInt(sort[key], 10);
+  });
+
+  return result;
+}
+
+// Converts Feathers special query parameters and pagination settings
+// and returns them separately a `filters` and the rest of the query
+// as `query`
+module.exports = function (query, paginate) {
+  var filters = {
+    $sort: convertSort(query.$sort),
+    $limit: getLimit(parse(query.$limit), paginate),
+    $skip: parse(query.$skip),
+    $select: query.$select,
+    $populate: query.$populate
+  };
+
+  return { filters: filters, query: _.omit.apply(_, [query].concat(PROPERTIES)) };
+};
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var debug = __webpack_require__(11)('feathers:application');
+
+var _require = __webpack_require__(0),
     stripSlashes = _require.stripSlashes;
 
-var Uberproto = __webpack_require__(0);
+var Uberproto = __webpack_require__(2);
 var events = __webpack_require__(14);
 var hooks = __webpack_require__(16);
 var version = __webpack_require__(4);
@@ -818,7 +1234,7 @@ var application = {
 module.exports = application;
 
 /***/ }),
-/* 8 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process) {/**
@@ -827,7 +1243,7 @@ module.exports = application;
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(9);
+exports = module.exports = __webpack_require__(12);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -1017,10 +1433,10 @@ function localstorage() {
   } catch (e) {}
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
-/* 9 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -1036,7 +1452,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(10);
+exports.humanize = __webpack_require__(13);
 
 /**
  * Active `debug` instances.
@@ -1251,7 +1667,7 @@ function coerce(val) {
 
 
 /***/ }),
-/* 10 */
+/* 13 */
 /***/ (function(module, exports) {
 
 /**
@@ -1409,397 +1825,6 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var each = __webpack_require__(1)._.each;
-
-function convertGetOrRemove(args) {
-  var id = args[0],
-      _args$ = args[1],
-      params = _args$ === undefined ? {} : _args$;
-
-
-  return { id: id, params: params };
-}
-
-function convertUpdateOrPatch(args) {
-  var id = args[0],
-      data = args[1],
-      _args$2 = args[2],
-      params = _args$2 === undefined ? {} : _args$2;
-
-
-  return { id: id, data: data, params: params };
-}
-
-// Converters from service method arguments to hook object properties
-exports.converters = {
-  find: function find(args) {
-    var _args$3 = args[0],
-        params = _args$3 === undefined ? {} : _args$3;
-
-
-    return { params: params };
-  },
-  create: function create(args) {
-    var data = args[0],
-        _args$4 = args[1],
-        params = _args$4 === undefined ? {} : _args$4;
-
-
-    return { data: data, params: params };
-  },
-
-  get: convertGetOrRemove,
-  remove: convertGetOrRemove,
-  update: convertUpdateOrPatch,
-  patch: convertUpdateOrPatch
-};
-
-// Create a hook object for a method with arguments `args`
-// `data` is additional data that will be added
-exports.createHookObject = function createHookObject(method, args) {
-  var data = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-  var hook = exports.converters[method](args);
-
-  return Object.assign(hook, data, {
-    method: method,
-    // A dynamic getter that returns the path of the service
-    get path() {
-      var app = data.app,
-          service = data.service;
-
-
-      if (!service || !app || !app.services) {
-        return null;
-      }
-
-      return Object.keys(app.services).find(function (path) {
-        return app.services[path] === service;
-      });
-    }
-  });
-};
-
-// Fallback used by `makeArguments` which usually won't be used
-exports.defaultMakeArguments = function defaultMakeArguments(hook) {
-  var result = [];
-
-  if (typeof hook.id !== 'undefined') {
-    result.push(hook.id);
-  }
-
-  if (hook.data) {
-    result.push(hook.data);
-  }
-
-  result.push(hook.params || {});
-
-  return result;
-};
-
-// Turns a hook object back into a list of arguments
-// to call a service method with
-exports.makeArguments = function makeArguments(hook) {
-  switch (hook.method) {
-    case 'find':
-      return [hook.params];
-    case 'get':
-    case 'remove':
-      return [hook.id, hook.params];
-    case 'update':
-    case 'patch':
-      return [hook.id, hook.data, hook.params];
-    case 'create':
-      return [hook.data, hook.params];
-  }
-
-  return exports.defaultMakeArguments(hook);
-};
-
-// Converts different hook registration formats into the
-// same internal format
-exports.convertHookData = function convertHookData(obj) {
-  var hook = {};
-
-  if (Array.isArray(obj)) {
-    hook = { all: obj };
-  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object') {
-    hook = { all: [obj] };
-  } else {
-    each(obj, function (value, key) {
-      hook[key] = !Array.isArray(value) ? [value] : value;
-    });
-  }
-
-  return hook;
-};
-
-// Duck-checks a given object to be a hook object
-// A valid hook object has `type` and `method`
-exports.isHookObject = function isHookObject(hookObject) {
-  return (typeof hookObject === 'undefined' ? 'undefined' : _typeof(hookObject)) === 'object' && typeof hookObject.method === 'string' && typeof hookObject.type === 'string';
-};
-
-// Returns all service and application hooks combined
-// for a given method and type `appLast` sets if the hooks
-// from `app` should be added last (or first by default)
-exports.getHooks = function getHooks(app, service, type, method) {
-  var appLast = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
-
-  var appHooks = app.__hooks[type][method] || [];
-  var serviceHooks = service.__hooks[type][method] || [];
-
-  if (appLast) {
-    // Run hooks in the order of service -> app -> finally
-    return serviceHooks.concat(appHooks);
-  }
-
-  return appHooks.concat(serviceHooks);
-};
-
-exports.processHooks = function processHooks(hooks, initialHookObject) {
-  var _this = this;
-
-  var hookObject = initialHookObject;
-  var updateCurrentHook = function updateCurrentHook(current) {
-    // Either use the returned hook object or the current
-    // hook object from the chain if the hook returned undefined
-    if (current) {
-      if (!exports.isHookObject(current)) {
-        throw new Error(hookObject.type + ' hook for \'' + hookObject.method + '\' method returned invalid hook object');
-      }
-
-      hookObject = current;
-    }
-
-    return hookObject;
-  };
-  // First step of the hook chain with the initial hook object
-  var promise = Promise.resolve(hookObject);
-
-  // Go through all hooks and chain them into our promise
-  hooks.forEach(function (fn) {
-    var hook = fn.bind(_this);
-
-    if (hook.length === 2) {
-      // function(hook, next)
-      promise = promise.then(function (hookObject) {
-        return new Promise(function (resolve, reject) {
-          hook(hookObject, function (error, result) {
-            return error ? reject(error) : resolve(result);
-          });
-        });
-      });
-    } else {
-      // function(hook)
-      promise = promise.then(hook);
-    }
-
-    // Use the returned hook object or the old one
-    promise = promise.then(updateCurrentHook);
-  });
-
-  return promise.catch(function (error) {
-    // Add the hook information to any errors
-    error.hook = hookObject;
-    throw error;
-  });
-};
-
-// Add `.hooks` functionality to an object
-exports.enableHooks = function enableHooks(obj, methods, types) {
-  if (typeof obj.hooks === 'function') {
-    return obj;
-  }
-
-  var __hooks = {};
-
-  types.forEach(function (type) {
-    // Initialize properties where hook functions are stored
-    __hooks[type] = {};
-  });
-
-  // Add non-enumerable `__hooks` property to the object
-  Object.defineProperty(obj, '__hooks', {
-    value: __hooks
-  });
-
-  return Object.assign(obj, {
-    hooks: function hooks(allHooks) {
-      var _this2 = this;
-
-      each(allHooks, function (obj, type) {
-        if (!_this2.__hooks[type]) {
-          throw new Error('\'' + type + '\' is not a valid hook type');
-        }
-
-        var hooks = exports.convertHookData(obj);
-
-        each(hooks, function (value, method) {
-          if (method !== 'all' && methods.indexOf(method) === -1) {
-            throw new Error('\'' + method + '\' is not a valid hook method');
-          }
-        });
-
-        methods.forEach(function (method) {
-          var myHooks = _this2.__hooks[type][method] || (_this2.__hooks[type][method] = []);
-
-          if (hooks.all) {
-            myHooks.push.apply(myHooks, hooks.all);
-          }
-
-          if (hooks[method]) {
-            myHooks.push.apply(myHooks, hooks[method]);
-          }
-        });
-      });
-
-      return this;
-    }
-  });
-};
-
-/***/ }),
-/* 12 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var paramCounts = {
-  find: 1,
-  get: 2,
-  create: 2,
-  update: 3,
-  patch: 3,
-  remove: 2
-};
-
-function isObjectOrArray(value) {
-  return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value !== null;
-}
-
-exports.validateArguments = function validateArguments(method, args) {
-  // Check if the last argument is a callback which are no longer supported
-  if (typeof args[args.length - 1] === 'function') {
-    throw new Error('Callbacks are no longer supported. Use Promises or async/await instead.');
-  }
-
-  var methodParamCount = paramCounts[method];
-
-  // Check the number of arguments and throw an error if too many are provided
-  if (methodParamCount && args.length > methodParamCount) {
-    throw new Error('Too many arguments for \'' + method + '\' method');
-  }
-
-  // `params` is always the last argument
-  var params = args[methodParamCount - 1];
-
-  // Check if `params` is an object (can be undefined though)
-  if (params !== undefined && !isObjectOrArray(params)) {
-    throw new Error('Params for \'' + method + '\' method must be an object');
-  }
-
-  // Validate other arguments for each method
-  switch (method) {
-    case 'create':
-      if (!isObjectOrArray(args[0])) {
-        throw new Error('A data object must be provided to the \'create\' method');
-      }
-      break;
-    case 'get':
-    case 'remove':
-    case 'update':
-    case 'patch':
-      if (args[0] === undefined) {
-        throw new Error('An id must be provided to the \'' + method + '\' method');
-      }
-
-      if ((method === 'update' || method === 'patch') && !isObjectOrArray(args[1])) {
-        throw new Error('A data object must be provided to the \'' + method + '\' method');
-      }
-  }
-
-  return true;
-};
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _require = __webpack_require__(1),
-    _ = _require._;
-
-// Officially supported query parameters ($populate is kind of special)
-
-
-var PROPERTIES = ['$sort', '$limit', '$skip', '$select', '$populate'];
-
-function parse(number) {
-  if (typeof number !== 'undefined') {
-    return Math.abs(parseInt(number, 10));
-  }
-}
-
-// Returns the pagination limit and will take into account the
-// default and max pagination settings
-function getLimit(limit, paginate) {
-  if (paginate && paginate.default) {
-    var lower = typeof limit === 'number' ? limit : paginate.default;
-    var upper = typeof paginate.max === 'number' ? paginate.max : Number.MAX_VALUE;
-
-    return Math.min(lower, upper);
-  }
-
-  return limit;
-}
-
-// Makes sure that $sort order is always converted to an actual number
-function convertSort(sort) {
-  if ((typeof sort === 'undefined' ? 'undefined' : _typeof(sort)) !== 'object') {
-    return sort;
-  }
-
-  var result = {};
-
-  Object.keys(sort).forEach(function (key) {
-    result[key] = _typeof(sort[key]) === 'object' ? sort[key] : parseInt(sort[key], 10);
-  });
-
-  return result;
-}
-
-// Converts Feathers special query parameters and pagination settings
-// and returns them separately a `filters` and the rest of the query
-// as `query`
-module.exports = function (query, paginate) {
-  var filters = {
-    $sort: convertSort(query.$sort),
-    $limit: getLimit(parse(query.$limit), paginate),
-    $skip: parse(query.$skip),
-    $select: query.$select,
-    $populate: query.$populate
-  };
-
-  return { filters: filters, query: _.omit.apply(_, [query].concat(PROPERTIES)) };
-};
-
-/***/ }),
 /* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1809,7 +1834,7 @@ module.exports = function (query, paginate) {
 var _require = __webpack_require__(15),
     EventEmitter = _require.EventEmitter;
 
-var Proto = __webpack_require__(0);
+var Proto = __webpack_require__(2);
 
 // Returns a hook that emits service events. Should always be
 // used as the very last hook in the chain
@@ -2212,7 +2237,7 @@ function isUndefined(arg) {
 "use strict";
 
 
-var _require = __webpack_require__(3),
+var _require = __webpack_require__(0),
     hooks = _require.hooks,
     validateArguments = _require.validateArguments,
     isPromise = _require.isPromise;
