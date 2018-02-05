@@ -5240,7 +5240,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var _require = __webpack_require__(2),
     convert = _require.convert;
 
-var debug = __webpack_require__(1)('@feathersjs/socket-commons/client');
+var debug = __webpack_require__(1)('@feathersjs/transport-commons/client');
 
 var namespacedEmitterMethods = ['addListener', 'emit', 'listenerCount', 'listeners', 'on', 'once', 'prependListener', 'prependOnceListener', 'removeAllListeners', 'removeListener'];
 var otherEmitterMethods = ['eventNames', 'getMaxListeners', 'setMaxListeners'];
