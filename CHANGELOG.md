@@ -1,5 +1,14 @@
 # Change Log
 
+## [v3.3.1](https://github.com/feathersjs/client/tree/v3.3.1) (2018-02-05)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.3.0...v3.3.1)
+
+**Merged pull requests:**
+
+- Update @feathersjs/socketio-client to the latest version 🚀 [\#244](https://github.com/feathersjs/client/pull/244) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/primus-client to the latest version 🚀 [\#243](https://github.com/feathersjs/client/pull/243) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update node-fetch to the latest version 🚀 [\#242](https://github.com/feathersjs/client/pull/242) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
 ## [v3.3.0](https://github.com/feathersjs/client/tree/v3.3.0) (2018-01-26)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.2.0...v3.3.0)
 
