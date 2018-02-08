@@ -5,7 +5,6 @@
 [![Build Status](https://travis-ci.org/feathersjs/client.png?branch=master)](https://travis-ci.org/feathersjs/client)
 [![Dependency Status](https://img.shields.io/david/feathersjs/client.svg?style=flat-square)](https://david-dm.org/feathersjs/client)
 [![Download Status](https://img.shields.io/npm/dm/@feathersjs/client.svg?style=flat-square)](https://www.npmjs.com/package/@feathersjs/client)
-[![Slack Status](http://slack.feathersjs.com/badge.svg)](http://slack.feathersjs.com)
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/feathersjs.svg)](https://saucelabs.com/u/feathersjs)
 
