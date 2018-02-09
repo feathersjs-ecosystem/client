@@ -623,7 +623,7 @@ process.umask = function() { return 0; };
 "use strict";
 
 
-module.exports = '3.1.0';
+module.exports = '3.1.1';
 
 /***/ }),
 /* 5 */
@@ -2275,14 +2275,6 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
       // the actual hook object instead of the result
       var returnHook = args[args.length - 1] === true ? args.pop() : false;
 
-      // We have to try/catch this so that argument validation
-      // returns a rejected promise
-      try {
-        validateArguments(method, args);
-      } catch (e) {
-        return Promise.reject(e);
-      }
-
       // A reference to the original method
       var _super = service._super.bind(service);
       // Create the hook object that gets passed through
@@ -2291,7 +2283,14 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
         service: service,
         app: app
       });
-      var beforeHooks = getHooks(app, service, 'before', method);
+      // A hook that validates the arguments and will always be the very first
+      var validateHook = function validateHook(context) {
+        validateArguments(method, args);
+
+        return context;
+      };
+      // The `before` hook chain (including the validation hook)
+      var beforeHooks = [validateHook].concat(getHooks(app, service, 'before', method));
 
       // Process all before hooks
       return processHooks.call(service, beforeHooks, hookObject)
