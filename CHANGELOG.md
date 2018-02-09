@@ -1,5 +1,13 @@
 # Change Log
 
+## [v3.3.2](https://github.com/feathersjs/client/tree/v3.3.2) (2018-02-09)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.3.1...v3.3.2)
+
+**Merged pull requests:**
+
+- Update @feathersjs/feathers to the latest version 🚀 [\#246](https://github.com/feathersjs/client/pull/246) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- delete slack link [\#245](https://github.com/feathersjs/client/pull/245) ([vodniciarv](https://github.com/vodniciarv))
+
 ## [v3.3.1](https://github.com/feathersjs/client/tree/v3.3.1) (2018-02-05)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.3.0...v3.3.1)
 
