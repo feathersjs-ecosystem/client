@@ -70,7 +70,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 12);
+/******/ 	return __webpack_require__(__webpack_require__.s = 11);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -82,9 +82,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var query = __webpack_require__(35);
+var query = __webpack_require__(34);
 
-var _require = __webpack_require__(38),
+var _require = __webpack_require__(37),
     stripSlashes = _require.stripSlashes;
 
 var _require2 = __webpack_require__(2),
@@ -215,7 +215,7 @@ module.exports = Base;
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(18);
+exports = module.exports = __webpack_require__(17);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -674,9 +674,9 @@ module.exports = Object.assign({ convert: convert }, errors);
 
 
 var utils = __webpack_require__(4);
-var hooks = __webpack_require__(14);
-var args = __webpack_require__(15);
-var filterQuery = __webpack_require__(16);
+var hooks = __webpack_require__(13);
+var args = __webpack_require__(14);
+var filterQuery = __webpack_require__(15);
 
 module.exports = Object.assign({}, utils, args, { hooks: hooks, filterQuery: filterQuery });
 
@@ -1645,20 +1645,11 @@ module.exports = {
 "use strict";
 
 
-module.exports = __webpack_require__(49);
-
-/***/ }),
-/* 12 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var feathers = __webpack_require__(13);
+var feathers = __webpack_require__(12);
 var errors = __webpack_require__(2);
-var authentication = __webpack_require__(23);
-var rest = __webpack_require__(33);
-var socketio = __webpack_require__(48);
+var authentication = __webpack_require__(22);
+var rest = __webpack_require__(32);
+var socketio = __webpack_require__(47);
 var primus = __webpack_require__(50);
 
 Object.assign(feathers, {
@@ -1672,7 +1663,7 @@ Object.assign(feathers, {
 module.exports = feathers;
 
 /***/ }),
-/* 13 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1682,7 +1673,7 @@ var _require = __webpack_require__(3),
     hooks = _require.hooks;
 
 var Proto = __webpack_require__(6);
-var Application = __webpack_require__(17);
+var Application = __webpack_require__(16);
 var version = __webpack_require__(8);
 
 function createApplication() {
@@ -1705,7 +1696,7 @@ module.exports = createApplication;
 module.exports.default = createApplication;
 
 /***/ }),
-/* 14 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1983,7 +1974,7 @@ exports.enableHooks = function enableHooks(obj, methods, types) {
 };
 
 /***/ }),
-/* 15 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2049,7 +2040,7 @@ exports.validateArguments = function validateArguments(method, args) {
 };
 
 /***/ }),
-/* 16 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2115,7 +2106,7 @@ module.exports = function (query, paginate) {
 };
 
 /***/ }),
-/* 17 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2127,8 +2118,8 @@ var _require = __webpack_require__(3),
     stripSlashes = _require.stripSlashes;
 
 var Uberproto = __webpack_require__(6);
-var events = __webpack_require__(20);
-var hooks = __webpack_require__(22);
+var events = __webpack_require__(19);
+var hooks = __webpack_require__(21);
 var version = __webpack_require__(8);
 
 var Proto = Uberproto.extend({
@@ -2271,7 +2262,7 @@ var application = {
 module.exports = application;
 
 /***/ }),
-/* 18 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -2287,7 +2278,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(19);
+exports.humanize = __webpack_require__(18);
 
 /**
  * Active `debug` instances.
@@ -2502,7 +2493,7 @@ function coerce(val) {
 
 
 /***/ }),
-/* 19 */
+/* 18 */
 /***/ (function(module, exports) {
 
 /**
@@ -2660,13 +2651,13 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 20 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _require = __webpack_require__(21),
+var _require = __webpack_require__(20),
     EventEmitter = _require.EventEmitter;
 
 var Proto = __webpack_require__(6);
@@ -2758,7 +2749,7 @@ module.exports = function () {
 };
 
 /***/ }),
-/* 21 */
+/* 20 */
 /***/ (function(module, exports) {
 
 // Copyright Joyent, Inc. and other Node contributors.
@@ -3066,7 +3057,7 @@ function isUndefined(arg) {
 
 
 /***/ }),
-/* 22 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3216,14 +3207,14 @@ module.exports = function () {
 };
 
 /***/ }),
-/* 23 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var hooks = __webpack_require__(24);
-var Passport = __webpack_require__(28);
+var hooks = __webpack_require__(23);
+var Passport = __webpack_require__(27);
 
 var defaults = {
   header: 'Authorization',
@@ -3278,15 +3269,15 @@ module.exports.default = init;
 module.exports.defaults = defaults;
 
 /***/ }),
-/* 24 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var populateHeader = __webpack_require__(25);
-var populateAccessToken = __webpack_require__(26);
-var populateEntity = __webpack_require__(27);
+var populateHeader = __webpack_require__(24);
+var populateAccessToken = __webpack_require__(25);
+var populateEntity = __webpack_require__(26);
 
 var hooks = {
   populateHeader: populateHeader,
@@ -3297,7 +3288,7 @@ var hooks = {
 module.exports = hooks;
 
 /***/ }),
-/* 25 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3326,7 +3317,7 @@ module.exports = function populateHeader() {
 };
 
 /***/ }),
-/* 26 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3347,7 +3338,7 @@ module.exports = function populateAccessToken() {
 };
 
 /***/ }),
-/* 27 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3393,7 +3384,7 @@ module.exports = function populateEntity() {
 };
 
 /***/ }),
-/* 28 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3402,10 +3393,10 @@ module.exports = function populateEntity() {
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var errors = __webpack_require__(2);
-var decode = __webpack_require__(29);
+var decode = __webpack_require__(28);
 var Debug = __webpack_require__(1);
 
-var _require = __webpack_require__(32),
+var _require = __webpack_require__(31),
     Storage = _require.Storage,
     payloadIsValid = _require.payloadIsValid,
     getCookie = _require.getCookie,
@@ -3723,13 +3714,13 @@ module.exports = function () {
 }();
 
 /***/ }),
-/* 29 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var base64_url_decode = __webpack_require__(30);
+var base64_url_decode = __webpack_require__(29);
 
 function InvalidTokenError(message) {
   this.message = message;
@@ -3756,10 +3747,10 @@ module.exports.InvalidTokenError = InvalidTokenError;
 
 
 /***/ }),
-/* 30 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var atob = __webpack_require__(31);
+var atob = __webpack_require__(30);
 
 function b64DecodeUnicode(str) {
   return decodeURIComponent(atob(str).replace(/(.)/g, function (m, p) {
@@ -3795,7 +3786,7 @@ module.exports = function(str) {
 
 
 /***/ }),
-/* 31 */
+/* 30 */
 /***/ (function(module, exports) {
 
 /**
@@ -3839,7 +3830,7 @@ module.exports = typeof window !== 'undefined' && window.atob && window.atob.bin
 
 
 /***/ }),
-/* 32 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3896,20 +3887,20 @@ exports.clearCookie = function clearCookie(name) {
 };
 
 /***/ }),
-/* 33 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var jQuery = __webpack_require__(34);
-var Superagent = __webpack_require__(42);
-var Request = __webpack_require__(43);
-var Fetch = __webpack_require__(44);
-var Axios = __webpack_require__(45);
-var Angular = __webpack_require__(46);
+var jQuery = __webpack_require__(33);
+var Superagent = __webpack_require__(41);
+var Request = __webpack_require__(42);
+var Fetch = __webpack_require__(43);
+var Axios = __webpack_require__(44);
+var Angular = __webpack_require__(45);
 var Base = __webpack_require__(0);
-var AngularHttpClient = __webpack_require__(47);
+var AngularHttpClient = __webpack_require__(46);
 
 var transports = {
   jquery: jQuery,
@@ -3963,7 +3954,7 @@ module.exports = restClient;
 module.exports.default = restClient;
 
 /***/ }),
-/* 34 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4026,14 +4017,14 @@ var jQueryService = function (_Base) {
 module.exports = jQueryService;
 
 /***/ }),
-/* 35 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var stringify = __webpack_require__(36);
-var parse = __webpack_require__(37);
+var stringify = __webpack_require__(35);
+var parse = __webpack_require__(36);
 var formats = __webpack_require__(10);
 
 module.exports = {
@@ -4044,7 +4035,7 @@ module.exports = {
 
 
 /***/ }),
-/* 36 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4261,7 +4252,7 @@ module.exports = function (object, opts) {
 
 
 /***/ }),
-/* 37 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4442,21 +4433,21 @@ module.exports = function (str, opts) {
 
 
 /***/ }),
-/* 38 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var utils = __webpack_require__(7);
-var hooks = __webpack_require__(39);
-var args = __webpack_require__(40);
-var filterQuery = __webpack_require__(41);
+var hooks = __webpack_require__(38);
+var args = __webpack_require__(39);
+var filterQuery = __webpack_require__(40);
 
 module.exports = Object.assign({}, utils, args, { hooks: hooks, filterQuery: filterQuery });
 
 /***/ }),
-/* 39 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4715,7 +4706,7 @@ exports.enableHooks = function enableHooks(obj, methods, types) {
 };
 
 /***/ }),
-/* 40 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4781,7 +4772,7 @@ exports.validateArguments = function validateArguments(method, args) {
 };
 
 /***/ }),
-/* 41 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4847,7 +4838,7 @@ module.exports = function (query, paginate) {
 };
 
 /***/ }),
-/* 42 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4902,7 +4893,7 @@ var SuperagentService = function (_Base) {
 module.exports = SuperagentService;
 
 /***/ }),
-/* 43 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4957,7 +4948,7 @@ var RequestService = function (_Base) {
 module.exports = RequestService;
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5019,7 +5010,7 @@ var FetchService = function (_Base) {
 module.exports = FetchService;
 
 /***/ }),
-/* 45 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5067,7 +5058,7 @@ var AxiosService = function (_Base) {
 module.exports = AxiosService;
 
 /***/ }),
-/* 46 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5122,7 +5113,7 @@ var AngularService = function (_Base) {
 module.exports = AngularService;
 
 /***/ }),
-/* 47 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5179,13 +5170,13 @@ var AngularHttpService = function (_Base) {
 module.exports = AngularHttpService;
 
 /***/ }),
-/* 48 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Service = __webpack_require__(11);
+var Service = __webpack_require__(48);
 
 function socketioClient(connection, options) {
   if (!connection) {
@@ -5228,6 +5219,15 @@ module.exports = socketioClient;
 module.exports.default = socketioClient;
 
 /***/ }),
+/* 48 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = __webpack_require__(49);
+
+/***/ }),
 /* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5237,7 +5237,8 @@ module.exports.default = socketioClient;
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var _require = __webpack_require__(2),
-    convert = _require.convert;
+    convert = _require.convert,
+    Timeout = _require.Timeout;
 
 var debug = __webpack_require__(1)('@feathersjs/transport-commons/client');
 
@@ -5305,7 +5306,11 @@ module.exports = function () {
       var _connection3;
 
       var timeoutId = setTimeout(function () {
-        return reject(new Error('Timeout of ' + _this.timeout + 'ms exceeded calling ' + method + ' on ' + _this.path));
+        return reject(new Timeout('Timeout of ' + _this.timeout + 'ms exceeded calling ' + method + ' on ' + _this.path, {
+          timeout: _this.timeout,
+          method: method,
+          path: _this.path
+        }));
       }, _this.timeout);
 
       args.unshift(method, _this.path);
@@ -5389,7 +5394,7 @@ module.exports = function () {
 "use strict";
 
 
-var Service = __webpack_require__(11);
+var Service = __webpack_require__(51);
 
 function primusClient(connection, options) {
   if (!connection) {
@@ -5421,6 +5426,175 @@ function primusClient(connection, options) {
 
 module.exports = primusClient;
 module.exports.default = primusClient;
+
+/***/ }),
+/* 51 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = __webpack_require__(52);
+
+/***/ }),
+/* 52 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var _require = __webpack_require__(2),
+    convert = _require.convert,
+    Timeout = _require.Timeout;
+
+var debug = __webpack_require__(1)('@feathersjs/transport-commons/client');
+
+var namespacedEmitterMethods = ['addListener', 'emit', 'listenerCount', 'listeners', 'on', 'once', 'prependListener', 'prependOnceListener', 'removeAllListeners', 'removeListener'];
+var otherEmitterMethods = ['eventNames', 'getMaxListeners', 'setMaxListeners'];
+
+var addEmitterMethods = function addEmitterMethods(service) {
+  otherEmitterMethods.forEach(function (method) {
+    service[method] = function () {
+      var _connection;
+
+      if (typeof this.connection[method] !== 'function') {
+        throw new Error('Can not call \'' + method + '\' on the client service connection');
+      }
+
+      return (_connection = this.connection)[method].apply(_connection, arguments);
+    };
+  });
+
+  // Methods that should add the namespace (service path)
+  namespacedEmitterMethods.forEach(function (method) {
+    service[method] = function (name) {
+      var _connection2;
+
+      if (typeof this.connection[method] !== 'function') {
+        throw new Error('Can not call \'' + method + '\' on the client service connection');
+      }
+
+      var eventName = this.path + ' ' + name;
+
+      debug('Calling emitter method ' + method + ' with ' + ('namespaced event \'' + eventName + '\''));
+
+      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
+
+      var result = (_connection2 = this.connection)[method].apply(_connection2, [eventName].concat(args));
+
+      return result === this.connection ? this : result;
+    };
+  });
+};
+
+module.exports = function () {
+  function Service(options) {
+    _classCallCheck(this, Service);
+
+    this.events = options.events;
+    this.path = options.name;
+    this.connection = options.connection;
+    this.method = options.method;
+    this.timeout = options.timeout || 5000;
+
+    addEmitterMethods(this);
+  }
+
+  Service.prototype.send = function send(method) {
+    var _this = this;
+
+    for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+      args[_key2 - 1] = arguments[_key2];
+    }
+
+    return new Promise(function (resolve, reject) {
+      var _connection3;
+
+      var timeoutId = setTimeout(function () {
+        return reject(new Timeout('Timeout of ' + _this.timeout + 'ms exceeded calling ' + method + ' on ' + _this.path, {
+          timeout: _this.timeout,
+          method: method,
+          path: _this.path
+        }));
+      }, _this.timeout);
+
+      args.unshift(method, _this.path);
+      args.push(function (error, data) {
+        error = convert(error);
+        clearTimeout(timeoutId);
+
+        return error ? reject(error) : resolve(data);
+      });
+
+      debug('Sending socket.' + _this.method, args);
+
+      (_connection3 = _this.connection)[_this.method].apply(_connection3, args);
+    });
+  };
+
+  Service.prototype.find = function find() {
+    var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    return this.send('find', params.query || {});
+  };
+
+  Service.prototype.get = function get(id) {
+    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+    return this.send('get', id, params.query || {});
+  };
+
+  Service.prototype.create = function create(data) {
+    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+    return this.send('create', data, params.query || {});
+  };
+
+  Service.prototype.update = function update(id, data) {
+    var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    return this.send('update', id, data, params.query || {});
+  };
+
+  Service.prototype.patch = function patch(id, data) {
+    var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    return this.send('patch', id, data, params.query || {});
+  };
+
+  Service.prototype.remove = function remove(id) {
+    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+    return this.send('remove', id, params.query || {});
+  };
+
+  // `off` is actually not part of the Node event emitter spec
+  // but we are adding it since everybody is expecting it because
+  // of the emitter-component Socket.io is using
+
+
+  Service.prototype.off = function off(name) {
+    for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+      args[_key3 - 1] = arguments[_key3];
+    }
+
+    if (typeof this.connection.off === 'function') {
+      var _connection4;
+
+      return (_connection4 = this.connection).off.apply(_connection4, [this.path + ' ' + name].concat(args));
+    } else if (args.length === 0) {
+      return this.removeAllListeners(name);
+    }
+
+    return this.removeListener.apply(this, [name].concat(args));
+  };
+
+  return Service;
+}();
 
 /***/ })
 /******/ ]);

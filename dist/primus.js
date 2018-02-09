@@ -343,7 +343,8 @@ module.exports = __webpack_require__(4);
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var _require = __webpack_require__(5),
-    convert = _require.convert;
+    convert = _require.convert,
+    Timeout = _require.Timeout;
 
 var debug = __webpack_require__(0)('@feathersjs/transport-commons/client');
 
@@ -411,7 +412,11 @@ module.exports = function () {
       var _connection3;
 
       var timeoutId = setTimeout(function () {
-        return reject(new Error('Timeout of ' + _this.timeout + 'ms exceeded calling ' + method + ' on ' + _this.path));
+        return reject(new Timeout('Timeout of ' + _this.timeout + 'ms exceeded calling ' + method + ' on ' + _this.path, {
+          timeout: _this.timeout,
+          method: method,
+          path: _this.path
+        }));
       }, _this.timeout);
 
       args.unshift(method, _this.path);
