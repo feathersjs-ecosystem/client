@@ -1402,7 +1402,7 @@ exports.makeUrl = function makeUrl(path) {
 "use strict";
 
 
-module.exports = '3.1.1';
+module.exports = '3.1.2';
 
 /***/ }),
 /* 9 */
@@ -3174,7 +3174,11 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
           error: error
         });
 
-        return processHooks.call(service, hookChain, errorHookObject).then(function (hook) {
+        return processHooks.call(service, hookChain, errorHookObject).catch(function (error) {
+          errorHookObject.error = error;
+
+          return errorHookObject;
+        }).then(function (hook) {
           if (returnHook) {
             // Either resolve or reject with the hook object
             return hook.result ? hook : Promise.reject(hook);
