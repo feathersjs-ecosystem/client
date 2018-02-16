@@ -623,7 +623,7 @@ process.umask = function() { return 0; };
 "use strict";
 
 
-module.exports = '3.1.2';
+module.exports = '3.1.3';
 
 /***/ }),
 /* 5 */

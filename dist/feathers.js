@@ -1402,7 +1402,7 @@ exports.makeUrl = function makeUrl(path) {
 "use strict";
 
 
-module.exports = '3.1.2';
+module.exports = '3.1.3';
 
 /***/ }),
 /* 9 */
