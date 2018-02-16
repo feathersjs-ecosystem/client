@@ -1,5 +1,17 @@
 # Change Log
 
+## [v3.4.2](https://github.com/feathersjs/client/tree/v3.4.2) (2018-02-16)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.4.1...v3.4.2)
+
+**Closed issues:**
+
+- Feathers client now working with HTTPS self signed certs [\#250](https://github.com/feathersjs/client/issues/250)
+
+**Merged pull requests:**
+
+- Update @feathersjs/feathers to the latest version 🚀 [\#252](https://github.com/feathersjs/client/pull/252) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/errors to the latest version 🚀 [\#251](https://github.com/feathersjs/client/pull/251) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
 ## [v3.4.1](https://github.com/feathersjs/client/tree/v3.4.1) (2018-02-10)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.4.0...v3.4.1)
 
