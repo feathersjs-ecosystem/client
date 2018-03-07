@@ -54,6 +54,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -69,606 +74,108 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/core.js");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./node_modules/@feathersjs/commons/lib/arguments.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/@feathersjs/commons/lib/arguments.js ***!
+  \***********************************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(1);
-var hooks = __webpack_require__(7);
-var args = __webpack_require__(8);
-var filterQuery = __webpack_require__(9);
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var paramCounts = {
+  find: 1,
+  get: 2,
+  create: 2,
+  update: 3,
+  patch: 3,
+  remove: 2
+};
+
+function isObjectOrArray(value) {
+  return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value !== null;
+}
+
+exports.validateArguments = function validateArguments(method, args) {
+  // Check if the last argument is a callback which are no longer supported
+  if (typeof args[args.length - 1] === 'function') {
+    throw new Error('Callbacks are no longer supported. Use Promises or async/await instead.');
+  }
+
+  var methodParamCount = paramCounts[method];
+
+  // Check the number of arguments and throw an error if too many are provided
+  if (methodParamCount && args.length > methodParamCount) {
+    throw new Error('Too many arguments for \'' + method + '\' method');
+  }
+
+  // `params` is always the last argument
+  var params = args[methodParamCount - 1];
+
+  // Check if `params` is an object (can be undefined though)
+  if (params !== undefined && !isObjectOrArray(params)) {
+    throw new Error('Params for \'' + method + '\' method must be an object');
+  }
+
+  // Validate other arguments for each method
+  switch (method) {
+    case 'create':
+      if (!isObjectOrArray(args[0])) {
+        throw new Error('A data object must be provided to the \'create\' method');
+      }
+      break;
+    case 'get':
+    case 'remove':
+    case 'update':
+    case 'patch':
+      if (args[0] === undefined) {
+        throw new Error('An id must be provided to the \'' + method + '\' method');
+      }
+
+      if ((method === 'update' || method === 'patch') && !isObjectOrArray(args[1])) {
+        throw new Error('A data object must be provided to the \'' + method + '\' method');
+      }
+  }
+
+  return true;
+};
+
+/***/ }),
+
+/***/ "./node_modules/@feathersjs/commons/lib/commons.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/@feathersjs/commons/lib/commons.js ***!
+  \*********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js");
+var hooks = __webpack_require__(/*! ./hooks */ "./node_modules/@feathersjs/commons/lib/hooks.js");
+var args = __webpack_require__(/*! ./arguments */ "./node_modules/@feathersjs/commons/lib/arguments.js");
+var filterQuery = __webpack_require__(/*! ./filter-query */ "./node_modules/@feathersjs/commons/lib/filter-query.js");
 
 module.exports = Object.assign({}, utils, args, { hooks: hooks, filterQuery: filterQuery });
 
 /***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-// Removes all leading and trailing slashes from a path
-exports.stripSlashes = function stripSlashes(name) {
-  return name.replace(/^(\/*)|(\/*)$/g, '');
-};
-
-// A set of lodash-y utility functions that use ES6
-var _ = exports._ = {
-  each: function each(obj, callback) {
-    if (obj && typeof obj.forEach === 'function') {
-      obj.forEach(callback);
-    } else if (_.isObject(obj)) {
-      Object.keys(obj).forEach(function (key) {
-        return callback(obj[key], key);
-      });
-    }
-  },
-  some: function some(value, callback) {
-    return Object.keys(value).map(function (key) {
-      return [value[key], key];
-    }).some(function (_ref) {
-      var val = _ref[0],
-          key = _ref[1];
-      return callback(val, key);
-    });
-  },
-  every: function every(value, callback) {
-    return Object.keys(value).map(function (key) {
-      return [value[key], key];
-    }).every(function (_ref2) {
-      var val = _ref2[0],
-          key = _ref2[1];
-      return callback(val, key);
-    });
-  },
-  keys: function keys(obj) {
-    return Object.keys(obj);
-  },
-  values: function values(obj) {
-    return _.keys(obj).map(function (key) {
-      return obj[key];
-    });
-  },
-  isMatch: function isMatch(obj, item) {
-    return _.keys(item).every(function (key) {
-      return obj[key] === item[key];
-    });
-  },
-  isEmpty: function isEmpty(obj) {
-    return _.keys(obj).length === 0;
-  },
-  isObject: function isObject(item) {
-    return (typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object' && !Array.isArray(item) && item !== null;
-  },
-  extend: function extend() {
-    return Object.assign.apply(Object, arguments);
-  },
-  omit: function omit(obj) {
-    var result = _.extend({}, obj);
-
-    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      keys[_key - 1] = arguments[_key];
-    }
-
-    keys.forEach(function (key) {
-      return delete result[key];
-    });
-    return result;
-  },
-  pick: function pick(source) {
-    var result = {};
-
-    for (var _len2 = arguments.length, keys = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-      keys[_key2 - 1] = arguments[_key2];
-    }
-
-    keys.forEach(function (key) {
-      if (source[key] !== undefined) {
-        result[key] = source[key];
-      }
-    });
-    return result;
-  },
-
-
-  // Recursively merge the source object into the target object
-  merge: function merge(target, source) {
-    if (_.isObject(target) && _.isObject(source)) {
-      Object.keys(source).forEach(function (key) {
-        if (_.isObject(source[key])) {
-          if (!target[key]) {
-            var _Object$assign;
-
-            Object.assign(target, (_Object$assign = {}, _Object$assign[key] = {}, _Object$assign));
-          }
-
-          _.merge(target[key], source[key]);
-        } else {
-          var _Object$assign2;
-
-          Object.assign(target, (_Object$assign2 = {}, _Object$assign2[key] = source[key], _Object$assign2));
-        }
-      });
-    }
-    return target;
-  }
-};
-
-// Return a function that filters a result object or array
-// and picks only the fields passed as `params.query.$select`
-// and additional `otherFields`
-exports.select = function select(params) {
-  var fields = params && params.query && params.query.$select;
-
-  for (var _len3 = arguments.length, otherFields = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-    otherFields[_key3 - 1] = arguments[_key3];
-  }
-
-  if (Array.isArray(fields) && otherFields.length) {
-    fields.push.apply(fields, otherFields);
-  }
-
-  var convert = function convert(result) {
-    if (!Array.isArray(fields)) {
-      return result;
-    }
-
-    return _.pick.apply(_, [result].concat(fields));
-  };
-
-  return function (result) {
-    if (Array.isArray(result)) {
-      return result.map(convert);
-    }
-
-    return convert(result);
-  };
-};
-
-// An in-memory sorting function according to the
-// $sort special query parameter
-exports.sorter = function sorter($sort) {
-  return function (first, second) {
-    var comparator = 0;
-    _.each($sort, function (modifier, key) {
-      modifier = parseInt(modifier, 10);
-
-      if (first[key] < second[key]) {
-        comparator -= 1 * modifier;
-      }
-
-      if (first[key] > second[key]) {
-        comparator += 1 * modifier;
-      }
-    });
-    return comparator;
-  };
-};
-
-// Duck-checks if an object looks like a promise
-exports.isPromise = function isPromise(result) {
-  return _.isObject(result) && typeof result.then === 'function';
-};
-
-exports.makeUrl = function makeUrl(path) {
-  var app = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  var get = typeof app.get === 'function' ? app.get.bind(app) : function () {};
-  var env = get('env') || process.env.NODE_ENV;
-  var host = get('host') || process.env.HOST_NAME || 'localhost';
-  var protocol = env === 'development' || env === 'test' || env === undefined ? 'http' : 'https';
-  var PORT = get('port') || process.env.PORT || 3030;
-  var port = env === 'development' || env === 'test' || env === undefined ? ':' + PORT : '';
-
-  path = path || '';
-
-  return protocol + '://' + host + port + '/' + exports.stripSlashes(path);
-};
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* global define */
-/**
- * A base object for ECMAScript 5 style prototypal inheritance.
- *
- * @see https://github.com/rauschma/proto-js/
- * @see http://ejohn.org/blog/simple-javascript-inheritance/
- * @see http://uxebu.com/blog/2011/02/23/object-based-inheritance-for-ecmascript-5/
- */
-(function (root, factory) {
-	if (true) {
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
-				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
-				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	} else if (typeof exports === 'object') {
-		module.exports = factory();
-	} else {
-		root.Proto = factory();
-	}
-}(this, function () {
-
-	function makeSuper(_super, old, name, fn) {
-		return function () {
-			var tmp = this._super;
-
-			// Add a new ._super() method that is the same method
-			// but either pointing to the prototype method
-			// or to the overwritten method
-			this._super = (typeof old === 'function') ? old : _super[name];
-
-			// The method only need to be bound temporarily, so we
-			// remove it when we're done executing
-			var ret = fn.apply(this, arguments);
-			this._super = tmp;
-
-			return ret;
-		};
-	}
-
-	function legacyMixin(prop, obj) {
-		var self = obj || this;
-		var fnTest = /\b_super\b/;
-		var _super = Object.getPrototypeOf(self) || self.prototype;
-		var _old;
-
-		// Copy the properties over
-		for (var name in prop) {
-			// store the old function which would be overwritten
-			_old = self[name];
-
-			// Check if we're overwriting an existing function
-			if(
-					((
-						typeof prop[name] === 'function' &&
-						typeof _super[name] === 'function'
-					) || (
-						typeof _old === 'function' &&
-						typeof prop[name] === 'function'
-					)) && fnTest.test(prop[name])
-			) {
-				self[name] = makeSuper(_super, _old, name, prop[name]);
-			} else {
-				self[name] = prop[name];
-			}
-		}
-
-		return self;
-	}
-
-	function es5Mixin(prop, obj) {
-		var self = obj || this;
-		var fnTest = /\b_super\b/;
-		var _super = Object.getPrototypeOf(self) || self.prototype;
-		var descriptors = {};
-		var proto = prop;
-		var processProperty = function(name) {
-			if(!descriptors[name]) {
-				descriptors[name] = Object.getOwnPropertyDescriptor(proto, name);
-			}
-		};
-
-		// Collect all property descriptors
-		do {
-			Object.getOwnPropertyNames(proto).forEach(processProperty);
-    } while((proto = Object.getPrototypeOf(proto)) && Object.getPrototypeOf(proto));
-		
-		Object.keys(descriptors).forEach(function(name) {
-			var descriptor = descriptors[name];
-
-			if(typeof descriptor.value === 'function' && fnTest.test(descriptor.value)) {
-				descriptor.value = makeSuper(_super, self[name], name, descriptor.value);
-			}
-
-			Object.defineProperty(self, name, descriptor);
-		});
-
-		return self;
-	}
-
-	return {
-		/**
-		 * Create a new object using Object.create. The arguments will be
-		 * passed to the new instances init method or to a method name set in
-		 * __init.
-		 */
-		create: function () {
-			var instance = Object.create(this);
-			var init = typeof instance.__init === 'string' ? instance.__init : 'init';
-
-			if (typeof instance[init] === 'function') {
-				instance[init].apply(instance, arguments);
-			}
-			return instance;
-		},
-		/**
-		 * Mixin a given set of properties
-		 * @param prop The properties to mix in
-		 * @param obj [optional] The object to add the mixin
-		 */
-		mixin: typeof Object.defineProperty === 'function' ? es5Mixin : legacyMixin,
-		/**
-		 * Extend the current or a given object with the given property
-		 * and return the extended object.
-		 * @param prop The properties to extend with
-		 * @param obj [optional] The object to extend from
-		 * @returns The extended object
-		 */
-		extend: function (prop, obj) {
-			return this.mixin(prop, Object.create(obj || this));
-		},
-		/**
-		 * Return a callback function with this set to the current or a given context object.
-		 * @param name Name of the method to proxy
-		 * @param args... [optional] Arguments to use for partial application
-		 */
-		proxy: function (name) {
-			var fn = this[name];
-			var args = Array.prototype.slice.call(arguments, 1);
-
-			args.unshift(this);
-			return fn.bind.apply(fn, args);
-		}
-	};
-
-}));
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports) {
-
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = '3.1.3';
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = __webpack_require__(6);
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _require = __webpack_require__(0),
-    hooks = _require.hooks;
-
-var Proto = __webpack_require__(2);
-var Application = __webpack_require__(10);
-var version = __webpack_require__(4);
-
-function createApplication() {
-  var app = {};
-
-  // Mix in the base application
-  Proto.mixin(Application, app);
-
-  app.init();
-
-  return app;
-}
-
-createApplication.version = version;
-createApplication.SKIP = hooks.SKIP;
-
-module.exports = createApplication;
-
-// For better ES module (TypeScript) compatibility
-module.exports.default = createApplication;
-
-/***/ }),
-/* 7 */
+/***/ "./node_modules/@feathersjs/commons/lib/filter-query.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/@feathersjs/commons/lib/filter-query.js ***!
+  \**************************************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -676,7 +183,78 @@ module.exports.default = createApplication;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _require$_ = __webpack_require__(1)._,
+var _require = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js"),
+    _ = _require._;
+
+// Officially supported query parameters ($populate is kind of special)
+
+
+var PROPERTIES = ['$sort', '$limit', '$skip', '$select', '$populate'];
+
+function parse(number) {
+  if (typeof number !== 'undefined') {
+    return Math.abs(parseInt(number, 10));
+  }
+}
+
+// Returns the pagination limit and will take into account the
+// default and max pagination settings
+function getLimit(limit, paginate) {
+  if (paginate && paginate.default) {
+    var lower = typeof limit === 'number' ? limit : paginate.default;
+    var upper = typeof paginate.max === 'number' ? paginate.max : Number.MAX_VALUE;
+
+    return Math.min(lower, upper);
+  }
+
+  return limit;
+}
+
+// Makes sure that $sort order is always converted to an actual number
+function convertSort(sort) {
+  if ((typeof sort === 'undefined' ? 'undefined' : _typeof(sort)) !== 'object' || Array.isArray(sort)) {
+    return sort;
+  }
+
+  var result = {};
+
+  Object.keys(sort).forEach(function (key) {
+    result[key] = _typeof(sort[key]) === 'object' ? sort[key] : parseInt(sort[key], 10);
+  });
+
+  return result;
+}
+
+// Converts Feathers special query parameters and pagination settings
+// and returns them separately a `filters` and the rest of the query
+// as `query`
+module.exports = function (query, paginate) {
+  var filters = {
+    $sort: convertSort(query.$sort),
+    $limit: getLimit(parse(query.$limit), paginate),
+    $skip: parse(query.$skip),
+    $select: query.$select,
+    $populate: query.$populate
+  };
+
+  return { filters: filters, query: _.omit.apply(_, [query].concat(PROPERTIES)) };
+};
+
+/***/ }),
+
+/***/ "./node_modules/@feathersjs/commons/lib/hooks.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/@feathersjs/commons/lib/hooks.js ***!
+  \*******************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _require$_ = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js")._,
     each = _require$_.each,
     pick = _require$_.pick;
 
@@ -946,153 +524,219 @@ exports.enableHooks = function enableHooks(obj, methods, types) {
 };
 
 /***/ }),
-/* 8 */
+
+/***/ "./node_modules/@feathersjs/commons/lib/utils.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/@feathersjs/commons/lib/utils.js ***!
+  \*******************************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var paramCounts = {
-  find: 1,
-  get: 2,
-  create: 2,
-  update: 3,
-  patch: 3,
-  remove: 2
-};
-
-function isObjectOrArray(value) {
-  return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value !== null;
-}
-
-exports.validateArguments = function validateArguments(method, args) {
-  // Check if the last argument is a callback which are no longer supported
-  if (typeof args[args.length - 1] === 'function') {
-    throw new Error('Callbacks are no longer supported. Use Promises or async/await instead.');
-  }
-
-  var methodParamCount = paramCounts[method];
-
-  // Check the number of arguments and throw an error if too many are provided
-  if (methodParamCount && args.length > methodParamCount) {
-    throw new Error('Too many arguments for \'' + method + '\' method');
-  }
-
-  // `params` is always the last argument
-  var params = args[methodParamCount - 1];
-
-  // Check if `params` is an object (can be undefined though)
-  if (params !== undefined && !isObjectOrArray(params)) {
-    throw new Error('Params for \'' + method + '\' method must be an object');
-  }
-
-  // Validate other arguments for each method
-  switch (method) {
-    case 'create':
-      if (!isObjectOrArray(args[0])) {
-        throw new Error('A data object must be provided to the \'create\' method');
-      }
-      break;
-    case 'get':
-    case 'remove':
-    case 'update':
-    case 'patch':
-      if (args[0] === undefined) {
-        throw new Error('An id must be provided to the \'' + method + '\' method');
-      }
-
-      if ((method === 'update' || method === 'patch') && !isObjectOrArray(args[1])) {
-        throw new Error('A data object must be provided to the \'' + method + '\' method');
-      }
-  }
-
-  return true;
-};
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
+/* WEBPACK VAR INJECTION */(function(process) {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _require = __webpack_require__(1),
-    _ = _require._;
+// Removes all leading and trailing slashes from a path
+exports.stripSlashes = function stripSlashes(name) {
+  return name.replace(/^(\/*)|(\/*)$/g, '');
+};
 
-// Officially supported query parameters ($populate is kind of special)
+// A set of lodash-y utility functions that use ES6
+var _ = exports._ = {
+  each: function each(obj, callback) {
+    if (obj && typeof obj.forEach === 'function') {
+      obj.forEach(callback);
+    } else if (_.isObject(obj)) {
+      Object.keys(obj).forEach(function (key) {
+        return callback(obj[key], key);
+      });
+    }
+  },
+  some: function some(value, callback) {
+    return Object.keys(value).map(function (key) {
+      return [value[key], key];
+    }).some(function (_ref) {
+      var val = _ref[0],
+          key = _ref[1];
+      return callback(val, key);
+    });
+  },
+  every: function every(value, callback) {
+    return Object.keys(value).map(function (key) {
+      return [value[key], key];
+    }).every(function (_ref2) {
+      var val = _ref2[0],
+          key = _ref2[1];
+      return callback(val, key);
+    });
+  },
+  keys: function keys(obj) {
+    return Object.keys(obj);
+  },
+  values: function values(obj) {
+    return _.keys(obj).map(function (key) {
+      return obj[key];
+    });
+  },
+  isMatch: function isMatch(obj, item) {
+    return _.keys(item).every(function (key) {
+      return obj[key] === item[key];
+    });
+  },
+  isEmpty: function isEmpty(obj) {
+    return _.keys(obj).length === 0;
+  },
+  isObject: function isObject(item) {
+    return (typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object' && !Array.isArray(item) && item !== null;
+  },
+  extend: function extend() {
+    return Object.assign.apply(Object, arguments);
+  },
+  omit: function omit(obj) {
+    var result = _.extend({}, obj);
+
+    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      keys[_key - 1] = arguments[_key];
+    }
+
+    keys.forEach(function (key) {
+      return delete result[key];
+    });
+    return result;
+  },
+  pick: function pick(source) {
+    var result = {};
+
+    for (var _len2 = arguments.length, keys = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+      keys[_key2 - 1] = arguments[_key2];
+    }
+
+    keys.forEach(function (key) {
+      if (source[key] !== undefined) {
+        result[key] = source[key];
+      }
+    });
+    return result;
+  },
 
 
-var PROPERTIES = ['$sort', '$limit', '$skip', '$select', '$populate'];
+  // Recursively merge the source object into the target object
+  merge: function merge(target, source) {
+    if (_.isObject(target) && _.isObject(source)) {
+      Object.keys(source).forEach(function (key) {
+        if (_.isObject(source[key])) {
+          if (!target[key]) {
+            var _Object$assign;
 
-function parse(number) {
-  if (typeof number !== 'undefined') {
-    return Math.abs(parseInt(number, 10));
+            Object.assign(target, (_Object$assign = {}, _Object$assign[key] = {}, _Object$assign));
+          }
+
+          _.merge(target[key], source[key]);
+        } else {
+          var _Object$assign2;
+
+          Object.assign(target, (_Object$assign2 = {}, _Object$assign2[key] = source[key], _Object$assign2));
+        }
+      });
+    }
+    return target;
   }
-}
+};
 
-// Returns the pagination limit and will take into account the
-// default and max pagination settings
-function getLimit(limit, paginate) {
-  if (paginate && paginate.default) {
-    var lower = typeof limit === 'number' ? limit : paginate.default;
-    var upper = typeof paginate.max === 'number' ? paginate.max : Number.MAX_VALUE;
+// Return a function that filters a result object or array
+// and picks only the fields passed as `params.query.$select`
+// and additional `otherFields`
+exports.select = function select(params) {
+  var fields = params && params.query && params.query.$select;
 
-    return Math.min(lower, upper);
+  for (var _len3 = arguments.length, otherFields = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+    otherFields[_key3 - 1] = arguments[_key3];
   }
 
-  return limit;
-}
-
-// Makes sure that $sort order is always converted to an actual number
-function convertSort(sort) {
-  if ((typeof sort === 'undefined' ? 'undefined' : _typeof(sort)) !== 'object' || Array.isArray(sort)) {
-    return sort;
+  if (Array.isArray(fields) && otherFields.length) {
+    fields.push.apply(fields, otherFields);
   }
 
-  var result = {};
+  var convert = function convert(result) {
+    if (!Array.isArray(fields)) {
+      return result;
+    }
 
-  Object.keys(sort).forEach(function (key) {
-    result[key] = _typeof(sort[key]) === 'object' ? sort[key] : parseInt(sort[key], 10);
-  });
-
-  return result;
-}
-
-// Converts Feathers special query parameters and pagination settings
-// and returns them separately a `filters` and the rest of the query
-// as `query`
-module.exports = function (query, paginate) {
-  var filters = {
-    $sort: convertSort(query.$sort),
-    $limit: getLimit(parse(query.$limit), paginate),
-    $skip: parse(query.$skip),
-    $select: query.$select,
-    $populate: query.$populate
+    return _.pick.apply(_, [result].concat(fields));
   };
 
-  return { filters: filters, query: _.omit.apply(_, [query].concat(PROPERTIES)) };
+  return function (result) {
+    if (Array.isArray(result)) {
+      return result.map(convert);
+    }
+
+    return convert(result);
+  };
 };
 
+// An in-memory sorting function according to the
+// $sort special query parameter
+exports.sorter = function sorter($sort) {
+  return function (first, second) {
+    var comparator = 0;
+    _.each($sort, function (modifier, key) {
+      modifier = parseInt(modifier, 10);
+
+      if (first[key] < second[key]) {
+        comparator -= 1 * modifier;
+      }
+
+      if (first[key] > second[key]) {
+        comparator += 1 * modifier;
+      }
+    });
+    return comparator;
+  };
+};
+
+// Duck-checks if an object looks like a promise
+exports.isPromise = function isPromise(result) {
+  return _.isObject(result) && typeof result.then === 'function';
+};
+
+exports.makeUrl = function makeUrl(path) {
+  var app = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  var get = typeof app.get === 'function' ? app.get.bind(app) : function () {};
+  var env = get('env') || "development";
+  var host = get('host') || process.env.HOST_NAME || 'localhost';
+  var protocol = env === 'development' || env === 'test' || env === undefined ? 'http' : 'https';
+  var PORT = get('port') || process.env.PORT || 3030;
+  var port = env === 'development' || env === 'test' || env === undefined ? ':' + PORT : '';
+
+  path = path || '';
+
+  return protocol + '://' + host + port + '/' + exports.stripSlashes(path);
+};
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../process/browser.js */ "./node_modules/process/browser.js")))
+
 /***/ }),
-/* 10 */
+
+/***/ "./node_modules/@feathersjs/feathers/lib/application.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/@feathersjs/feathers/lib/application.js ***!
+  \**************************************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var debug = __webpack_require__(11)('feathers:application');
+var debug = __webpack_require__(/*! debug */ "./node_modules/debug/src/browser.js")('feathers:application');
 
-var _require = __webpack_require__(0),
+var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
     stripSlashes = _require.stripSlashes;
 
-var Uberproto = __webpack_require__(2);
-var events = __webpack_require__(14);
-var hooks = __webpack_require__(16);
-var version = __webpack_require__(4);
+var Uberproto = __webpack_require__(/*! uberproto */ "./node_modules/uberproto/lib/proto.js");
+var events = __webpack_require__(/*! ./events */ "./node_modules/@feathersjs/feathers/lib/events.js");
+var hooks = __webpack_require__(/*! ./hooks */ "./node_modules/@feathersjs/feathers/lib/hooks.js");
+var version = __webpack_require__(/*! ./version */ "./node_modules/@feathersjs/feathers/lib/version.js");
 
 var Proto = Uberproto.extend({
   create: null
@@ -1234,7 +878,326 @@ var application = {
 module.exports = application;
 
 /***/ }),
-/* 11 */
+
+/***/ "./node_modules/@feathersjs/feathers/lib/events.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/@feathersjs/feathers/lib/events.js ***!
+  \*********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _require = __webpack_require__(/*! events */ "./node_modules/node-libs-browser/node_modules/events/events.js"),
+    EventEmitter = _require.EventEmitter;
+
+var Proto = __webpack_require__(/*! uberproto */ "./node_modules/uberproto/lib/proto.js");
+
+// Returns a hook that emits service events. Should always be
+// used as the very last hook in the chain
+var eventHook = exports.eventHook = function eventHook() {
+  return function (hook) {
+    var app = hook.app,
+        service = hook.service;
+
+    var eventName = app.eventMappings[hook.method];
+    var isHookEvent = service._hookEvents && service._hookEvents.indexOf(eventName) !== -1;
+
+    // If this event is not being sent yet and we are not in an error hook
+    if (eventName && isHookEvent && hook.type !== 'error') {
+      var results = Array.isArray(hook.result) ? hook.result : [hook.result];
+
+      results.forEach(function (element) {
+        return service.emit(eventName, element, hook);
+      });
+    }
+  };
+};
+
+// Mixin that turns a service into a Node event emitter
+var eventMixin = exports.eventMixin = function eventMixin(service) {
+  if (service._serviceEvents) {
+    return;
+  }
+
+  var app = this;
+  // Indicates if the service is already an event emitter
+  var isEmitter = typeof service.on === 'function' && typeof service.emit === 'function';
+
+  // If not, mix it in (the service is always an Uberproto object that has a .mixin)
+  if (typeof service.mixin === 'function' && !isEmitter) {
+    service.mixin(EventEmitter.prototype);
+  }
+
+  // Define non-enumerable properties of
+  Object.defineProperties(service, {
+    // A list of all events that this service sends
+    _serviceEvents: {
+      value: Array.isArray(service.events) ? service.events.slice() : []
+    },
+
+    // A list of events that should be handled through the event hooks
+    _hookEvents: {
+      value: []
+    }
+  });
+
+  // `app.eventMappings` has the mapping from method name to event name
+  Object.keys(app.eventMappings).forEach(function (method) {
+    var event = app.eventMappings[method];
+    var alreadyEmits = service._serviceEvents.indexOf(event) !== -1;
+
+    // Add events for known methods to _serviceEvents and _hookEvents
+    // if the service indicated it does not send it itself yet
+    if (typeof service[method] === 'function' && !alreadyEmits) {
+      service._serviceEvents.push(event);
+      service._hookEvents.push(event);
+    }
+  });
+};
+
+module.exports = function () {
+  return function (app) {
+    // Mappings from service method to event name
+    Object.assign(app, {
+      eventMappings: {
+        create: 'created',
+        update: 'updated',
+        remove: 'removed',
+        patch: 'patched'
+      }
+    });
+
+    // Register the event hook
+    // `finally` hooks always run last after `error` and `after` hooks
+    app.hooks({ finally: eventHook() });
+
+    // Make the app an event emitter
+    Proto.mixin(EventEmitter.prototype, app);
+
+    app.mixins.push(eventMixin);
+  };
+};
+
+/***/ }),
+
+/***/ "./node_modules/@feathersjs/feathers/lib/hooks.js":
+/*!********************************************************!*\
+  !*** ./node_modules/@feathersjs/feathers/lib/hooks.js ***!
+  \********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
+    hooks = _require.hooks,
+    validateArguments = _require.validateArguments,
+    isPromise = _require.isPromise;
+
+var createHookObject = hooks.createHookObject,
+    getHooks = hooks.getHooks,
+    processHooks = hooks.processHooks,
+    enableHooks = hooks.enableHooks,
+    makeArguments = hooks.makeArguments;
+
+// A service mixin that adds `service.hooks()` method and functionality
+
+var hookMixin = exports.hookMixin = function hookMixin(service) {
+  if (typeof service.hooks === 'function') {
+    return;
+  }
+
+  var app = this;
+  var methods = app.methods;
+  var mixin = {};
+
+  // Add .hooks method and properties to the service
+  enableHooks(service, methods, app.hookTypes);
+
+  // Assemble the mixin object that contains all "hooked" service methods
+  methods.forEach(function (method) {
+    if (typeof service[method] !== 'function') {
+      return;
+    }
+
+    mixin[method] = function () {
+      var service = this;
+      var args = Array.from(arguments);
+      // If the last argument is `true` we want to return
+      // the actual hook object instead of the result
+      var returnHook = args[args.length - 1] === true ? args.pop() : false;
+
+      // A reference to the original method
+      var _super = service._super.bind(service);
+      // Create the hook object that gets passed through
+      var hookObject = createHookObject(method, args, {
+        type: 'before', // initial hook object type
+        service: service,
+        app: app
+      });
+      // A hook that validates the arguments and will always be the very first
+      var validateHook = function validateHook(context) {
+        validateArguments(method, args);
+
+        return context;
+      };
+      // The `before` hook chain (including the validation hook)
+      var beforeHooks = [validateHook].concat(getHooks(app, service, 'before', method));
+
+      // Process all before hooks
+      return processHooks.call(service, beforeHooks, hookObject)
+      // Use the hook object to call the original method
+      .then(function (hookObject) {
+        // If `hookObject.result` is set, skip the original method
+        if (typeof hookObject.result !== 'undefined') {
+          return hookObject;
+        }
+
+        // Otherwise, call it with arguments created from the hook object
+        var promise = _super.apply(undefined, makeArguments(hookObject));
+
+        if (!isPromise(promise)) {
+          throw new Error('Service method \'' + hookObject.method + '\' for \'' + hookObject.path + '\' service must return a promise');
+        }
+
+        return promise.then(function (result) {
+          hookObject.result = result;
+
+          return hookObject;
+        });
+      })
+      // Make a (shallow) copy of hookObject from `before` hooks and update type
+      .then(function (hookObject) {
+        return Object.assign({}, hookObject, { type: 'after' });
+      })
+      // Run through all `after` hooks
+      .then(function (hookObject) {
+        // Combine all app and service `after` and `finally` hooks and process
+        var afterHooks = getHooks(app, service, 'after', method, true);
+        var finallyHooks = getHooks(app, service, 'finally', method, true);
+        var hookChain = afterHooks.concat(finallyHooks);
+
+        return processHooks.call(service, hookChain, hookObject);
+      }).then(function (hookObject) {
+        return (
+          // Finally, return the result
+          // Or the hook object if the `returnHook` flag is set
+          returnHook ? hookObject : hookObject.result
+        );
+      })
+      // Handle errors
+      .catch(function (error) {
+        // Combine all app and service `error` and `finally` hooks and process
+        var errorHooks = getHooks(app, service, 'error', method, true);
+        var finallyHooks = getHooks(app, service, 'finally', method, true);
+        var hookChain = errorHooks.concat(finallyHooks);
+
+        // A shallow copy of the hook object
+        var errorHookObject = Object.assign({}, error.hook || hookObject, {
+          type: 'error',
+          result: null,
+          original: error.hook,
+          error: error
+        });
+
+        return processHooks.call(service, hookChain, errorHookObject).catch(function (error) {
+          errorHookObject.error = error;
+
+          return errorHookObject;
+        }).then(function (hook) {
+          if (returnHook) {
+            // Either resolve or reject with the hook object
+            return hook.result ? hook : Promise.reject(hook);
+          }
+
+          // Otherwise return either the result if set (to swallow errors)
+          // Or reject with the hook error
+          return hook.result ? hook.result : Promise.reject(hook.error);
+        });
+      });
+    };
+  });
+
+  service.mixin(mixin);
+};
+
+module.exports = function () {
+  return function (app) {
+    // We store a reference of all supported hook types on the app
+    // in case someone needs it
+    Object.assign(app, {
+      hookTypes: ['before', 'after', 'error', 'finally']
+    });
+
+    // Add functionality for hooks to be registered as app.hooks
+    enableHooks(app, app.methods, app.hookTypes);
+
+    app.mixins.push(hookMixin);
+  };
+};
+
+/***/ }),
+
+/***/ "./node_modules/@feathersjs/feathers/lib/index.js":
+/*!********************************************************!*\
+  !*** ./node_modules/@feathersjs/feathers/lib/index.js ***!
+  \********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
+    hooks = _require.hooks;
+
+var Proto = __webpack_require__(/*! uberproto */ "./node_modules/uberproto/lib/proto.js");
+var Application = __webpack_require__(/*! ./application */ "./node_modules/@feathersjs/feathers/lib/application.js");
+var version = __webpack_require__(/*! ./version */ "./node_modules/@feathersjs/feathers/lib/version.js");
+
+function createApplication() {
+  var app = {};
+
+  // Mix in the base application
+  Proto.mixin(Application, app);
+
+  app.init();
+
+  return app;
+}
+
+createApplication.version = version;
+createApplication.SKIP = hooks.SKIP;
+
+module.exports = createApplication;
+
+// For better ES module (TypeScript) compatibility
+module.exports.default = createApplication;
+
+/***/ }),
+
+/***/ "./node_modules/@feathersjs/feathers/lib/version.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/@feathersjs/feathers/lib/version.js ***!
+  \**********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = '3.1.3';
+
+/***/ }),
+
+/***/ "./node_modules/debug/src/browser.js":
+/*!*******************************************!*\
+  !*** ./node_modules/debug/src/browser.js ***!
+  \*******************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process) {/**
@@ -1243,7 +1206,7 @@ module.exports = application;
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(12);
+exports = module.exports = __webpack_require__(/*! ./debug */ "./node_modules/debug/src/debug.js");
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -1433,10 +1396,15 @@ function localstorage() {
   } catch (e) {}
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../process/browser.js */ "./node_modules/process/browser.js")))
 
 /***/ }),
-/* 12 */
+
+/***/ "./node_modules/debug/src/debug.js":
+/*!*****************************************!*\
+  !*** ./node_modules/debug/src/debug.js ***!
+  \*****************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -1452,7 +1420,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(13);
+exports.humanize = __webpack_require__(/*! ms */ "./node_modules/ms/index.js");
 
 /**
  * Active `debug` instances.
@@ -1667,7 +1635,12 @@ function coerce(val) {
 
 
 /***/ }),
-/* 13 */
+
+/***/ "./node_modules/ms/index.js":
+/*!**********************************!*\
+  !*** ./node_modules/ms/index.js ***!
+  \**********************************/
+/*! no static exports found */
 /***/ (function(module, exports) {
 
 /**
@@ -1825,105 +1798,12 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-var _require = __webpack_require__(15),
-    EventEmitter = _require.EventEmitter;
-
-var Proto = __webpack_require__(2);
-
-// Returns a hook that emits service events. Should always be
-// used as the very last hook in the chain
-var eventHook = exports.eventHook = function eventHook() {
-  return function (hook) {
-    var app = hook.app,
-        service = hook.service;
-
-    var eventName = app.eventMappings[hook.method];
-    var isHookEvent = service._hookEvents && service._hookEvents.indexOf(eventName) !== -1;
-
-    // If this event is not being sent yet and we are not in an error hook
-    if (eventName && isHookEvent && hook.type !== 'error') {
-      var results = Array.isArray(hook.result) ? hook.result : [hook.result];
-
-      results.forEach(function (element) {
-        return service.emit(eventName, element, hook);
-      });
-    }
-  };
-};
-
-// Mixin that turns a service into a Node event emitter
-var eventMixin = exports.eventMixin = function eventMixin(service) {
-  if (service._serviceEvents) {
-    return;
-  }
-
-  var app = this;
-  // Indicates if the service is already an event emitter
-  var isEmitter = typeof service.on === 'function' && typeof service.emit === 'function';
-
-  // If not, mix it in (the service is always an Uberproto object that has a .mixin)
-  if (typeof service.mixin === 'function' && !isEmitter) {
-    service.mixin(EventEmitter.prototype);
-  }
-
-  // Define non-enumerable properties of
-  Object.defineProperties(service, {
-    // A list of all events that this service sends
-    _serviceEvents: {
-      value: Array.isArray(service.events) ? service.events.slice() : []
-    },
-
-    // A list of events that should be handled through the event hooks
-    _hookEvents: {
-      value: []
-    }
-  });
-
-  // `app.eventMappings` has the mapping from method name to event name
-  Object.keys(app.eventMappings).forEach(function (method) {
-    var event = app.eventMappings[method];
-    var alreadyEmits = service._serviceEvents.indexOf(event) !== -1;
-
-    // Add events for known methods to _serviceEvents and _hookEvents
-    // if the service indicated it does not send it itself yet
-    if (typeof service[method] === 'function' && !alreadyEmits) {
-      service._serviceEvents.push(event);
-      service._hookEvents.push(event);
-    }
-  });
-};
-
-module.exports = function () {
-  return function (app) {
-    // Mappings from service method to event name
-    Object.assign(app, {
-      eventMappings: {
-        create: 'created',
-        update: 'updated',
-        remove: 'removed',
-        patch: 'patched'
-      }
-    });
-
-    // Register the event hook
-    // `finally` hooks always run last after `error` and `after` hooks
-    app.hooks({ finally: eventHook() });
-
-    // Make the app an event emitter
-    Proto.mixin(EventEmitter.prototype, app);
-
-    app.mixins.push(eventMixin);
-  };
-};
-
-/***/ }),
-/* 15 */
+/***/ "./node_modules/node-libs-browser/node_modules/events/events.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/node-libs-browser/node_modules/events/events.js ***!
+  \**********************************************************************/
+/*! no static exports found */
 /***/ (function(module, exports) {
 
 // Copyright Joyent, Inc. and other Node contributors.
@@ -2231,160 +2111,368 @@ function isUndefined(arg) {
 
 
 /***/ }),
-/* 16 */
+
+/***/ "./node_modules/process/browser.js":
+/*!*****************************************!*\
+  !*** ./node_modules/process/browser.js ***!
+  \*****************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+
+/***/ }),
+
+/***/ "./node_modules/uberproto/lib/proto.js":
+/*!*********************************************!*\
+  !*** ./node_modules/uberproto/lib/proto.js ***!
+  \*********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* global define */
+/**
+ * A base object for ECMAScript 5 style prototypal inheritance.
+ *
+ * @see https://github.com/rauschma/proto-js/
+ * @see http://ejohn.org/blog/simple-javascript-inheritance/
+ * @see http://uxebu.com/blog/2011/02/23/object-based-inheritance-for-ecmascript-5/
+ */
+(function (root, factory) {
+	if (true) {
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	} else {}
+}(this, function () {
+
+	function makeSuper(_super, old, name, fn) {
+		return function () {
+			var tmp = this._super;
+
+			// Add a new ._super() method that is the same method
+			// but either pointing to the prototype method
+			// or to the overwritten method
+			this._super = (typeof old === 'function') ? old : _super[name];
+
+			// The method only need to be bound temporarily, so we
+			// remove it when we're done executing
+			var ret = fn.apply(this, arguments);
+			this._super = tmp;
+
+			return ret;
+		};
+	}
+
+	function legacyMixin(prop, obj) {
+		var self = obj || this;
+		var fnTest = /\b_super\b/;
+		var _super = Object.getPrototypeOf(self) || self.prototype;
+		var _old;
+
+		// Copy the properties over
+		for (var name in prop) {
+			// store the old function which would be overwritten
+			_old = self[name];
+
+			// Check if we're overwriting an existing function
+			if(
+					((
+						typeof prop[name] === 'function' &&
+						typeof _super[name] === 'function'
+					) || (
+						typeof _old === 'function' &&
+						typeof prop[name] === 'function'
+					)) && fnTest.test(prop[name])
+			) {
+				self[name] = makeSuper(_super, _old, name, prop[name]);
+			} else {
+				self[name] = prop[name];
+			}
+		}
+
+		return self;
+	}
+
+	function es5Mixin(prop, obj) {
+		var self = obj || this;
+		var fnTest = /\b_super\b/;
+		var _super = Object.getPrototypeOf(self) || self.prototype;
+		var descriptors = {};
+		var proto = prop;
+		var processProperty = function(name) {
+			if(!descriptors[name]) {
+				descriptors[name] = Object.getOwnPropertyDescriptor(proto, name);
+			}
+		};
+
+		// Collect all property descriptors
+		do {
+			Object.getOwnPropertyNames(proto).forEach(processProperty);
+    } while((proto = Object.getPrototypeOf(proto)) && Object.getPrototypeOf(proto));
+		
+		Object.keys(descriptors).forEach(function(name) {
+			var descriptor = descriptors[name];
+
+			if(typeof descriptor.value === 'function' && fnTest.test(descriptor.value)) {
+				descriptor.value = makeSuper(_super, self[name], name, descriptor.value);
+			}
+
+			Object.defineProperty(self, name, descriptor);
+		});
+
+		return self;
+	}
+
+	return {
+		/**
+		 * Create a new object using Object.create. The arguments will be
+		 * passed to the new instances init method or to a method name set in
+		 * __init.
+		 */
+		create: function () {
+			var instance = Object.create(this);
+			var init = typeof instance.__init === 'string' ? instance.__init : 'init';
+
+			if (typeof instance[init] === 'function') {
+				instance[init].apply(instance, arguments);
+			}
+			return instance;
+		},
+		/**
+		 * Mixin a given set of properties
+		 * @param prop The properties to mix in
+		 * @param obj [optional] The object to add the mixin
+		 */
+		mixin: typeof Object.defineProperty === 'function' ? es5Mixin : legacyMixin,
+		/**
+		 * Extend the current or a given object with the given property
+		 * and return the extended object.
+		 * @param prop The properties to extend with
+		 * @param obj [optional] The object to extend from
+		 * @returns The extended object
+		 */
+		extend: function (prop, obj) {
+			return this.mixin(prop, Object.create(obj || this));
+		},
+		/**
+		 * Return a callback function with this set to the current or a given context object.
+		 * @param name Name of the method to proxy
+		 * @param args... [optional] Arguments to use for partial application
+		 */
+		proxy: function (name) {
+			var fn = this[name];
+			var args = Array.prototype.slice.call(arguments, 1);
+
+			args.unshift(this);
+			return fn.bind.apply(fn, args);
+		}
+	};
+
+}));
+
+
+/***/ }),
+
+/***/ "./src/core.js":
+/*!*********************!*\
+  !*** ./src/core.js ***!
+  \*********************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _require = __webpack_require__(0),
-    hooks = _require.hooks,
-    validateArguments = _require.validateArguments,
-    isPromise = _require.isPromise;
-
-var createHookObject = hooks.createHookObject,
-    getHooks = hooks.getHooks,
-    processHooks = hooks.processHooks,
-    enableHooks = hooks.enableHooks,
-    makeArguments = hooks.makeArguments;
-
-// A service mixin that adds `service.hooks()` method and functionality
-
-var hookMixin = exports.hookMixin = function hookMixin(service) {
-  if (typeof service.hooks === 'function') {
-    return;
-  }
-
-  var app = this;
-  var methods = app.methods;
-  var mixin = {};
-
-  // Add .hooks method and properties to the service
-  enableHooks(service, methods, app.hookTypes);
-
-  // Assemble the mixin object that contains all "hooked" service methods
-  methods.forEach(function (method) {
-    if (typeof service[method] !== 'function') {
-      return;
-    }
-
-    mixin[method] = function () {
-      var service = this;
-      var args = Array.from(arguments);
-      // If the last argument is `true` we want to return
-      // the actual hook object instead of the result
-      var returnHook = args[args.length - 1] === true ? args.pop() : false;
-
-      // A reference to the original method
-      var _super = service._super.bind(service);
-      // Create the hook object that gets passed through
-      var hookObject = createHookObject(method, args, {
-        type: 'before', // initial hook object type
-        service: service,
-        app: app
-      });
-      // A hook that validates the arguments and will always be the very first
-      var validateHook = function validateHook(context) {
-        validateArguments(method, args);
-
-        return context;
-      };
-      // The `before` hook chain (including the validation hook)
-      var beforeHooks = [validateHook].concat(getHooks(app, service, 'before', method));
-
-      // Process all before hooks
-      return processHooks.call(service, beforeHooks, hookObject)
-      // Use the hook object to call the original method
-      .then(function (hookObject) {
-        // If `hookObject.result` is set, skip the original method
-        if (typeof hookObject.result !== 'undefined') {
-          return hookObject;
-        }
-
-        // Otherwise, call it with arguments created from the hook object
-        var promise = _super.apply(undefined, makeArguments(hookObject));
-
-        if (!isPromise(promise)) {
-          throw new Error('Service method \'' + hookObject.method + '\' for \'' + hookObject.path + '\' service must return a promise');
-        }
-
-        return promise.then(function (result) {
-          hookObject.result = result;
-
-          return hookObject;
-        });
-      })
-      // Make a (shallow) copy of hookObject from `before` hooks and update type
-      .then(function (hookObject) {
-        return Object.assign({}, hookObject, { type: 'after' });
-      })
-      // Run through all `after` hooks
-      .then(function (hookObject) {
-        // Combine all app and service `after` and `finally` hooks and process
-        var afterHooks = getHooks(app, service, 'after', method, true);
-        var finallyHooks = getHooks(app, service, 'finally', method, true);
-        var hookChain = afterHooks.concat(finallyHooks);
-
-        return processHooks.call(service, hookChain, hookObject);
-      }).then(function (hookObject) {
-        return (
-          // Finally, return the result
-          // Or the hook object if the `returnHook` flag is set
-          returnHook ? hookObject : hookObject.result
-        );
-      })
-      // Handle errors
-      .catch(function (error) {
-        // Combine all app and service `error` and `finally` hooks and process
-        var errorHooks = getHooks(app, service, 'error', method, true);
-        var finallyHooks = getHooks(app, service, 'finally', method, true);
-        var hookChain = errorHooks.concat(finallyHooks);
-
-        // A shallow copy of the hook object
-        var errorHookObject = Object.assign({}, error.hook || hookObject, {
-          type: 'error',
-          result: null,
-          original: error.hook,
-          error: error
-        });
-
-        return processHooks.call(service, hookChain, errorHookObject).catch(function (error) {
-          errorHookObject.error = error;
-
-          return errorHookObject;
-        }).then(function (hook) {
-          if (returnHook) {
-            // Either resolve or reject with the hook object
-            return hook.result ? hook : Promise.reject(hook);
-          }
-
-          // Otherwise return either the result if set (to swallow errors)
-          // Or reject with the hook error
-          return hook.result ? hook.result : Promise.reject(hook.error);
-        });
-      });
-    };
-  });
-
-  service.mixin(mixin);
-};
-
-module.exports = function () {
-  return function (app) {
-    // We store a reference of all supported hook types on the app
-    // in case someone needs it
-    Object.assign(app, {
-      hookTypes: ['before', 'after', 'error', 'finally']
-    });
-
-    // Add functionality for hooks to be registered as app.hooks
-    enableHooks(app, app.methods, app.hookTypes);
-
-    app.mixins.push(hookMixin);
-  };
-};
+module.exports = __webpack_require__(/*! @feathersjs/feathers */ "./node_modules/@feathersjs/feathers/lib/index.js");
 
 /***/ })
-/******/ ]);
+
+/******/ });
 });
 //# sourceMappingURL=core.js.map

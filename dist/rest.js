@@ -54,6 +54,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -69,1323 +74,179 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/rest.js");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./node_modules/@feathersjs/commons/lib/arguments.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/@feathersjs/commons/lib/arguments.js ***!
+  \***********************************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var query = __webpack_require__(8);
-
-var _require = __webpack_require__(11),
-    stripSlashes = _require.stripSlashes;
-
-var _require2 = __webpack_require__(15),
-    convert = _require2.convert;
-
-function toError(error) {
-  throw convert(error);
-}
-
-var Base = function () {
-  function Base(settings) {
-    _classCallCheck(this, Base);
-
-    this.name = stripSlashes(settings.name);
-    this.options = settings.options;
-    this.connection = settings.connection;
-    this.base = settings.base + '/' + this.name;
-  }
-
-  Base.prototype.makeUrl = function makeUrl(params, id) {
-    params = params || {};
-    var url = this.base;
-
-    if (typeof id !== 'undefined' && id !== null) {
-      url += '/' + id;
-    }
-
-    if (Object.keys(params).length !== 0) {
-      var queryString = query.stringify(params);
-
-      url += '?' + queryString;
-    }
-
-    return url;
-  };
-
-  Base.prototype.find = function find() {
-    var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-    return this.request({
-      url: this.makeUrl(params.query),
-      method: 'GET',
-      headers: Object.assign({}, params.headers)
-    }).catch(toError);
-  };
-
-  Base.prototype.get = function get(id) {
-    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-    if (typeof id === 'undefined') {
-      return Promise.reject(new Error('id for \'get\' can not be undefined'));
-    }
-
-    return this.request({
-      url: this.makeUrl(params.query, id),
-      method: 'GET',
-      headers: Object.assign({}, params.headers)
-    }).catch(toError);
-  };
-
-  Base.prototype.create = function create(body) {
-    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-    return this.request({
-      url: this.makeUrl(params.query),
-      body: body,
-      method: 'POST',
-      headers: Object.assign({ 'Content-Type': 'application/json' }, params.headers)
-    }).catch(toError);
-  };
-
-  Base.prototype.update = function update(id, body) {
-    var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-    if (typeof id === 'undefined') {
-      return Promise.reject(new Error('id for \'update\' can not be undefined, only \'null\' when updating multiple entries'));
-    }
-
-    return this.request({
-      url: this.makeUrl(params.query, id),
-      body: body,
-      method: 'PUT',
-      headers: Object.assign({ 'Content-Type': 'application/json' }, params.headers)
-    }).catch(toError);
-  };
-
-  Base.prototype.patch = function patch(id, body) {
-    var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-    if (typeof id === 'undefined') {
-      return Promise.reject(new Error('id for \'patch\' can not be undefined, only \'null\' when updating multiple entries'));
-    }
-
-    return this.request({
-      url: this.makeUrl(params.query, id),
-      body: body,
-      method: 'PATCH',
-      headers: Object.assign({ 'Content-Type': 'application/json' }, params.headers)
-    }).catch(toError);
-  };
-
-  Base.prototype.remove = function remove(id) {
-    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-    if (typeof id === 'undefined') {
-      return Promise.reject(new Error('id for \'remove\' can not be undefined, only \'null\' when removing multiple entries'));
-    }
-
-    return this.request({
-      url: this.makeUrl(params.query, id),
-      method: 'DELETE',
-      headers: Object.assign({}, params.headers)
-    }).catch(toError);
-  };
-
-  return Base;
-}();
-
-module.exports = Base;
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-// Removes all leading and trailing slashes from a path
-exports.stripSlashes = function stripSlashes(name) {
-  return name.replace(/^(\/*)|(\/*)$/g, '');
+var paramCounts = {
+  find: 1,
+  get: 2,
+  create: 2,
+  update: 3,
+  patch: 3,
+  remove: 2
 };
 
-// A set of lodash-y utility functions that use ES6
-var _ = exports._ = {
-  each: function each(obj, callback) {
-    if (obj && typeof obj.forEach === 'function') {
-      obj.forEach(callback);
-    } else if (_.isObject(obj)) {
-      Object.keys(obj).forEach(function (key) {
-        return callback(obj[key], key);
-      });
-    }
-  },
-  some: function some(value, callback) {
-    return Object.keys(value).map(function (key) {
-      return [value[key], key];
-    }).some(function (_ref) {
-      var val = _ref[0],
-          key = _ref[1];
-      return callback(val, key);
-    });
-  },
-  every: function every(value, callback) {
-    return Object.keys(value).map(function (key) {
-      return [value[key], key];
-    }).every(function (_ref2) {
-      var val = _ref2[0],
-          key = _ref2[1];
-      return callback(val, key);
-    });
-  },
-  keys: function keys(obj) {
-    return Object.keys(obj);
-  },
-  values: function values(obj) {
-    return _.keys(obj).map(function (key) {
-      return obj[key];
-    });
-  },
-  isMatch: function isMatch(obj, item) {
-    return _.keys(item).every(function (key) {
-      return obj[key] === item[key];
-    });
-  },
-  isEmpty: function isEmpty(obj) {
-    return _.keys(obj).length === 0;
-  },
-  isObject: function isObject(item) {
-    return (typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object' && !Array.isArray(item) && item !== null;
-  },
-  extend: function extend() {
-    return Object.assign.apply(Object, arguments);
-  },
-  omit: function omit(obj) {
-    var result = _.extend({}, obj);
+function isObjectOrArray(value) {
+  return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value !== null;
+}
 
-    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      keys[_key - 1] = arguments[_key];
-    }
-
-    keys.forEach(function (key) {
-      return delete result[key];
-    });
-    return result;
-  },
-  pick: function pick(source) {
-    var result = {};
-
-    for (var _len2 = arguments.length, keys = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-      keys[_key2 - 1] = arguments[_key2];
-    }
-
-    keys.forEach(function (key) {
-      result[key] = source[key];
-    });
-    return result;
-  },
-
-
-  // Recursively merge the source object into the target object
-  merge: function merge(target, source) {
-    if (_.isObject(target) && _.isObject(source)) {
-      Object.keys(source).forEach(function (key) {
-        if (_.isObject(source[key])) {
-          if (!target[key]) {
-            var _Object$assign;
-
-            Object.assign(target, (_Object$assign = {}, _Object$assign[key] = {}, _Object$assign));
-          }
-
-          _.merge(target[key], source[key]);
-        } else {
-          var _Object$assign2;
-
-          Object.assign(target, (_Object$assign2 = {}, _Object$assign2[key] = source[key], _Object$assign2));
-        }
-      });
-    }
-    return target;
-  }
-};
-
-// Return a function that filters a result object or array
-// and picks only the fields passed as `params.query.$select`
-// and additional `otherFields`
-exports.select = function select(params) {
-  var fields = params && params.query && params.query.$select;
-
-  for (var _len3 = arguments.length, otherFields = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-    otherFields[_key3 - 1] = arguments[_key3];
+exports.validateArguments = function validateArguments(method, args) {
+  // Check if the last argument is a callback which are no longer supported
+  if (typeof args[args.length - 1] === 'function') {
+    throw new Error('Callbacks are no longer supported. Use Promises or async/await instead.');
   }
 
-  if (Array.isArray(fields) && otherFields.length) {
-    fields.push.apply(fields, otherFields);
+  var methodParamCount = paramCounts[method];
+
+  // Check the number of arguments and throw an error if too many are provided
+  if (methodParamCount && args.length > methodParamCount) {
+    throw new Error('Too many arguments for \'' + method + '\' method');
   }
 
-  var convert = function convert(result) {
-    if (!Array.isArray(fields)) {
-      return result;
-    }
+  // `params` is always the last argument
+  var params = args[methodParamCount - 1];
 
-    return _.pick.apply(_, [result].concat(fields));
-  };
+  // Check if `params` is an object (can be undefined though)
+  if (params !== undefined && !isObjectOrArray(params)) {
+    throw new Error('Params for \'' + method + '\' method must be an object');
+  }
 
-  return function (result) {
-    if (Array.isArray(result)) {
-      return result.map(convert);
-    }
-
-    return convert(result);
-  };
-};
-
-// An in-memory sorting function according to the
-// $sort special query parameter
-exports.sorter = function sorter($sort) {
-  return function (first, second) {
-    var comparator = 0;
-    _.each($sort, function (modifier, key) {
-      modifier = parseInt(modifier, 10);
-
-      if (first[key] < second[key]) {
-        comparator -= 1 * modifier;
+  // Validate other arguments for each method
+  switch (method) {
+    case 'create':
+      if (!isObjectOrArray(args[0])) {
+        throw new Error('A data object must be provided to the \'create\' method');
+      }
+      break;
+    case 'get':
+    case 'remove':
+    case 'update':
+    case 'patch':
+      if (args[0] === undefined) {
+        throw new Error('An id must be provided to the \'' + method + '\' method');
       }
 
-      if (first[key] > second[key]) {
-        comparator += 1 * modifier;
+      if ((method === 'update' || method === 'patch') && !isObjectOrArray(args[1])) {
+        throw new Error('A data object must be provided to the \'' + method + '\' method');
       }
-    });
-    return comparator;
-  };
+  }
+
+  return true;
 };
-
-// Duck-checks if an object looks like a promise
-exports.isPromise = function isPromise(result) {
-  return _.isObject(result) && typeof result.then === 'function';
-};
-
-exports.makeUrl = function makeUrl(path) {
-  var app = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  var get = typeof app.get === 'function' ? app.get.bind(app) : function () {};
-  var env = get('env') || process.env.NODE_ENV;
-  var host = get('host') || process.env.HOST_NAME || 'localhost';
-  var protocol = env === 'development' || env === 'test' || env === undefined ? 'http' : 'https';
-  var PORT = get('port') || process.env.PORT || 3030;
-  var port = env === 'development' || env === 'test' || env === undefined ? ':' + PORT : '';
-
-  path = path || '';
-
-  return protocol + '://' + host + port + '/' + exports.stripSlashes(path);
-};
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
 
 /***/ }),
-/* 2 */
+
+/***/ "./node_modules/@feathersjs/commons/lib/commons.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/@feathersjs/commons/lib/commons.js ***!
+  \*********************************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var has = Object.prototype.hasOwnProperty;
+var utils = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js");
+var hooks = __webpack_require__(/*! ./hooks */ "./node_modules/@feathersjs/commons/lib/hooks.js");
+var args = __webpack_require__(/*! ./arguments */ "./node_modules/@feathersjs/commons/lib/arguments.js");
+var filterQuery = __webpack_require__(/*! ./filter-query */ "./node_modules/@feathersjs/commons/lib/filter-query.js");
 
-var hexTable = (function () {
-    var array = [];
-    for (var i = 0; i < 256; ++i) {
-        array.push('%' + ((i < 16 ? '0' : '') + i.toString(16)).toUpperCase());
-    }
-
-    return array;
-}());
-
-var compactQueue = function compactQueue(queue) {
-    var obj;
-
-    while (queue.length) {
-        var item = queue.pop();
-        obj = item.obj[item.prop];
-
-        if (Array.isArray(obj)) {
-            var compacted = [];
-
-            for (var j = 0; j < obj.length; ++j) {
-                if (typeof obj[j] !== 'undefined') {
-                    compacted.push(obj[j]);
-                }
-            }
-
-            item.obj[item.prop] = compacted;
-        }
-    }
-
-    return obj;
-};
-
-exports.arrayToObject = function arrayToObject(source, options) {
-    var obj = options && options.plainObjects ? Object.create(null) : {};
-    for (var i = 0; i < source.length; ++i) {
-        if (typeof source[i] !== 'undefined') {
-            obj[i] = source[i];
-        }
-    }
-
-    return obj;
-};
-
-exports.merge = function merge(target, source, options) {
-    if (!source) {
-        return target;
-    }
-
-    if (typeof source !== 'object') {
-        if (Array.isArray(target)) {
-            target.push(source);
-        } else if (typeof target === 'object') {
-            if (options.plainObjects || options.allowPrototypes || !has.call(Object.prototype, source)) {
-                target[source] = true;
-            }
-        } else {
-            return [target, source];
-        }
-
-        return target;
-    }
-
-    if (typeof target !== 'object') {
-        return [target].concat(source);
-    }
-
-    var mergeTarget = target;
-    if (Array.isArray(target) && !Array.isArray(source)) {
-        mergeTarget = exports.arrayToObject(target, options);
-    }
-
-    if (Array.isArray(target) && Array.isArray(source)) {
-        source.forEach(function (item, i) {
-            if (has.call(target, i)) {
-                if (target[i] && typeof target[i] === 'object') {
-                    target[i] = exports.merge(target[i], item, options);
-                } else {
-                    target.push(item);
-                }
-            } else {
-                target[i] = item;
-            }
-        });
-        return target;
-    }
-
-    return Object.keys(source).reduce(function (acc, key) {
-        var value = source[key];
-
-        if (has.call(acc, key)) {
-            acc[key] = exports.merge(acc[key], value, options);
-        } else {
-            acc[key] = value;
-        }
-        return acc;
-    }, mergeTarget);
-};
-
-exports.assign = function assignSingleSource(target, source) {
-    return Object.keys(source).reduce(function (acc, key) {
-        acc[key] = source[key];
-        return acc;
-    }, target);
-};
-
-exports.decode = function (str) {
-    try {
-        return decodeURIComponent(str.replace(/\+/g, ' '));
-    } catch (e) {
-        return str;
-    }
-};
-
-exports.encode = function encode(str) {
-    // This code was originally written by Brian White (mscdex) for the io.js core querystring library.
-    // It has been adapted here for stricter adherence to RFC 3986
-    if (str.length === 0) {
-        return str;
-    }
-
-    var string = typeof str === 'string' ? str : String(str);
-
-    var out = '';
-    for (var i = 0; i < string.length; ++i) {
-        var c = string.charCodeAt(i);
-
-        if (
-            c === 0x2D // -
-            || c === 0x2E // .
-            || c === 0x5F // _
-            || c === 0x7E // ~
-            || (c >= 0x30 && c <= 0x39) // 0-9
-            || (c >= 0x41 && c <= 0x5A) // a-z
-            || (c >= 0x61 && c <= 0x7A) // A-Z
-        ) {
-            out += string.charAt(i);
-            continue;
-        }
-
-        if (c < 0x80) {
-            out = out + hexTable[c];
-            continue;
-        }
-
-        if (c < 0x800) {
-            out = out + (hexTable[0xC0 | (c >> 6)] + hexTable[0x80 | (c & 0x3F)]);
-            continue;
-        }
-
-        if (c < 0xD800 || c >= 0xE000) {
-            out = out + (hexTable[0xE0 | (c >> 12)] + hexTable[0x80 | ((c >> 6) & 0x3F)] + hexTable[0x80 | (c & 0x3F)]);
-            continue;
-        }
-
-        i += 1;
-        c = 0x10000 + (((c & 0x3FF) << 10) | (string.charCodeAt(i) & 0x3FF));
-        out += hexTable[0xF0 | (c >> 18)]
-            + hexTable[0x80 | ((c >> 12) & 0x3F)]
-            + hexTable[0x80 | ((c >> 6) & 0x3F)]
-            + hexTable[0x80 | (c & 0x3F)];
-    }
-
-    return out;
-};
-
-exports.compact = function compact(value) {
-    var queue = [{ obj: { o: value }, prop: 'o' }];
-    var refs = [];
-
-    for (var i = 0; i < queue.length; ++i) {
-        var item = queue[i];
-        var obj = item.obj[item.prop];
-
-        var keys = Object.keys(obj);
-        for (var j = 0; j < keys.length; ++j) {
-            var key = keys[j];
-            var val = obj[key];
-            if (typeof val === 'object' && val !== null && refs.indexOf(val) === -1) {
-                queue.push({ obj: obj, prop: key });
-                refs.push(val);
-            }
-        }
-    }
-
-    return compactQueue(queue);
-};
-
-exports.isRegExp = function isRegExp(obj) {
-    return Object.prototype.toString.call(obj) === '[object RegExp]';
-};
-
-exports.isBuffer = function isBuffer(obj) {
-    if (obj === null || typeof obj === 'undefined') {
-        return false;
-    }
-
-    return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
-};
-
+module.exports = Object.assign({}, utils, args, { hooks: hooks, filterQuery: filterQuery });
 
 /***/ }),
-/* 3 */
+
+/***/ "./node_modules/@feathersjs/commons/lib/filter-query.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/@feathersjs/commons/lib/filter-query.js ***!
+  \**************************************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var replace = String.prototype.replace;
-var percentTwenties = /%20/g;
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-module.exports = {
-    'default': 'RFC3986',
-    formatters: {
-        RFC1738: function (value) {
-            return replace.call(value, percentTwenties, '+');
-        },
-        RFC3986: function (value) {
-            return value;
-        }
-    },
-    RFC1738: 'RFC1738',
-    RFC3986: 'RFC3986'
-};
+var _require = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js"),
+    _ = _require._;
+
+// Officially supported query parameters ($populate is kind of special)
 
 
-/***/ }),
-/* 4 */
-/***/ (function(module, exports) {
+var PROPERTIES = ['$sort', '$limit', '$skip', '$select', '$populate'];
 
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
+function parse(number) {
+  if (typeof number !== 'undefined') {
+    return Math.abs(parseInt(number, 10));
+  }
 }
 
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
+// Returns the pagination limit and will take into account the
+// default and max pagination settings
+function getLimit(limit, paginate) {
+  if (paginate && paginate.default) {
+    var lower = typeof limit === 'number' ? limit : paginate.default;
+    var upper = typeof paginate.max === 'number' ? paginate.max : Number.MAX_VALUE;
 
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
+    return Math.min(lower, upper);
+  }
+
+  return limit;
 }
 
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
+// Makes sure that $sort order is always converted to an actual number
+function convertSort(sort) {
+  if ((typeof sort === 'undefined' ? 'undefined' : _typeof(sort)) !== 'object' || Array.isArray(sort)) {
+    return sort;
+  }
 
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
+  var result = {};
 
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = __webpack_require__(6);
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var jQuery = __webpack_require__(7);
-var Superagent = __webpack_require__(19);
-var Request = __webpack_require__(20);
-var Fetch = __webpack_require__(21);
-var Axios = __webpack_require__(22);
-var Angular = __webpack_require__(23);
-var Base = __webpack_require__(0);
-var AngularHttpClient = __webpack_require__(24);
-
-var transports = {
-  jquery: jQuery,
-  superagent: Superagent,
-  request: Request,
-  fetch: Fetch,
-  axios: Axios,
-  angular: Angular,
-  angularHttpClient: AngularHttpClient
-};
-
-function restClient() {
-  var base = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-
-  var result = { Base: Base };
-
-  Object.keys(transports).forEach(function (key) {
-    var Service = transports[key];
-
-    result[key] = function (connection) {
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-      if (!connection) {
-        throw new Error(key + ' has to be provided to feathers-rest');
-      }
-
-      var defaultService = function defaultService(name) {
-        return new Service({ base: base, name: name, connection: connection, options: options });
-      };
-
-      var initialize = function initialize() {
-        if (typeof this.defaultService === 'function') {
-          throw new Error('Only one default client provider can be configured');
-        }
-
-        this.rest = connection;
-        this.defaultService = defaultService;
-      };
-
-      initialize.Service = Service;
-      initialize.service = defaultService;
-
-      return initialize;
-    };
+  Object.keys(sort).forEach(function (key) {
+    result[key] = _typeof(sort[key]) === 'object' ? sort[key] : parseInt(sort[key], 10);
   });
 
   return result;
 }
 
-module.exports = restClient;
-module.exports.default = restClient;
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var Base = __webpack_require__(0);
-
-var jQueryService = function (_Base) {
-  _inherits(jQueryService, _Base);
-
-  function jQueryService() {
-    _classCallCheck(this, jQueryService);
-
-    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
-  }
-
-  jQueryService.prototype.request = function request(options) {
-    var _this2 = this;
-
-    var opts = Object.assign({
-      dataType: options.type || 'json'
-    }, {
-      headers: this.options.headers || {}
-    }, options);
-
-    if (options.body) {
-      opts.data = JSON.stringify(options.body);
-      opts.contentType = 'application/json';
-    }
-
-    delete opts.type;
-    delete opts.body;
-
-    return new Promise(function (resolve, reject) {
-      _this2.connection.ajax(opts).then(resolve, function (xhr) {
-        var error = xhr.responseText;
-
-        try {
-          error = JSON.parse(error);
-        } catch (e) {
-          error = new Error(xhr.responseText);
-        }
-
-        error.xhr = error.response = xhr;
-
-        reject(error);
-      });
-    });
+// Converts Feathers special query parameters and pagination settings
+// and returns them separately a `filters` and the rest of the query
+// as `query`
+module.exports = function (query, paginate) {
+  var filters = {
+    $sort: convertSort(query.$sort),
+    $limit: getLimit(parse(query.$limit), paginate),
+    $skip: parse(query.$skip),
+    $select: query.$select,
+    $populate: query.$populate
   };
 
-  return jQueryService;
-}(Base);
-
-module.exports = jQueryService;
+  return { filters: filters, query: _.omit.apply(_, [query].concat(PROPERTIES)) };
+};
 
 /***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-var stringify = __webpack_require__(9);
-var parse = __webpack_require__(10);
-var formats = __webpack_require__(3);
-
-module.exports = {
-    formats: formats,
-    parse: parse,
-    stringify: stringify
-};
-
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var utils = __webpack_require__(2);
-var formats = __webpack_require__(3);
-
-var arrayPrefixGenerators = {
-    brackets: function brackets(prefix) { // eslint-disable-line func-name-matching
-        return prefix + '[]';
-    },
-    indices: function indices(prefix, key) { // eslint-disable-line func-name-matching
-        return prefix + '[' + key + ']';
-    },
-    repeat: function repeat(prefix) { // eslint-disable-line func-name-matching
-        return prefix;
-    }
-};
-
-var toISO = Date.prototype.toISOString;
-
-var defaults = {
-    delimiter: '&',
-    encode: true,
-    encoder: utils.encode,
-    encodeValuesOnly: false,
-    serializeDate: function serializeDate(date) { // eslint-disable-line func-name-matching
-        return toISO.call(date);
-    },
-    skipNulls: false,
-    strictNullHandling: false
-};
-
-var stringify = function stringify( // eslint-disable-line func-name-matching
-    object,
-    prefix,
-    generateArrayPrefix,
-    strictNullHandling,
-    skipNulls,
-    encoder,
-    filter,
-    sort,
-    allowDots,
-    serializeDate,
-    formatter,
-    encodeValuesOnly
-) {
-    var obj = object;
-    if (typeof filter === 'function') {
-        obj = filter(prefix, obj);
-    } else if (obj instanceof Date) {
-        obj = serializeDate(obj);
-    } else if (obj === null) {
-        if (strictNullHandling) {
-            return encoder && !encodeValuesOnly ? encoder(prefix, defaults.encoder) : prefix;
-        }
-
-        obj = '';
-    }
-
-    if (typeof obj === 'string' || typeof obj === 'number' || typeof obj === 'boolean' || utils.isBuffer(obj)) {
-        if (encoder) {
-            var keyValue = encodeValuesOnly ? prefix : encoder(prefix, defaults.encoder);
-            return [formatter(keyValue) + '=' + formatter(encoder(obj, defaults.encoder))];
-        }
-        return [formatter(prefix) + '=' + formatter(String(obj))];
-    }
-
-    var values = [];
-
-    if (typeof obj === 'undefined') {
-        return values;
-    }
-
-    var objKeys;
-    if (Array.isArray(filter)) {
-        objKeys = filter;
-    } else {
-        var keys = Object.keys(obj);
-        objKeys = sort ? keys.sort(sort) : keys;
-    }
-
-    for (var i = 0; i < objKeys.length; ++i) {
-        var key = objKeys[i];
-
-        if (skipNulls && obj[key] === null) {
-            continue;
-        }
-
-        if (Array.isArray(obj)) {
-            values = values.concat(stringify(
-                obj[key],
-                generateArrayPrefix(prefix, key),
-                generateArrayPrefix,
-                strictNullHandling,
-                skipNulls,
-                encoder,
-                filter,
-                sort,
-                allowDots,
-                serializeDate,
-                formatter,
-                encodeValuesOnly
-            ));
-        } else {
-            values = values.concat(stringify(
-                obj[key],
-                prefix + (allowDots ? '.' + key : '[' + key + ']'),
-                generateArrayPrefix,
-                strictNullHandling,
-                skipNulls,
-                encoder,
-                filter,
-                sort,
-                allowDots,
-                serializeDate,
-                formatter,
-                encodeValuesOnly
-            ));
-        }
-    }
-
-    return values;
-};
-
-module.exports = function (object, opts) {
-    var obj = object;
-    var options = opts ? utils.assign({}, opts) : {};
-
-    if (options.encoder !== null && options.encoder !== undefined && typeof options.encoder !== 'function') {
-        throw new TypeError('Encoder has to be a function.');
-    }
-
-    var delimiter = typeof options.delimiter === 'undefined' ? defaults.delimiter : options.delimiter;
-    var strictNullHandling = typeof options.strictNullHandling === 'boolean' ? options.strictNullHandling : defaults.strictNullHandling;
-    var skipNulls = typeof options.skipNulls === 'boolean' ? options.skipNulls : defaults.skipNulls;
-    var encode = typeof options.encode === 'boolean' ? options.encode : defaults.encode;
-    var encoder = typeof options.encoder === 'function' ? options.encoder : defaults.encoder;
-    var sort = typeof options.sort === 'function' ? options.sort : null;
-    var allowDots = typeof options.allowDots === 'undefined' ? false : options.allowDots;
-    var serializeDate = typeof options.serializeDate === 'function' ? options.serializeDate : defaults.serializeDate;
-    var encodeValuesOnly = typeof options.encodeValuesOnly === 'boolean' ? options.encodeValuesOnly : defaults.encodeValuesOnly;
-    if (typeof options.format === 'undefined') {
-        options.format = formats['default'];
-    } else if (!Object.prototype.hasOwnProperty.call(formats.formatters, options.format)) {
-        throw new TypeError('Unknown format option provided.');
-    }
-    var formatter = formats.formatters[options.format];
-    var objKeys;
-    var filter;
-
-    if (typeof options.filter === 'function') {
-        filter = options.filter;
-        obj = filter('', obj);
-    } else if (Array.isArray(options.filter)) {
-        filter = options.filter;
-        objKeys = filter;
-    }
-
-    var keys = [];
-
-    if (typeof obj !== 'object' || obj === null) {
-        return '';
-    }
-
-    var arrayFormat;
-    if (options.arrayFormat in arrayPrefixGenerators) {
-        arrayFormat = options.arrayFormat;
-    } else if ('indices' in options) {
-        arrayFormat = options.indices ? 'indices' : 'repeat';
-    } else {
-        arrayFormat = 'indices';
-    }
-
-    var generateArrayPrefix = arrayPrefixGenerators[arrayFormat];
-
-    if (!objKeys) {
-        objKeys = Object.keys(obj);
-    }
-
-    if (sort) {
-        objKeys.sort(sort);
-    }
-
-    for (var i = 0; i < objKeys.length; ++i) {
-        var key = objKeys[i];
-
-        if (skipNulls && obj[key] === null) {
-            continue;
-        }
-
-        keys = keys.concat(stringify(
-            obj[key],
-            key,
-            generateArrayPrefix,
-            strictNullHandling,
-            skipNulls,
-            encode ? encoder : null,
-            filter,
-            sort,
-            allowDots,
-            serializeDate,
-            formatter,
-            encodeValuesOnly
-        ));
-    }
-
-    var joined = keys.join(delimiter);
-    var prefix = options.addQueryPrefix === true ? '?' : '';
-
-    return joined.length > 0 ? prefix + joined : '';
-};
-
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var utils = __webpack_require__(2);
-
-var has = Object.prototype.hasOwnProperty;
-
-var defaults = {
-    allowDots: false,
-    allowPrototypes: false,
-    arrayLimit: 20,
-    decoder: utils.decode,
-    delimiter: '&',
-    depth: 5,
-    parameterLimit: 1000,
-    plainObjects: false,
-    strictNullHandling: false
-};
-
-var parseValues = function parseQueryStringValues(str, options) {
-    var obj = {};
-    var cleanStr = options.ignoreQueryPrefix ? str.replace(/^\?/, '') : str;
-    var limit = options.parameterLimit === Infinity ? undefined : options.parameterLimit;
-    var parts = cleanStr.split(options.delimiter, limit);
-
-    for (var i = 0; i < parts.length; ++i) {
-        var part = parts[i];
-
-        var bracketEqualsPos = part.indexOf(']=');
-        var pos = bracketEqualsPos === -1 ? part.indexOf('=') : bracketEqualsPos + 1;
-
-        var key, val;
-        if (pos === -1) {
-            key = options.decoder(part, defaults.decoder);
-            val = options.strictNullHandling ? null : '';
-        } else {
-            key = options.decoder(part.slice(0, pos), defaults.decoder);
-            val = options.decoder(part.slice(pos + 1), defaults.decoder);
-        }
-        if (has.call(obj, key)) {
-            obj[key] = [].concat(obj[key]).concat(val);
-        } else {
-            obj[key] = val;
-        }
-    }
-
-    return obj;
-};
-
-var parseObject = function (chain, val, options) {
-    var leaf = val;
-
-    for (var i = chain.length - 1; i >= 0; --i) {
-        var obj;
-        var root = chain[i];
-
-        if (root === '[]') {
-            obj = [];
-            obj = obj.concat(leaf);
-        } else {
-            obj = options.plainObjects ? Object.create(null) : {};
-            var cleanRoot = root.charAt(0) === '[' && root.charAt(root.length - 1) === ']' ? root.slice(1, -1) : root;
-            var index = parseInt(cleanRoot, 10);
-            if (
-                !isNaN(index)
-                && root !== cleanRoot
-                && String(index) === cleanRoot
-                && index >= 0
-                && (options.parseArrays && index <= options.arrayLimit)
-            ) {
-                obj = [];
-                obj[index] = leaf;
-            } else {
-                obj[cleanRoot] = leaf;
-            }
-        }
-
-        leaf = obj;
-    }
-
-    return leaf;
-};
-
-var parseKeys = function parseQueryStringKeys(givenKey, val, options) {
-    if (!givenKey) {
-        return;
-    }
-
-    // Transform dot notation to bracket notation
-    var key = options.allowDots ? givenKey.replace(/\.([^.[]+)/g, '[$1]') : givenKey;
-
-    // The regex chunks
-
-    var brackets = /(\[[^[\]]*])/;
-    var child = /(\[[^[\]]*])/g;
-
-    // Get the parent
-
-    var segment = brackets.exec(key);
-    var parent = segment ? key.slice(0, segment.index) : key;
-
-    // Stash the parent if it exists
-
-    var keys = [];
-    if (parent) {
-        // If we aren't using plain objects, optionally prefix keys
-        // that would overwrite object prototype properties
-        if (!options.plainObjects && has.call(Object.prototype, parent)) {
-            if (!options.allowPrototypes) {
-                return;
-            }
-        }
-
-        keys.push(parent);
-    }
-
-    // Loop through children appending to the array until we hit depth
-
-    var i = 0;
-    while ((segment = child.exec(key)) !== null && i < options.depth) {
-        i += 1;
-        if (!options.plainObjects && has.call(Object.prototype, segment[1].slice(1, -1))) {
-            if (!options.allowPrototypes) {
-                return;
-            }
-        }
-        keys.push(segment[1]);
-    }
-
-    // If there's a remainder, just add whatever is left
-
-    if (segment) {
-        keys.push('[' + key.slice(segment.index) + ']');
-    }
-
-    return parseObject(keys, val, options);
-};
-
-module.exports = function (str, opts) {
-    var options = opts ? utils.assign({}, opts) : {};
-
-    if (options.decoder !== null && options.decoder !== undefined && typeof options.decoder !== 'function') {
-        throw new TypeError('Decoder has to be a function.');
-    }
-
-    options.ignoreQueryPrefix = options.ignoreQueryPrefix === true;
-    options.delimiter = typeof options.delimiter === 'string' || utils.isRegExp(options.delimiter) ? options.delimiter : defaults.delimiter;
-    options.depth = typeof options.depth === 'number' ? options.depth : defaults.depth;
-    options.arrayLimit = typeof options.arrayLimit === 'number' ? options.arrayLimit : defaults.arrayLimit;
-    options.parseArrays = options.parseArrays !== false;
-    options.decoder = typeof options.decoder === 'function' ? options.decoder : defaults.decoder;
-    options.allowDots = typeof options.allowDots === 'boolean' ? options.allowDots : defaults.allowDots;
-    options.plainObjects = typeof options.plainObjects === 'boolean' ? options.plainObjects : defaults.plainObjects;
-    options.allowPrototypes = typeof options.allowPrototypes === 'boolean' ? options.allowPrototypes : defaults.allowPrototypes;
-    options.parameterLimit = typeof options.parameterLimit === 'number' ? options.parameterLimit : defaults.parameterLimit;
-    options.strictNullHandling = typeof options.strictNullHandling === 'boolean' ? options.strictNullHandling : defaults.strictNullHandling;
-
-    if (str === '' || str === null || typeof str === 'undefined') {
-        return options.plainObjects ? Object.create(null) : {};
-    }
-
-    var tempObj = typeof str === 'string' ? parseValues(str, options) : str;
-    var obj = options.plainObjects ? Object.create(null) : {};
-
-    // Iterate over the keys and setup the new object
-
-    var keys = Object.keys(tempObj);
-    for (var i = 0; i < keys.length; ++i) {
-        var key = keys[i];
-        var newObj = parseKeys(key, tempObj[key], options);
-        obj = utils.merge(obj, newObj, options);
-    }
-
-    return utils.compact(obj);
-};
-
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var utils = __webpack_require__(1);
-var hooks = __webpack_require__(12);
-var args = __webpack_require__(13);
-var filterQuery = __webpack_require__(14);
-
-module.exports = Object.assign({}, utils, args, { hooks: hooks, filterQuery: filterQuery });
-
-/***/ }),
-/* 12 */
+/***/ "./node_modules/@feathersjs/commons/lib/hooks.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/@feathersjs/commons/lib/hooks.js ***!
+  \*******************************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1393,7 +254,9 @@ module.exports = Object.assign({}, utils, args, { hooks: hooks, filterQuery: fil
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var each = __webpack_require__(1)._.each;
+var _require$_ = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js")._,
+    each = _require$_.each,
+    pick = _require$_.pick;
 
 function convertGetOrRemove(args) {
   var id = args[0],
@@ -1413,6 +276,9 @@ function convertUpdateOrPatch(args) {
 
   return { id: id, data: data, params: params };
 }
+
+// To skip further hooks
+var SKIP = exports.SKIP = typeof Symbol !== 'undefined' ? Symbol('__feathersSkipHooks') : '__feathersSkipHooks';
 
 // Converters from service method arguments to hook object properties
 exports.converters = {
@@ -1444,6 +310,12 @@ exports.createHookObject = function createHookObject(method, args) {
   var data = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
   var hook = exports.converters[method](args);
+
+  Object.defineProperty(hook, 'toJSON', {
+    value: function value() {
+      return pick(this, 'type', 'method', 'path', 'params', 'id', 'data', 'result', 'error');
+    }
+  });
 
   return Object.assign(hook, data, {
     method: method,
@@ -1549,6 +421,10 @@ exports.processHooks = function processHooks(hooks, initialHookObject) {
     // Either use the returned hook object or the current
     // hook object from the chain if the hook returned undefined
     if (current) {
+      if (current === SKIP) {
+        return SKIP;
+      }
+
       if (!exports.isHookObject(current)) {
         throw new Error(hookObject.type + ' hook for \'' + hookObject.method + '\' method returned invalid hook object');
       }
@@ -1568,7 +444,7 @@ exports.processHooks = function processHooks(hooks, initialHookObject) {
     if (hook.length === 2) {
       // function(hook, next)
       promise = promise.then(function (hookObject) {
-        return new Promise(function (resolve, reject) {
+        return hookObject === SKIP ? SKIP : new Promise(function (resolve, reject) {
           hook(hookObject, function (error, result) {
             return error ? reject(error) : resolve(result);
           });
@@ -1576,14 +452,18 @@ exports.processHooks = function processHooks(hooks, initialHookObject) {
       });
     } else {
       // function(hook)
-      promise = promise.then(hook);
+      promise = promise.then(function (hookObject) {
+        return hookObject === SKIP ? SKIP : hook(hookObject);
+      });
     }
 
     // Use the returned hook object or the old one
     promise = promise.then(updateCurrentHook);
   });
 
-  return promise.catch(function (error) {
+  return promise.then(function () {
+    return hookObject;
+  }).catch(function (error) {
     // Add the hook information to any errors
     error.hook = hookObject;
     throw error;
@@ -1644,139 +524,205 @@ exports.enableHooks = function enableHooks(obj, methods, types) {
 };
 
 /***/ }),
-/* 13 */
+
+/***/ "./node_modules/@feathersjs/commons/lib/utils.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/@feathersjs/commons/lib/utils.js ***!
+  \*******************************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var paramCounts = {
-  find: 1,
-  get: 2,
-  create: 2,
-  update: 3,
-  patch: 3,
-  remove: 2
-};
-
-function isObjectOrArray(value) {
-  return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value !== null;
-}
-
-exports.validateArguments = function validateArguments(method, args) {
-  // Check if the last argument is a callback which are no longer supported
-  if (typeof args[args.length - 1] === 'function') {
-    throw new Error('Callbacks are no longer supported. Use Promises or async/await instead.');
-  }
-
-  var methodParamCount = paramCounts[method];
-
-  // Check the number of arguments and throw an error if too many are provided
-  if (methodParamCount && args.length > methodParamCount) {
-    throw new Error('Too many arguments for \'' + method + '\' method');
-  }
-
-  // `params` is always the last argument
-  var params = args[methodParamCount - 1];
-
-  // Check if `params` is an object (can be undefined though)
-  if (params !== undefined && !isObjectOrArray(params)) {
-    throw new Error('Params for \'' + method + '\' method must be an object');
-  }
-
-  // Validate other arguments for each method
-  switch (method) {
-    case 'create':
-      if (!isObjectOrArray(args[0])) {
-        throw new Error('A data object must be provided to the \'create\' method');
-      }
-      break;
-    case 'get':
-    case 'remove':
-    case 'update':
-    case 'patch':
-      if (args[0] === undefined) {
-        throw new Error('An id must be provided to the \'' + method + '\' method');
-      }
-
-      if ((method === 'update' || method === 'patch') && !isObjectOrArray(args[1])) {
-        throw new Error('A data object must be provided to the \'' + method + '\' method');
-      }
-  }
-
-  return true;
-};
-
-/***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
+/* WEBPACK VAR INJECTION */(function(process) {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _require = __webpack_require__(1),
-    _ = _require._;
+// Removes all leading and trailing slashes from a path
+exports.stripSlashes = function stripSlashes(name) {
+  return name.replace(/^(\/*)|(\/*)$/g, '');
+};
 
-// Officially supported query parameters ($populate is kind of special)
+// A set of lodash-y utility functions that use ES6
+var _ = exports._ = {
+  each: function each(obj, callback) {
+    if (obj && typeof obj.forEach === 'function') {
+      obj.forEach(callback);
+    } else if (_.isObject(obj)) {
+      Object.keys(obj).forEach(function (key) {
+        return callback(obj[key], key);
+      });
+    }
+  },
+  some: function some(value, callback) {
+    return Object.keys(value).map(function (key) {
+      return [value[key], key];
+    }).some(function (_ref) {
+      var val = _ref[0],
+          key = _ref[1];
+      return callback(val, key);
+    });
+  },
+  every: function every(value, callback) {
+    return Object.keys(value).map(function (key) {
+      return [value[key], key];
+    }).every(function (_ref2) {
+      var val = _ref2[0],
+          key = _ref2[1];
+      return callback(val, key);
+    });
+  },
+  keys: function keys(obj) {
+    return Object.keys(obj);
+  },
+  values: function values(obj) {
+    return _.keys(obj).map(function (key) {
+      return obj[key];
+    });
+  },
+  isMatch: function isMatch(obj, item) {
+    return _.keys(item).every(function (key) {
+      return obj[key] === item[key];
+    });
+  },
+  isEmpty: function isEmpty(obj) {
+    return _.keys(obj).length === 0;
+  },
+  isObject: function isObject(item) {
+    return (typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object' && !Array.isArray(item) && item !== null;
+  },
+  extend: function extend() {
+    return Object.assign.apply(Object, arguments);
+  },
+  omit: function omit(obj) {
+    var result = _.extend({}, obj);
+
+    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      keys[_key - 1] = arguments[_key];
+    }
+
+    keys.forEach(function (key) {
+      return delete result[key];
+    });
+    return result;
+  },
+  pick: function pick(source) {
+    var result = {};
+
+    for (var _len2 = arguments.length, keys = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+      keys[_key2 - 1] = arguments[_key2];
+    }
+
+    keys.forEach(function (key) {
+      if (source[key] !== undefined) {
+        result[key] = source[key];
+      }
+    });
+    return result;
+  },
 
 
-var PROPERTIES = ['$sort', '$limit', '$skip', '$select', '$populate'];
+  // Recursively merge the source object into the target object
+  merge: function merge(target, source) {
+    if (_.isObject(target) && _.isObject(source)) {
+      Object.keys(source).forEach(function (key) {
+        if (_.isObject(source[key])) {
+          if (!target[key]) {
+            var _Object$assign;
 
-function parse(number) {
-  if (typeof number !== 'undefined') {
-    return Math.abs(parseInt(number, 10));
+            Object.assign(target, (_Object$assign = {}, _Object$assign[key] = {}, _Object$assign));
+          }
+
+          _.merge(target[key], source[key]);
+        } else {
+          var _Object$assign2;
+
+          Object.assign(target, (_Object$assign2 = {}, _Object$assign2[key] = source[key], _Object$assign2));
+        }
+      });
+    }
+    return target;
   }
-}
+};
 
-// Returns the pagination limit and will take into account the
-// default and max pagination settings
-function getLimit(limit, paginate) {
-  if (paginate && paginate.default) {
-    var lower = typeof limit === 'number' ? limit : paginate.default;
-    var upper = typeof paginate.max === 'number' ? paginate.max : Number.MAX_VALUE;
+// Return a function that filters a result object or array
+// and picks only the fields passed as `params.query.$select`
+// and additional `otherFields`
+exports.select = function select(params) {
+  var fields = params && params.query && params.query.$select;
 
-    return Math.min(lower, upper);
+  for (var _len3 = arguments.length, otherFields = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+    otherFields[_key3 - 1] = arguments[_key3];
   }
 
-  return limit;
-}
-
-// Makes sure that $sort order is always converted to an actual number
-function convertSort(sort) {
-  if ((typeof sort === 'undefined' ? 'undefined' : _typeof(sort)) !== 'object') {
-    return sort;
+  if (Array.isArray(fields) && otherFields.length) {
+    fields.push.apply(fields, otherFields);
   }
 
-  var result = {};
+  var convert = function convert(result) {
+    if (!Array.isArray(fields)) {
+      return result;
+    }
 
-  Object.keys(sort).forEach(function (key) {
-    result[key] = _typeof(sort[key]) === 'object' ? sort[key] : parseInt(sort[key], 10);
-  });
-
-  return result;
-}
-
-// Converts Feathers special query parameters and pagination settings
-// and returns them separately a `filters` and the rest of the query
-// as `query`
-module.exports = function (query, paginate) {
-  var filters = {
-    $sort: convertSort(query.$sort),
-    $limit: getLimit(parse(query.$limit), paginate),
-    $skip: parse(query.$skip),
-    $select: query.$select,
-    $populate: query.$populate
+    return _.pick.apply(_, [result].concat(fields));
   };
 
-  return { filters: filters, query: _.omit.apply(_, [query].concat(PROPERTIES)) };
+  return function (result) {
+    if (Array.isArray(result)) {
+      return result.map(convert);
+    }
+
+    return convert(result);
+  };
 };
 
+// An in-memory sorting function according to the
+// $sort special query parameter
+exports.sorter = function sorter($sort) {
+  return function (first, second) {
+    var comparator = 0;
+    _.each($sort, function (modifier, key) {
+      modifier = parseInt(modifier, 10);
+
+      if (first[key] < second[key]) {
+        comparator -= 1 * modifier;
+      }
+
+      if (first[key] > second[key]) {
+        comparator += 1 * modifier;
+      }
+    });
+    return comparator;
+  };
+};
+
+// Duck-checks if an object looks like a promise
+exports.isPromise = function isPromise(result) {
+  return _.isObject(result) && typeof result.then === 'function';
+};
+
+exports.makeUrl = function makeUrl(path) {
+  var app = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  var get = typeof app.get === 'function' ? app.get.bind(app) : function () {};
+  var env = get('env') || "development";
+  var host = get('host') || process.env.HOST_NAME || 'localhost';
+  var protocol = env === 'development' || env === 'test' || env === undefined ? 'http' : 'https';
+  var PORT = get('port') || process.env.PORT || 3030;
+  var port = env === 'development' || env === 'test' || env === undefined ? ':' + PORT : '';
+
+  path = path || '';
+
+  return protocol + '://' + host + port + '/' + exports.stripSlashes(path);
+};
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../process/browser.js */ "./node_modules/process/browser.js")))
+
 /***/ }),
-/* 15 */
+
+/***/ "./node_modules/@feathersjs/errors/lib/index.js":
+/*!******************************************************!*\
+  !*** ./node_modules/@feathersjs/errors/lib/index.js ***!
+  \******************************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1784,7 +730,7 @@ module.exports = function (query, paginate) {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var debug = __webpack_require__(16)('@feathersjs/errors');
+var debug = __webpack_require__(/*! debug */ "./node_modules/debug/src/browser.js")('@feathersjs/errors');
 
 function FeathersError(msg, name, code, className, data) {
   msg = msg || 'Error';
@@ -2035,7 +981,651 @@ function convert(error) {
 module.exports = Object.assign({ convert: convert }, errors);
 
 /***/ }),
-/* 16 */
+
+/***/ "./node_modules/@feathersjs/rest-client/lib/angular-http-client.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/@feathersjs/rest-client/lib/angular-http-client.js ***!
+  \*************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
+
+var AngularHttpService = function (_Base) {
+  _inherits(AngularHttpService, _Base);
+
+  function AngularHttpService() {
+    _classCallCheck(this, AngularHttpService);
+
+    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+  }
+
+  AngularHttpService.prototype.request = function request(options) {
+    var httpClient = this.connection;
+    var HttpHeaders = this.options.HttpHeaders;
+
+    if (!httpClient || !HttpHeaders) {
+      throw new Error('Please pass angular\'s \'httpClient\' (instance) and and object with \'HttpHeaders\' (class) to feathers-rest');
+    }
+
+    var url = options.url;
+    var requestOptions = {
+      // method: options.method,
+      body: options.body,
+      headers: new HttpHeaders(Object.assign({ Accept: 'application/json' }, this.options.headers, options.headers))
+    };
+
+    return new Promise(function (resolve, reject) {
+      httpClient.request(options.method, url, requestOptions).subscribe(resolve, reject);
+    }).catch(function (error) {
+      var e = error.error;
+
+      if (e) {
+        throw typeof e === 'string' ? JSON.parse(e) : e;
+      }
+
+      throw error;
+    });
+  };
+
+  return AngularHttpService;
+}(Base);
+
+module.exports = AngularHttpService;
+
+/***/ }),
+
+/***/ "./node_modules/@feathersjs/rest-client/lib/angular.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/@feathersjs/rest-client/lib/angular.js ***!
+  \*************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
+
+var AngularService = function (_Base) {
+  _inherits(AngularService, _Base);
+
+  function AngularService() {
+    _classCallCheck(this, AngularService);
+
+    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+  }
+
+  AngularService.prototype.request = function request(options) {
+    var http = this.connection;
+    var Headers = this.options.Headers;
+
+    if (!http || !Headers) {
+      throw new Error('Please pass angular\'s \'http\' (instance) and and object with \'Headers\' (class) to feathers-rest');
+    }
+
+    var url = options.url;
+    var requestOptions = {
+      method: options.method,
+      body: options.body,
+      headers: new Headers(Object.assign({ Accept: 'application/json' }, this.options.headers, options.headers))
+    };
+
+    return new Promise(function (resolve, reject) {
+      http.request(url, requestOptions).subscribe(resolve, reject);
+    }).then(function (res) {
+      return res.json();
+    }).catch(function (error) {
+      var response = error.response || error;
+
+      throw response instanceof Error ? response : response.json() || response;
+    });
+  };
+
+  return AngularService;
+}(Base);
+
+module.exports = AngularService;
+
+/***/ }),
+
+/***/ "./node_modules/@feathersjs/rest-client/lib/axios.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/@feathersjs/rest-client/lib/axios.js ***!
+  \***********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
+
+var AxiosService = function (_Base) {
+  _inherits(AxiosService, _Base);
+
+  function AxiosService() {
+    _classCallCheck(this, AxiosService);
+
+    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+  }
+
+  AxiosService.prototype.request = function request(options) {
+    var config = {
+      url: options.url,
+      method: options.method,
+      data: options.body,
+      headers: Object.assign({
+        Accept: 'application/json'
+      }, this.options.headers, options.headers)
+    };
+
+    return this.connection.request(config).then(function (res) {
+      return res.data;
+    }).catch(function (error) {
+      var response = error.response || error;
+
+      throw response instanceof Error ? response : response.data || response;
+    });
+  };
+
+  return AxiosService;
+}(Base);
+
+module.exports = AxiosService;
+
+/***/ }),
+
+/***/ "./node_modules/@feathersjs/rest-client/lib/base.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/@feathersjs/rest-client/lib/base.js ***!
+  \**********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var query = __webpack_require__(/*! qs */ "./node_modules/qs/lib/index.js");
+
+var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
+    stripSlashes = _require.stripSlashes;
+
+var _require2 = __webpack_require__(/*! @feathersjs/errors */ "./node_modules/@feathersjs/errors/lib/index.js"),
+    convert = _require2.convert;
+
+function toError(error) {
+  throw convert(error);
+}
+
+var Base = function () {
+  function Base(settings) {
+    _classCallCheck(this, Base);
+
+    this.name = stripSlashes(settings.name);
+    this.options = settings.options;
+    this.connection = settings.connection;
+    this.base = settings.base + '/' + this.name;
+  }
+
+  Base.prototype.makeUrl = function makeUrl(params, id) {
+    params = params || {};
+    var url = this.base;
+
+    if (typeof id !== 'undefined' && id !== null) {
+      url += '/' + id;
+    }
+
+    if (Object.keys(params).length !== 0) {
+      var queryString = query.stringify(params);
+
+      url += '?' + queryString;
+    }
+
+    return url;
+  };
+
+  Base.prototype.find = function find() {
+    var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    return this.request({
+      url: this.makeUrl(params.query),
+      method: 'GET',
+      headers: Object.assign({}, params.headers)
+    }).catch(toError);
+  };
+
+  Base.prototype.get = function get(id) {
+    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+    if (typeof id === 'undefined') {
+      return Promise.reject(new Error('id for \'get\' can not be undefined'));
+    }
+
+    return this.request({
+      url: this.makeUrl(params.query, id),
+      method: 'GET',
+      headers: Object.assign({}, params.headers)
+    }).catch(toError);
+  };
+
+  Base.prototype.create = function create(body) {
+    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+    return this.request({
+      url: this.makeUrl(params.query),
+      body: body,
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, params.headers)
+    }).catch(toError);
+  };
+
+  Base.prototype.update = function update(id, body) {
+    var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    if (typeof id === 'undefined') {
+      return Promise.reject(new Error('id for \'update\' can not be undefined, only \'null\' when updating multiple entries'));
+    }
+
+    return this.request({
+      url: this.makeUrl(params.query, id),
+      body: body,
+      method: 'PUT',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, params.headers)
+    }).catch(toError);
+  };
+
+  Base.prototype.patch = function patch(id, body) {
+    var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    if (typeof id === 'undefined') {
+      return Promise.reject(new Error('id for \'patch\' can not be undefined, only \'null\' when updating multiple entries'));
+    }
+
+    return this.request({
+      url: this.makeUrl(params.query, id),
+      body: body,
+      method: 'PATCH',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, params.headers)
+    }).catch(toError);
+  };
+
+  Base.prototype.remove = function remove(id) {
+    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+    if (typeof id === 'undefined') {
+      return Promise.reject(new Error('id for \'remove\' can not be undefined, only \'null\' when removing multiple entries'));
+    }
+
+    return this.request({
+      url: this.makeUrl(params.query, id),
+      method: 'DELETE',
+      headers: Object.assign({}, params.headers)
+    }).catch(toError);
+  };
+
+  return Base;
+}();
+
+module.exports = Base;
+
+/***/ }),
+
+/***/ "./node_modules/@feathersjs/rest-client/lib/fetch.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/@feathersjs/rest-client/lib/fetch.js ***!
+  \***********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
+
+var FetchService = function (_Base) {
+  _inherits(FetchService, _Base);
+
+  function FetchService() {
+    _classCallCheck(this, FetchService);
+
+    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+  }
+
+  FetchService.prototype.request = function request(options) {
+    var fetchOptions = Object.assign({}, options);
+
+    fetchOptions.headers = Object.assign({
+      Accept: 'application/json'
+    }, this.options.headers, fetchOptions.headers);
+
+    if (options.body) {
+      fetchOptions.body = JSON.stringify(options.body);
+    }
+
+    var fetch = this.connection;
+
+    return fetch(options.url, fetchOptions).then(this.checkStatus).then(function (response) {
+      if (response.status === 204) {
+        return null;
+      }
+
+      return response.json();
+    });
+  };
+
+  FetchService.prototype.checkStatus = function checkStatus(response) {
+    if (response.ok) {
+      return response;
+    }
+
+    return response.json().then(function (error) {
+      error.response = response;
+      throw error;
+    });
+  };
+
+  return FetchService;
+}(Base);
+
+module.exports = FetchService;
+
+/***/ }),
+
+/***/ "./node_modules/@feathersjs/rest-client/lib/index.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/@feathersjs/rest-client/lib/index.js ***!
+  \***********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var jQuery = __webpack_require__(/*! ./jquery */ "./node_modules/@feathersjs/rest-client/lib/jquery.js");
+var Superagent = __webpack_require__(/*! ./superagent */ "./node_modules/@feathersjs/rest-client/lib/superagent.js");
+var Request = __webpack_require__(/*! ./request */ "./node_modules/@feathersjs/rest-client/lib/request.js");
+var Fetch = __webpack_require__(/*! ./fetch */ "./node_modules/@feathersjs/rest-client/lib/fetch.js");
+var Axios = __webpack_require__(/*! ./axios */ "./node_modules/@feathersjs/rest-client/lib/axios.js");
+var Angular = __webpack_require__(/*! ./angular */ "./node_modules/@feathersjs/rest-client/lib/angular.js");
+var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
+var AngularHttpClient = __webpack_require__(/*! ./angular-http-client */ "./node_modules/@feathersjs/rest-client/lib/angular-http-client.js");
+
+var transports = {
+  jquery: jQuery,
+  superagent: Superagent,
+  request: Request,
+  fetch: Fetch,
+  axios: Axios,
+  angular: Angular,
+  angularHttpClient: AngularHttpClient
+};
+
+function restClient() {
+  var base = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+  var result = { Base: Base };
+
+  Object.keys(transports).forEach(function (key) {
+    var Service = transports[key];
+
+    result[key] = function (connection) {
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      if (!connection) {
+        throw new Error(key + ' has to be provided to feathers-rest');
+      }
+
+      var defaultService = function defaultService(name) {
+        return new Service({ base: base, name: name, connection: connection, options: options });
+      };
+
+      var initialize = function initialize() {
+        if (typeof this.defaultService === 'function') {
+          throw new Error('Only one default client provider can be configured');
+        }
+
+        this.rest = connection;
+        this.defaultService = defaultService;
+      };
+
+      initialize.Service = Service;
+      initialize.service = defaultService;
+
+      return initialize;
+    };
+  });
+
+  return result;
+}
+
+module.exports = restClient;
+module.exports.default = restClient;
+
+/***/ }),
+
+/***/ "./node_modules/@feathersjs/rest-client/lib/jquery.js":
+/*!************************************************************!*\
+  !*** ./node_modules/@feathersjs/rest-client/lib/jquery.js ***!
+  \************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
+
+var jQueryService = function (_Base) {
+  _inherits(jQueryService, _Base);
+
+  function jQueryService() {
+    _classCallCheck(this, jQueryService);
+
+    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+  }
+
+  jQueryService.prototype.request = function request(options) {
+    var _this2 = this;
+
+    var opts = Object.assign({
+      dataType: options.type || 'json'
+    }, {
+      headers: this.options.headers || {}
+    }, options);
+
+    if (options.body) {
+      opts.data = JSON.stringify(options.body);
+      opts.contentType = 'application/json';
+    }
+
+    delete opts.type;
+    delete opts.body;
+
+    return new Promise(function (resolve, reject) {
+      _this2.connection.ajax(opts).then(resolve, function (xhr) {
+        var error = xhr.responseText;
+
+        try {
+          error = JSON.parse(error);
+        } catch (e) {
+          error = new Error(xhr.responseText);
+        }
+
+        error.xhr = error.response = xhr;
+
+        reject(error);
+      });
+    });
+  };
+
+  return jQueryService;
+}(Base);
+
+module.exports = jQueryService;
+
+/***/ }),
+
+/***/ "./node_modules/@feathersjs/rest-client/lib/request.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/@feathersjs/rest-client/lib/request.js ***!
+  \*************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
+
+var RequestService = function (_Base) {
+  _inherits(RequestService, _Base);
+
+  function RequestService() {
+    _classCallCheck(this, RequestService);
+
+    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+  }
+
+  RequestService.prototype.request = function request(options) {
+    var _this2 = this;
+
+    return new Promise(function (resolve, reject) {
+      _this2.connection(Object.assign({
+        json: true
+      }, options), function (error, res, data) {
+        if (error) {
+          return reject(error);
+        }
+
+        if (!error && res.statusCode >= 400) {
+          if (typeof data === 'string') {
+            return reject(new Error(data));
+          }
+
+          data.response = res;
+
+          return reject(Object.assign(new Error(data.message), data));
+        }
+
+        resolve(data);
+      });
+    });
+  };
+
+  return RequestService;
+}(Base);
+
+module.exports = RequestService;
+
+/***/ }),
+
+/***/ "./node_modules/@feathersjs/rest-client/lib/superagent.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/@feathersjs/rest-client/lib/superagent.js ***!
+  \****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
+
+var SuperagentService = function (_Base) {
+  _inherits(SuperagentService, _Base);
+
+  function SuperagentService() {
+    _classCallCheck(this, SuperagentService);
+
+    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+  }
+
+  SuperagentService.prototype.request = function request(options) {
+    var superagent = this.connection(options.method, options.url).set(this.options.headers || {}).set('Accept', 'application/json').set(options.headers || {}).type(options.type || 'json');
+
+    return new Promise(function (resolve, reject) {
+      superagent.set(options.headers);
+
+      if (options.body) {
+        superagent.send(options.body);
+      }
+
+      superagent.end(function (error, res) {
+        if (error) {
+          try {
+            var response = error.response;
+            error = JSON.parse(error.response.text);
+            error.response = response;
+          } catch (e) {}
+
+          return reject(error);
+        }
+
+        resolve(res && res.body);
+      });
+    });
+  };
+
+  return SuperagentService;
+}(Base);
+
+module.exports = SuperagentService;
+
+/***/ }),
+
+/***/ "./node_modules/debug/src/browser.js":
+/*!*******************************************!*\
+  !*** ./node_modules/debug/src/browser.js ***!
+  \*******************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process) {/**
@@ -2044,7 +1634,7 @@ module.exports = Object.assign({ convert: convert }, errors);
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(17);
+exports = module.exports = __webpack_require__(/*! ./debug */ "./node_modules/debug/src/debug.js");
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -2234,10 +1824,15 @@ function localstorage() {
   } catch (e) {}
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../process/browser.js */ "./node_modules/process/browser.js")))
 
 /***/ }),
-/* 17 */
+
+/***/ "./node_modules/debug/src/debug.js":
+/*!*****************************************!*\
+  !*** ./node_modules/debug/src/debug.js ***!
+  \*****************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -2253,7 +1848,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(18);
+exports.humanize = __webpack_require__(/*! ms */ "./node_modules/ms/index.js");
 
 /**
  * Active `debug` instances.
@@ -2468,7 +2063,12 @@ function coerce(val) {
 
 
 /***/ }),
-/* 18 */
+
+/***/ "./node_modules/ms/index.js":
+/*!**********************************!*\
+  !*** ./node_modules/ms/index.js ***!
+  \**********************************/
+/*! no static exports found */
 /***/ (function(module, exports) {
 
 /**
@@ -2626,338 +2226,891 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 19 */
+
+/***/ "./node_modules/process/browser.js":
+/*!*****************************************!*\
+  !*** ./node_modules/process/browser.js ***!
+  \*****************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+
+/***/ }),
+
+/***/ "./node_modules/qs/lib/formats.js":
+/*!****************************************!*\
+  !*** ./node_modules/qs/lib/formats.js ***!
+  \****************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+var replace = String.prototype.replace;
+var percentTwenties = /%20/g;
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+module.exports = {
+    'default': 'RFC3986',
+    formatters: {
+        RFC1738: function (value) {
+            return replace.call(value, percentTwenties, '+');
+        },
+        RFC3986: function (value) {
+            return value;
+        }
+    },
+    RFC1738: 'RFC1738',
+    RFC3986: 'RFC3986'
+};
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var Base = __webpack_require__(0);
+/***/ }),
 
-var SuperagentService = function (_Base) {
-  _inherits(SuperagentService, _Base);
+/***/ "./node_modules/qs/lib/index.js":
+/*!**************************************!*\
+  !*** ./node_modules/qs/lib/index.js ***!
+  \**************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
-  function SuperagentService() {
-    _classCallCheck(this, SuperagentService);
+"use strict";
 
-    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
-  }
 
-  SuperagentService.prototype.request = function request(options) {
-    var superagent = this.connection(options.method, options.url).set(this.options.headers || {}).set('Accept', 'application/json').set(options.headers || {}).type(options.type || 'json');
+var stringify = __webpack_require__(/*! ./stringify */ "./node_modules/qs/lib/stringify.js");
+var parse = __webpack_require__(/*! ./parse */ "./node_modules/qs/lib/parse.js");
+var formats = __webpack_require__(/*! ./formats */ "./node_modules/qs/lib/formats.js");
 
-    return new Promise(function (resolve, reject) {
-      superagent.set(options.headers);
+module.exports = {
+    formats: formats,
+    parse: parse,
+    stringify: stringify
+};
 
-      if (options.body) {
-        superagent.send(options.body);
-      }
 
-      superagent.end(function (error, res) {
-        if (error) {
-          try {
-            var response = error.response;
-            error = JSON.parse(error.response.text);
-            error.response = response;
-          } catch (e) {}
+/***/ }),
 
-          return reject(error);
+/***/ "./node_modules/qs/lib/parse.js":
+/*!**************************************!*\
+  !*** ./node_modules/qs/lib/parse.js ***!
+  \**************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__(/*! ./utils */ "./node_modules/qs/lib/utils.js");
+
+var has = Object.prototype.hasOwnProperty;
+
+var defaults = {
+    allowDots: false,
+    allowPrototypes: false,
+    arrayLimit: 20,
+    decoder: utils.decode,
+    delimiter: '&',
+    depth: 5,
+    parameterLimit: 1000,
+    plainObjects: false,
+    strictNullHandling: false
+};
+
+var parseValues = function parseQueryStringValues(str, options) {
+    var obj = {};
+    var cleanStr = options.ignoreQueryPrefix ? str.replace(/^\?/, '') : str;
+    var limit = options.parameterLimit === Infinity ? undefined : options.parameterLimit;
+    var parts = cleanStr.split(options.delimiter, limit);
+
+    for (var i = 0; i < parts.length; ++i) {
+        var part = parts[i];
+
+        var bracketEqualsPos = part.indexOf(']=');
+        var pos = bracketEqualsPos === -1 ? part.indexOf('=') : bracketEqualsPos + 1;
+
+        var key, val;
+        if (pos === -1) {
+            key = options.decoder(part, defaults.decoder);
+            val = options.strictNullHandling ? null : '';
+        } else {
+            key = options.decoder(part.slice(0, pos), defaults.decoder);
+            val = options.decoder(part.slice(pos + 1), defaults.decoder);
+        }
+        if (has.call(obj, key)) {
+            obj[key] = [].concat(obj[key]).concat(val);
+        } else {
+            obj[key] = val;
+        }
+    }
+
+    return obj;
+};
+
+var parseObject = function (chain, val, options) {
+    var leaf = val;
+
+    for (var i = chain.length - 1; i >= 0; --i) {
+        var obj;
+        var root = chain[i];
+
+        if (root === '[]') {
+            obj = [];
+            obj = obj.concat(leaf);
+        } else {
+            obj = options.plainObjects ? Object.create(null) : {};
+            var cleanRoot = root.charAt(0) === '[' && root.charAt(root.length - 1) === ']' ? root.slice(1, -1) : root;
+            var index = parseInt(cleanRoot, 10);
+            if (
+                !isNaN(index)
+                && root !== cleanRoot
+                && String(index) === cleanRoot
+                && index >= 0
+                && (options.parseArrays && index <= options.arrayLimit)
+            ) {
+                obj = [];
+                obj[index] = leaf;
+            } else {
+                obj[cleanRoot] = leaf;
+            }
         }
 
-        resolve(res && res.body);
-      });
-    });
-  };
+        leaf = obj;
+    }
 
-  return SuperagentService;
-}(Base);
+    return leaf;
+};
 
-module.exports = SuperagentService;
+var parseKeys = function parseQueryStringKeys(givenKey, val, options) {
+    if (!givenKey) {
+        return;
+    }
 
-/***/ }),
-/* 20 */
-/***/ (function(module, exports, __webpack_require__) {
+    // Transform dot notation to bracket notation
+    var key = options.allowDots ? givenKey.replace(/\.([^.[]+)/g, '[$1]') : givenKey;
 
-"use strict";
+    // The regex chunks
 
+    var brackets = /(\[[^[\]]*])/;
+    var child = /(\[[^[\]]*])/g;
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+    // Get the parent
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+    var segment = brackets.exec(key);
+    var parent = segment ? key.slice(0, segment.index) : key;
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+    // Stash the parent if it exists
 
-var Base = __webpack_require__(0);
-
-var RequestService = function (_Base) {
-  _inherits(RequestService, _Base);
-
-  function RequestService() {
-    _classCallCheck(this, RequestService);
-
-    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
-  }
-
-  RequestService.prototype.request = function request(options) {
-    var _this2 = this;
-
-    return new Promise(function (resolve, reject) {
-      _this2.connection(Object.assign({
-        json: true
-      }, options), function (error, res, data) {
-        if (error) {
-          return reject(error);
+    var keys = [];
+    if (parent) {
+        // If we aren't using plain objects, optionally prefix keys
+        // that would overwrite object prototype properties
+        if (!options.plainObjects && has.call(Object.prototype, parent)) {
+            if (!options.allowPrototypes) {
+                return;
+            }
         }
 
-        if (!error && res.statusCode >= 400) {
-          if (typeof data === 'string') {
-            return reject(new Error(data));
-          }
+        keys.push(parent);
+    }
 
-          data.response = res;
+    // Loop through children appending to the array until we hit depth
 
-          return reject(Object.assign(new Error(data.message), data));
+    var i = 0;
+    while ((segment = child.exec(key)) !== null && i < options.depth) {
+        i += 1;
+        if (!options.plainObjects && has.call(Object.prototype, segment[1].slice(1, -1))) {
+            if (!options.allowPrototypes) {
+                return;
+            }
+        }
+        keys.push(segment[1]);
+    }
+
+    // If there's a remainder, just add whatever is left
+
+    if (segment) {
+        keys.push('[' + key.slice(segment.index) + ']');
+    }
+
+    return parseObject(keys, val, options);
+};
+
+module.exports = function (str, opts) {
+    var options = opts ? utils.assign({}, opts) : {};
+
+    if (options.decoder !== null && options.decoder !== undefined && typeof options.decoder !== 'function') {
+        throw new TypeError('Decoder has to be a function.');
+    }
+
+    options.ignoreQueryPrefix = options.ignoreQueryPrefix === true;
+    options.delimiter = typeof options.delimiter === 'string' || utils.isRegExp(options.delimiter) ? options.delimiter : defaults.delimiter;
+    options.depth = typeof options.depth === 'number' ? options.depth : defaults.depth;
+    options.arrayLimit = typeof options.arrayLimit === 'number' ? options.arrayLimit : defaults.arrayLimit;
+    options.parseArrays = options.parseArrays !== false;
+    options.decoder = typeof options.decoder === 'function' ? options.decoder : defaults.decoder;
+    options.allowDots = typeof options.allowDots === 'boolean' ? options.allowDots : defaults.allowDots;
+    options.plainObjects = typeof options.plainObjects === 'boolean' ? options.plainObjects : defaults.plainObjects;
+    options.allowPrototypes = typeof options.allowPrototypes === 'boolean' ? options.allowPrototypes : defaults.allowPrototypes;
+    options.parameterLimit = typeof options.parameterLimit === 'number' ? options.parameterLimit : defaults.parameterLimit;
+    options.strictNullHandling = typeof options.strictNullHandling === 'boolean' ? options.strictNullHandling : defaults.strictNullHandling;
+
+    if (str === '' || str === null || typeof str === 'undefined') {
+        return options.plainObjects ? Object.create(null) : {};
+    }
+
+    var tempObj = typeof str === 'string' ? parseValues(str, options) : str;
+    var obj = options.plainObjects ? Object.create(null) : {};
+
+    // Iterate over the keys and setup the new object
+
+    var keys = Object.keys(tempObj);
+    for (var i = 0; i < keys.length; ++i) {
+        var key = keys[i];
+        var newObj = parseKeys(key, tempObj[key], options);
+        obj = utils.merge(obj, newObj, options);
+    }
+
+    return utils.compact(obj);
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/qs/lib/stringify.js":
+/*!******************************************!*\
+  !*** ./node_modules/qs/lib/stringify.js ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var utils = __webpack_require__(/*! ./utils */ "./node_modules/qs/lib/utils.js");
+var formats = __webpack_require__(/*! ./formats */ "./node_modules/qs/lib/formats.js");
+
+var arrayPrefixGenerators = {
+    brackets: function brackets(prefix) { // eslint-disable-line func-name-matching
+        return prefix + '[]';
+    },
+    indices: function indices(prefix, key) { // eslint-disable-line func-name-matching
+        return prefix + '[' + key + ']';
+    },
+    repeat: function repeat(prefix) { // eslint-disable-line func-name-matching
+        return prefix;
+    }
+};
+
+var toISO = Date.prototype.toISOString;
+
+var defaults = {
+    delimiter: '&',
+    encode: true,
+    encoder: utils.encode,
+    encodeValuesOnly: false,
+    serializeDate: function serializeDate(date) { // eslint-disable-line func-name-matching
+        return toISO.call(date);
+    },
+    skipNulls: false,
+    strictNullHandling: false
+};
+
+var stringify = function stringify( // eslint-disable-line func-name-matching
+    object,
+    prefix,
+    generateArrayPrefix,
+    strictNullHandling,
+    skipNulls,
+    encoder,
+    filter,
+    sort,
+    allowDots,
+    serializeDate,
+    formatter,
+    encodeValuesOnly
+) {
+    var obj = object;
+    if (typeof filter === 'function') {
+        obj = filter(prefix, obj);
+    } else if (obj instanceof Date) {
+        obj = serializeDate(obj);
+    } else if (obj === null) {
+        if (strictNullHandling) {
+            return encoder && !encodeValuesOnly ? encoder(prefix, defaults.encoder) : prefix;
         }
 
-        resolve(data);
-      });
-    });
-  };
+        obj = '';
+    }
 
-  return RequestService;
-}(Base);
+    if (typeof obj === 'string' || typeof obj === 'number' || typeof obj === 'boolean' || utils.isBuffer(obj)) {
+        if (encoder) {
+            var keyValue = encodeValuesOnly ? prefix : encoder(prefix, defaults.encoder);
+            return [formatter(keyValue) + '=' + formatter(encoder(obj, defaults.encoder))];
+        }
+        return [formatter(prefix) + '=' + formatter(String(obj))];
+    }
 
-module.exports = RequestService;
+    var values = [];
+
+    if (typeof obj === 'undefined') {
+        return values;
+    }
+
+    var objKeys;
+    if (Array.isArray(filter)) {
+        objKeys = filter;
+    } else {
+        var keys = Object.keys(obj);
+        objKeys = sort ? keys.sort(sort) : keys;
+    }
+
+    for (var i = 0; i < objKeys.length; ++i) {
+        var key = objKeys[i];
+
+        if (skipNulls && obj[key] === null) {
+            continue;
+        }
+
+        if (Array.isArray(obj)) {
+            values = values.concat(stringify(
+                obj[key],
+                generateArrayPrefix(prefix, key),
+                generateArrayPrefix,
+                strictNullHandling,
+                skipNulls,
+                encoder,
+                filter,
+                sort,
+                allowDots,
+                serializeDate,
+                formatter,
+                encodeValuesOnly
+            ));
+        } else {
+            values = values.concat(stringify(
+                obj[key],
+                prefix + (allowDots ? '.' + key : '[' + key + ']'),
+                generateArrayPrefix,
+                strictNullHandling,
+                skipNulls,
+                encoder,
+                filter,
+                sort,
+                allowDots,
+                serializeDate,
+                formatter,
+                encodeValuesOnly
+            ));
+        }
+    }
+
+    return values;
+};
+
+module.exports = function (object, opts) {
+    var obj = object;
+    var options = opts ? utils.assign({}, opts) : {};
+
+    if (options.encoder !== null && options.encoder !== undefined && typeof options.encoder !== 'function') {
+        throw new TypeError('Encoder has to be a function.');
+    }
+
+    var delimiter = typeof options.delimiter === 'undefined' ? defaults.delimiter : options.delimiter;
+    var strictNullHandling = typeof options.strictNullHandling === 'boolean' ? options.strictNullHandling : defaults.strictNullHandling;
+    var skipNulls = typeof options.skipNulls === 'boolean' ? options.skipNulls : defaults.skipNulls;
+    var encode = typeof options.encode === 'boolean' ? options.encode : defaults.encode;
+    var encoder = typeof options.encoder === 'function' ? options.encoder : defaults.encoder;
+    var sort = typeof options.sort === 'function' ? options.sort : null;
+    var allowDots = typeof options.allowDots === 'undefined' ? false : options.allowDots;
+    var serializeDate = typeof options.serializeDate === 'function' ? options.serializeDate : defaults.serializeDate;
+    var encodeValuesOnly = typeof options.encodeValuesOnly === 'boolean' ? options.encodeValuesOnly : defaults.encodeValuesOnly;
+    if (typeof options.format === 'undefined') {
+        options.format = formats['default'];
+    } else if (!Object.prototype.hasOwnProperty.call(formats.formatters, options.format)) {
+        throw new TypeError('Unknown format option provided.');
+    }
+    var formatter = formats.formatters[options.format];
+    var objKeys;
+    var filter;
+
+    if (typeof options.filter === 'function') {
+        filter = options.filter;
+        obj = filter('', obj);
+    } else if (Array.isArray(options.filter)) {
+        filter = options.filter;
+        objKeys = filter;
+    }
+
+    var keys = [];
+
+    if (typeof obj !== 'object' || obj === null) {
+        return '';
+    }
+
+    var arrayFormat;
+    if (options.arrayFormat in arrayPrefixGenerators) {
+        arrayFormat = options.arrayFormat;
+    } else if ('indices' in options) {
+        arrayFormat = options.indices ? 'indices' : 'repeat';
+    } else {
+        arrayFormat = 'indices';
+    }
+
+    var generateArrayPrefix = arrayPrefixGenerators[arrayFormat];
+
+    if (!objKeys) {
+        objKeys = Object.keys(obj);
+    }
+
+    if (sort) {
+        objKeys.sort(sort);
+    }
+
+    for (var i = 0; i < objKeys.length; ++i) {
+        var key = objKeys[i];
+
+        if (skipNulls && obj[key] === null) {
+            continue;
+        }
+
+        keys = keys.concat(stringify(
+            obj[key],
+            key,
+            generateArrayPrefix,
+            strictNullHandling,
+            skipNulls,
+            encode ? encoder : null,
+            filter,
+            sort,
+            allowDots,
+            serializeDate,
+            formatter,
+            encodeValuesOnly
+        ));
+    }
+
+    var joined = keys.join(delimiter);
+    var prefix = options.addQueryPrefix === true ? '?' : '';
+
+    return joined.length > 0 ? prefix + joined : '';
+};
+
 
 /***/ }),
-/* 21 */
+
+/***/ "./node_modules/qs/lib/utils.js":
+/*!**************************************!*\
+  !*** ./node_modules/qs/lib/utils.js ***!
+  \**************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+var has = Object.prototype.hasOwnProperty;
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var Base = __webpack_require__(0);
-
-var FetchService = function (_Base) {
-  _inherits(FetchService, _Base);
-
-  function FetchService() {
-    _classCallCheck(this, FetchService);
-
-    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
-  }
-
-  FetchService.prototype.request = function request(options) {
-    var fetchOptions = Object.assign({}, options);
-
-    fetchOptions.headers = Object.assign({
-      Accept: 'application/json'
-    }, this.options.headers, fetchOptions.headers);
-
-    if (options.body) {
-      fetchOptions.body = JSON.stringify(options.body);
+var hexTable = (function () {
+    var array = [];
+    for (var i = 0; i < 256; ++i) {
+        array.push('%' + ((i < 16 ? '0' : '') + i.toString(16)).toUpperCase());
     }
 
-    var fetch = this.connection;
+    return array;
+}());
 
-    return fetch(options.url, fetchOptions).then(this.checkStatus).then(function (response) {
-      if (response.status === 204) {
-        return null;
-      }
+var compactQueue = function compactQueue(queue) {
+    var obj;
 
-      return response.json();
-    });
-  };
+    while (queue.length) {
+        var item = queue.pop();
+        obj = item.obj[item.prop];
 
-  FetchService.prototype.checkStatus = function checkStatus(response) {
-    if (response.ok) {
-      return response;
+        if (Array.isArray(obj)) {
+            var compacted = [];
+
+            for (var j = 0; j < obj.length; ++j) {
+                if (typeof obj[j] !== 'undefined') {
+                    compacted.push(obj[j]);
+                }
+            }
+
+            item.obj[item.prop] = compacted;
+        }
     }
 
-    return response.json().then(function (error) {
-      error.response = response;
-      throw error;
-    });
-  };
+    return obj;
+};
 
-  return FetchService;
-}(Base);
+exports.arrayToObject = function arrayToObject(source, options) {
+    var obj = options && options.plainObjects ? Object.create(null) : {};
+    for (var i = 0; i < source.length; ++i) {
+        if (typeof source[i] !== 'undefined') {
+            obj[i] = source[i];
+        }
+    }
 
-module.exports = FetchService;
+    return obj;
+};
+
+exports.merge = function merge(target, source, options) {
+    if (!source) {
+        return target;
+    }
+
+    if (typeof source !== 'object') {
+        if (Array.isArray(target)) {
+            target.push(source);
+        } else if (typeof target === 'object') {
+            if (options.plainObjects || options.allowPrototypes || !has.call(Object.prototype, source)) {
+                target[source] = true;
+            }
+        } else {
+            return [target, source];
+        }
+
+        return target;
+    }
+
+    if (typeof target !== 'object') {
+        return [target].concat(source);
+    }
+
+    var mergeTarget = target;
+    if (Array.isArray(target) && !Array.isArray(source)) {
+        mergeTarget = exports.arrayToObject(target, options);
+    }
+
+    if (Array.isArray(target) && Array.isArray(source)) {
+        source.forEach(function (item, i) {
+            if (has.call(target, i)) {
+                if (target[i] && typeof target[i] === 'object') {
+                    target[i] = exports.merge(target[i], item, options);
+                } else {
+                    target.push(item);
+                }
+            } else {
+                target[i] = item;
+            }
+        });
+        return target;
+    }
+
+    return Object.keys(source).reduce(function (acc, key) {
+        var value = source[key];
+
+        if (has.call(acc, key)) {
+            acc[key] = exports.merge(acc[key], value, options);
+        } else {
+            acc[key] = value;
+        }
+        return acc;
+    }, mergeTarget);
+};
+
+exports.assign = function assignSingleSource(target, source) {
+    return Object.keys(source).reduce(function (acc, key) {
+        acc[key] = source[key];
+        return acc;
+    }, target);
+};
+
+exports.decode = function (str) {
+    try {
+        return decodeURIComponent(str.replace(/\+/g, ' '));
+    } catch (e) {
+        return str;
+    }
+};
+
+exports.encode = function encode(str) {
+    // This code was originally written by Brian White (mscdex) for the io.js core querystring library.
+    // It has been adapted here for stricter adherence to RFC 3986
+    if (str.length === 0) {
+        return str;
+    }
+
+    var string = typeof str === 'string' ? str : String(str);
+
+    var out = '';
+    for (var i = 0; i < string.length; ++i) {
+        var c = string.charCodeAt(i);
+
+        if (
+            c === 0x2D // -
+            || c === 0x2E // .
+            || c === 0x5F // _
+            || c === 0x7E // ~
+            || (c >= 0x30 && c <= 0x39) // 0-9
+            || (c >= 0x41 && c <= 0x5A) // a-z
+            || (c >= 0x61 && c <= 0x7A) // A-Z
+        ) {
+            out += string.charAt(i);
+            continue;
+        }
+
+        if (c < 0x80) {
+            out = out + hexTable[c];
+            continue;
+        }
+
+        if (c < 0x800) {
+            out = out + (hexTable[0xC0 | (c >> 6)] + hexTable[0x80 | (c & 0x3F)]);
+            continue;
+        }
+
+        if (c < 0xD800 || c >= 0xE000) {
+            out = out + (hexTable[0xE0 | (c >> 12)] + hexTable[0x80 | ((c >> 6) & 0x3F)] + hexTable[0x80 | (c & 0x3F)]);
+            continue;
+        }
+
+        i += 1;
+        c = 0x10000 + (((c & 0x3FF) << 10) | (string.charCodeAt(i) & 0x3FF));
+        out += hexTable[0xF0 | (c >> 18)]
+            + hexTable[0x80 | ((c >> 12) & 0x3F)]
+            + hexTable[0x80 | ((c >> 6) & 0x3F)]
+            + hexTable[0x80 | (c & 0x3F)];
+    }
+
+    return out;
+};
+
+exports.compact = function compact(value) {
+    var queue = [{ obj: { o: value }, prop: 'o' }];
+    var refs = [];
+
+    for (var i = 0; i < queue.length; ++i) {
+        var item = queue[i];
+        var obj = item.obj[item.prop];
+
+        var keys = Object.keys(obj);
+        for (var j = 0; j < keys.length; ++j) {
+            var key = keys[j];
+            var val = obj[key];
+            if (typeof val === 'object' && val !== null && refs.indexOf(val) === -1) {
+                queue.push({ obj: obj, prop: key });
+                refs.push(val);
+            }
+        }
+    }
+
+    return compactQueue(queue);
+};
+
+exports.isRegExp = function isRegExp(obj) {
+    return Object.prototype.toString.call(obj) === '[object RegExp]';
+};
+
+exports.isBuffer = function isBuffer(obj) {
+    if (obj === null || typeof obj === 'undefined') {
+        return false;
+    }
+
+    return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
+};
+
 
 /***/ }),
-/* 22 */
+
+/***/ "./src/rest.js":
+/*!*********************!*\
+  !*** ./src/rest.js ***!
+  \*********************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var Base = __webpack_require__(0);
-
-var AxiosService = function (_Base) {
-  _inherits(AxiosService, _Base);
-
-  function AxiosService() {
-    _classCallCheck(this, AxiosService);
-
-    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
-  }
-
-  AxiosService.prototype.request = function request(options) {
-    var config = {
-      url: options.url,
-      method: options.method,
-      data: options.body,
-      headers: Object.assign({
-        Accept: 'application/json'
-      }, this.options.headers, options.headers)
-    };
-
-    return this.connection.request(config).then(function (res) {
-      return res.data;
-    }).catch(function (error) {
-      var response = error.response || error;
-
-      throw response instanceof Error ? response : response.data || response;
-    });
-  };
-
-  return AxiosService;
-}(Base);
-
-module.exports = AxiosService;
-
-/***/ }),
-/* 23 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var Base = __webpack_require__(0);
-
-var AngularService = function (_Base) {
-  _inherits(AngularService, _Base);
-
-  function AngularService() {
-    _classCallCheck(this, AngularService);
-
-    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
-  }
-
-  AngularService.prototype.request = function request(options) {
-    var http = this.connection;
-    var Headers = this.options.Headers;
-
-    if (!http || !Headers) {
-      throw new Error('Please pass angular\'s \'http\' (instance) and and object with \'Headers\' (class) to feathers-rest');
-    }
-
-    var url = options.url;
-    var requestOptions = {
-      method: options.method,
-      body: options.body,
-      headers: new Headers(Object.assign({ Accept: 'application/json' }, this.options.headers, options.headers))
-    };
-
-    return new Promise(function (resolve, reject) {
-      http.request(url, requestOptions).subscribe(resolve, reject);
-    }).then(function (res) {
-      return res.json();
-    }).catch(function (error) {
-      var response = error.response || error;
-
-      throw response instanceof Error ? response : response.json() || response;
-    });
-  };
-
-  return AngularService;
-}(Base);
-
-module.exports = AngularService;
-
-/***/ }),
-/* 24 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var Base = __webpack_require__(0);
-
-var AngularHttpService = function (_Base) {
-  _inherits(AngularHttpService, _Base);
-
-  function AngularHttpService() {
-    _classCallCheck(this, AngularHttpService);
-
-    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
-  }
-
-  AngularHttpService.prototype.request = function request(options) {
-    var httpClient = this.connection;
-    var HttpHeaders = this.options.HttpHeaders;
-
-    if (!httpClient || !HttpHeaders) {
-      throw new Error('Please pass angular\'s \'httpClient\' (instance) and and object with \'HttpHeaders\' (class) to feathers-rest');
-    }
-
-    var url = options.url;
-    var requestOptions = {
-      // method: options.method,
-      body: options.body,
-      headers: new HttpHeaders(Object.assign({ Accept: 'application/json' }, this.options.headers, options.headers))
-    };
-
-    return new Promise(function (resolve, reject) {
-      httpClient.request(options.method, url, requestOptions).subscribe(resolve, reject);
-    }).catch(function (error) {
-      var e = error.error;
-
-      if (e) {
-        throw typeof e === 'string' ? JSON.parse(e) : e;
-      }
-
-      throw error;
-    });
-  };
-
-  return AngularHttpService;
-}(Base);
-
-module.exports = AngularHttpService;
+module.exports = __webpack_require__(/*! @feathersjs/rest-client */ "./node_modules/@feathersjs/rest-client/lib/index.js");
 
 /***/ })
-/******/ ]);
+
+/******/ });
 });
 //# sourceMappingURL=rest.js.map
