@@ -2,15 +2,3 @@ sudo: false
 language: node_js
 node_js: node
 script: 'npm run ci'
-before_script:
-  - 'npm install -g codeclimate-test-reporter'
-after_script:
-  - 'codeclimate-test-reporter < coverage/lcov.info'
-addons:
-  code_climate:
-    repo_token: 8b52d247742e799ab703c2c2fcce5a8c176a6f9887df645ba17745f68af4cdc2
-notifications:
-  email: false
-  slack:
-    rooms:
-      secure: WrJHH69Y44HzJKDjZBs3w7o0nzzi6DLUX/8FdJcb9okoC5JNDH1JP5pGoaAHQ+eHbWqMby7j9p/5kPpAckkrpvoCnSdFx0M61YG3xMzqAzInjWA85uSniKwV9mp2noKjLJyEzHbWYtbN6pmAINOkSD84+dNQsd/1kQYmSCcY10I=

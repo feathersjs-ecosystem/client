@@ -34,9 +34,8 @@
     "lint": "semistandard --fix test/ index.js",
     "mocha": "mocha --opts mocha.opts",
     "saucelabs": "grunt",
-    "test": "npm run lint && npm run coverage",
-    "ci": "npm test && npm run saucelabs",
-    "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- --opts mocha.opts",
+    "test": "npm run lint && npm run mocha",
+    "ci": "npm run build && npm test && npm run saucelabs",
     "build": "npm run clean && npm run webpack",
     "build:test": "cd browser && webpack",
     "webpack": "parallel-webpack"
@@ -71,7 +70,6 @@
     "grunt": "^1.0.1",
     "grunt-cli": "^1.2.0",
     "grunt-saucelabs": "^9.0.0",
-    "istanbul": "^1.1.0-alpha.1",
     "jsdom": "8.1.0",
     "mocha": "^5.0.0",
     "node-fetch": "^2.0.0",
@@ -83,7 +81,7 @@
     "superagent": "^3.1.0",
     "uglifyjs": "^2.4.10",
     "uglifyjs-webpack-plugin": "^1.0.1",
-    "webpack": "^3.8.1",
+    "webpack": "^4.0.1",
     "webpack-merge": "^4.1.0",
     "ws": "^5.0.0"
   }

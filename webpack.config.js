@@ -10,6 +10,7 @@ function createConfig (name, isProduction = false) {
     output: {
       library: 'feathers',
       libraryTarget: 'umd',
+      globalObject: 'this',
       path: path.resolve(__dirname, 'dist'),
       filename: `${output}.js`
     },
@@ -23,11 +24,11 @@ function createConfig (name, isProduction = false) {
   };
 
   const dev = {
+    mode: 'development',
     devtool: 'source-map'
   };
-
   const production = {
-    devtool: 'cheap-module-source-map',
+    mode: 'production',
     output: {
       filename: `${output}.min.js`
     },
