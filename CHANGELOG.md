@@ -1,5 +1,17 @@
 # Change Log
 
+## [v3.4.3](https://github.com/feathersjs/client/tree/v3.4.3) (2018-03-07)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.4.2...v3.4.3)
+
+**Closed issues:**
+
+- Can't capture event on client side [\#253](https://github.com/feathersjs/client/issues/253)
+
+**Merged pull requests:**
+
+- Update ws to the latest version 🚀 [\#255](https://github.com/feathersjs/client/pull/255) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update webpack to the latest version 🚀 [\#254](https://github.com/feathersjs/client/pull/254) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
 ## [v3.4.2](https://github.com/feathersjs/client/tree/v3.4.2) (2018-02-16)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.4.1...v3.4.2)
 
