@@ -1096,7 +1096,7 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
         var hookChain = errorHooks.concat(finallyHooks);
 
         // A shallow copy of the hook object
-        var errorHookObject = Object.assign({}, error.hook || hookObject, {
+        var errorHookObject = Object.assign({}, error.hook, hookObject, {
           type: 'error',
           result: null,
           original: error.hook,
@@ -1189,7 +1189,7 @@ module.exports.default = createApplication;
 "use strict";
 
 
-module.exports = '3.1.3';
+module.exports = '3.1.4';
 
 /***/ }),
 

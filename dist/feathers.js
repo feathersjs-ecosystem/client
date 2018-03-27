@@ -1959,7 +1959,7 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
         var hookChain = errorHooks.concat(finallyHooks);
 
         // A shallow copy of the hook object
-        var errorHookObject = Object.assign({}, error.hook || hookObject, {
+        var errorHookObject = Object.assign({}, error.hook, hookObject, {
           type: 'error',
           result: null,
           original: error.hook,
@@ -2052,7 +2052,7 @@ module.exports.default = createApplication;
 "use strict";
 
 
-module.exports = '3.1.3';
+module.exports = '3.1.4';
 
 /***/ }),
 
@@ -2290,13 +2290,23 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var query = __webpack_require__(/*! qs */ "./node_modules/qs/lib/index.js");
 
-var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
-    stripSlashes = _require.stripSlashes;
+var _require = __webpack_require__(/*! @feathersjs/errors */ "./node_modules/@feathersjs/errors/lib/index.js"),
+    Unavailable = _require.Unavailable;
 
-var _require2 = __webpack_require__(/*! @feathersjs/errors */ "./node_modules/@feathersjs/errors/lib/index.js"),
-    convert = _require2.convert;
+var _require2 = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
+    _ = _require2._;
+
+var _require3 = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
+    stripSlashes = _require3.stripSlashes;
+
+var _require4 = __webpack_require__(/*! @feathersjs/errors */ "./node_modules/@feathersjs/errors/lib/index.js"),
+    convert = _require4.convert;
 
 function toError(error) {
+  if (error.code === 'ECONNREFUSED') {
+    throw new Unavailable(error.message, _.pick(error, 'address', 'port', 'config'));
+  }
+
   throw convert(error);
 }
 
