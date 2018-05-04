@@ -1858,7 +1858,8 @@ module.exports = function () {
 var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
     hooks = _require.hooks,
     validateArguments = _require.validateArguments,
-    isPromise = _require.isPromise;
+    isPromise = _require.isPromise,
+    _ = _require._;
 
 var createHookObject = hooks.createHookObject,
     getHooks = hooks.getHooks,
@@ -1959,12 +1960,11 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
         var hookChain = errorHooks.concat(finallyHooks);
 
         // A shallow copy of the hook object
-        var errorHookObject = Object.assign({}, error.hook, hookObject, {
+        var errorHookObject = _.omit(Object.assign({}, error.hook, hookObject, {
           type: 'error',
-          result: null,
           original: error.hook,
           error: error
-        });
+        }), 'result');
 
         return processHooks.call(service, hookChain, errorHookObject).catch(function (error) {
           errorHookObject.error = error;
@@ -1973,12 +1973,12 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
         }).then(function (hook) {
           if (returnHook) {
             // Either resolve or reject with the hook object
-            return hook.result ? hook : Promise.reject(hook);
+            return typeof hook.result !== 'undefined' ? hook : Promise.reject(hook);
           }
 
           // Otherwise return either the result if set (to swallow errors)
           // Or reject with the hook error
-          return hook.result ? hook.result : Promise.reject(hook.error);
+          return typeof hook.result !== 'undefined' ? hook.result : Promise.reject(hook.error);
         });
       });
     };
@@ -2052,7 +2052,7 @@ module.exports.default = createApplication;
 "use strict";
 
 
-module.exports = '3.1.4';
+module.exports = '3.1.5';
 
 /***/ }),
 
