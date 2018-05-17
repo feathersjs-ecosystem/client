@@ -2128,7 +2128,7 @@ var AngularHttpService = function (_Base) {
     return _possibleConstructorReturn(this, _Base.apply(this, arguments));
   }
 
-  AngularHttpService.prototype.request = function request(options) {
+  AngularHttpService.prototype.request = function request(options, params) {
     var httpClient = this.connection;
     var HttpHeaders = this.options.HttpHeaders;
 
@@ -2137,11 +2137,14 @@ var AngularHttpService = function (_Base) {
     }
 
     var url = options.url;
-    var requestOptions = {
+    var _params$connection = params.connection,
+        connection = _params$connection === undefined ? {} : _params$connection;
+
+    var headers = new HttpHeaders(Object.assign({ Accept: 'application/json' }, this.options.headers, options.headers, connection.headers));
+    var requestOptions = Object.assign({
       // method: options.method,
-      body: options.body,
-      headers: new HttpHeaders(Object.assign({ Accept: 'application/json' }, this.options.headers, options.headers))
-    };
+      body: options.body
+    }, params.connection, { headers: headers });
 
     return new Promise(function (resolve, reject) {
       httpClient.request(options.method, url, requestOptions).subscribe(resolve, reject);
@@ -2190,7 +2193,7 @@ var AngularService = function (_Base) {
     return _possibleConstructorReturn(this, _Base.apply(this, arguments));
   }
 
-  AngularService.prototype.request = function request(options) {
+  AngularService.prototype.request = function request(options, params) {
     var http = this.connection;
     var Headers = this.options.Headers;
 
@@ -2199,11 +2202,14 @@ var AngularService = function (_Base) {
     }
 
     var url = options.url;
-    var requestOptions = {
+    var _params$connection = params.connection,
+        connection = _params$connection === undefined ? {} : _params$connection;
+
+    var headers = new Headers(Object.assign({ Accept: 'application/json' }, this.options.headers, options.headers, connection.headers));
+    var requestOptions = Object.assign({
       method: options.method,
-      body: options.body,
-      headers: new Headers(Object.assign({ Accept: 'application/json' }, this.options.headers, options.headers))
-    };
+      body: options.body
+    }, connection, { headers: headers });
 
     return new Promise(function (resolve, reject) {
       http.request(url, requestOptions).subscribe(resolve, reject);
@@ -2250,15 +2256,15 @@ var AxiosService = function (_Base) {
     return _possibleConstructorReturn(this, _Base.apply(this, arguments));
   }
 
-  AxiosService.prototype.request = function request(options) {
-    var config = {
+  AxiosService.prototype.request = function request(options, params) {
+    var config = Object.assign({
       url: options.url,
       method: options.method,
       data: options.body,
       headers: Object.assign({
         Accept: 'application/json'
       }, this.options.headers, options.headers)
-    };
+    }, params.connection);
 
     return this.connection.request(config).then(function (res) {
       return res.data;
@@ -2344,7 +2350,7 @@ var Base = function () {
       url: this.makeUrl(params.query),
       method: 'GET',
       headers: Object.assign({}, params.headers)
-    }).catch(toError);
+    }, params).catch(toError);
   };
 
   Base.prototype.get = function get(id) {
@@ -2358,7 +2364,7 @@ var Base = function () {
       url: this.makeUrl(params.query, id),
       method: 'GET',
       headers: Object.assign({}, params.headers)
-    }).catch(toError);
+    }, params).catch(toError);
   };
 
   Base.prototype.create = function create(body) {
@@ -2369,7 +2375,7 @@ var Base = function () {
       body: body,
       method: 'POST',
       headers: Object.assign({ 'Content-Type': 'application/json' }, params.headers)
-    }).catch(toError);
+    }, params).catch(toError);
   };
 
   Base.prototype.update = function update(id, body) {
@@ -2384,7 +2390,7 @@ var Base = function () {
       body: body,
       method: 'PUT',
       headers: Object.assign({ 'Content-Type': 'application/json' }, params.headers)
-    }).catch(toError);
+    }, params).catch(toError);
   };
 
   Base.prototype.patch = function patch(id, body) {
@@ -2399,7 +2405,7 @@ var Base = function () {
       body: body,
       method: 'PATCH',
       headers: Object.assign({ 'Content-Type': 'application/json' }, params.headers)
-    }).catch(toError);
+    }, params).catch(toError);
   };
 
   Base.prototype.remove = function remove(id) {
@@ -2413,7 +2419,7 @@ var Base = function () {
       url: this.makeUrl(params.query, id),
       method: 'DELETE',
       headers: Object.assign({}, params.headers)
-    }).catch(toError);
+    }, params).catch(toError);
   };
 
   return Base;
@@ -2450,8 +2456,8 @@ var FetchService = function (_Base) {
     return _possibleConstructorReturn(this, _Base.apply(this, arguments));
   }
 
-  FetchService.prototype.request = function request(options) {
-    var fetchOptions = Object.assign({}, options);
+  FetchService.prototype.request = function request(options, params) {
+    var fetchOptions = Object.assign({}, options, params.connection);
 
     fetchOptions.headers = Object.assign({
       Accept: 'application/json'
@@ -2589,14 +2595,16 @@ var jQueryService = function (_Base) {
     return _possibleConstructorReturn(this, _Base.apply(this, arguments));
   }
 
-  jQueryService.prototype.request = function request(options) {
+  jQueryService.prototype.request = function request(options, params) {
     var _this2 = this;
 
+    var _params$connection = params.connection,
+        connection = _params$connection === undefined ? {} : _params$connection;
+
+    var headers = Object.assign({}, options.headers, this.options.headers, connection.headers);
     var opts = Object.assign({
       dataType: options.type || 'json'
-    }, {
-      headers: this.options.headers || {}
-    }, options);
+    }, connection, options, { headers: headers });
 
     if (options.body) {
       opts.data = JSON.stringify(options.body);
@@ -2657,13 +2665,18 @@ var RequestService = function (_Base) {
     return _possibleConstructorReturn(this, _Base.apply(this, arguments));
   }
 
-  RequestService.prototype.request = function request(options) {
+  RequestService.prototype.request = function request(options, params) {
     var _this2 = this;
 
     return new Promise(function (resolve, reject) {
+      var _params$connection = params.connection,
+          connection = _params$connection === undefined ? {} : _params$connection;
+
+      var headers = Object.assign({}, options.headers, connection.headers);
+
       _this2.connection(Object.assign({
         json: true
-      }, options), function (error, res, data) {
+      }, options, params.connection, { headers: headers }), function (error, res, data) {
         if (error) {
           return reject(error);
         }
@@ -2717,8 +2730,8 @@ var SuperagentService = function (_Base) {
     return _possibleConstructorReturn(this, _Base.apply(this, arguments));
   }
 
-  SuperagentService.prototype.request = function request(options) {
-    var superagent = this.connection(options.method, options.url).set(this.options.headers || {}).set('Accept', 'application/json').set(options.headers || {}).type(options.type || 'json');
+  SuperagentService.prototype.request = function request(options, params) {
+    var superagent = this.connection(options.method, options.url).set(this.options.headers || {}).set('Accept', 'application/json').set(params.connection || {}).set(options.headers || {}).type(options.type || 'json');
 
     return new Promise(function (resolve, reject) {
       superagent.set(options.headers);
