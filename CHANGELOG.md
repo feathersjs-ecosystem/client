@@ -1,5 +1,17 @@
 # Change Log
 
+## [v3.5.1](https://github.com/feathersjs/client/tree/v3.5.1) (2018-06-03)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.5.0...v3.5.1)
+
+**Closed issues:**
+
+-  'exports' is undefined [\#261](https://github.com/feathersjs/client/issues/261)
+- I got error from NuxtJS when I use FeathersJS client V3 [\#260](https://github.com/feathersjs/client/issues/260)
+
+**Merged pull requests:**
+
+- Update @feathersjs/feathers to the latest version 🚀 [\#262](https://github.com/feathersjs/client/pull/262) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
 ## [v3.5.0](https://github.com/feathersjs/client/tree/v3.5.0) (2018-05-17)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.4.5...v3.5.0)
 
