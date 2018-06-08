@@ -76,7 +76,7 @@
     "parallel-webpack": "^2.2.0",
     "request": "^2.56.0",
     "semistandard": "^12.0.0",
-    "shx": "^0.2.1",
+    "shx": "^0.3.0",
     "socket.io-client": "^2.0.0",
     "superagent": "^3.1.0",
     "uglifyjs": "^2.4.10",
