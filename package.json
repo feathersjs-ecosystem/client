@@ -35,7 +35,7 @@
     "mocha": "mocha --opts mocha.opts",
     "saucelabs": "grunt",
     "test": "npm run lint && npm run mocha",
-    "ci": "npm run build && npm test && npm run saucelabs",
+    "travis": "npm run build && npm test && npm run saucelabs",
     "build": "npm run clean && npm run webpack",
     "build:test": "cd browser && webpack",
     "webpack": "parallel-webpack"
@@ -51,7 +51,7 @@
   "dependencies": {
     "@feathersjs/authentication-client": "1.0.2",
     "@feathersjs/errors": "3.3.0",
-    "@feathersjs/feathers": "3.1.6",
+    "@feathersjs/feathers": "3.1.7",
     "@feathersjs/primus-client": "1.1.0",
     "@feathersjs/rest-client": "1.4.0",
     "@feathersjs/socketio-client": "1.1.0"
