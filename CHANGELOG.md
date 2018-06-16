@@ -1,5 +1,17 @@
 # Change Log
 
+## [v3.5.2](https://github.com/feathersjs/client/tree/v3.5.2) (2018-06-16)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.5.1...v3.5.2)
+
+**Closed issues:**
+
+- service times out when sending any request to the server, not on localhost [\#264](https://github.com/feathersjs/client/issues/264)
+
+**Merged pull requests:**
+
+- Update @feathersjs/feathers to the latest version 🚀 [\#265](https://github.com/feathersjs/client/pull/265) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update shx to the latest version 🚀 [\#263](https://github.com/feathersjs/client/pull/263) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
 ## [v3.5.1](https://github.com/feathersjs/client/tree/v3.5.1) (2018-06-03)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.5.0...v3.5.1)
 
