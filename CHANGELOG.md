@@ -1,5 +1,12 @@
 # Change Log
 
+## [v3.5.3](https://github.com/feathersjs/client/tree/v3.5.3) (2018-06-28)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.5.2...v3.5.3)
+
+**Merged pull requests:**
+
+- Update @feathersjs/rest-client to the latest version 🚀 [\#266](https://github.com/feathersjs/client/pull/266) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
 ## [v3.5.2](https://github.com/feathersjs/client/tree/v3.5.2) (2018-06-16)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.5.1...v3.5.2)
 
