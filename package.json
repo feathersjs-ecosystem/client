@@ -22,7 +22,7 @@
   "main": "index.js",
   "scripts": {
     "clean": "shx rm -rf dist/ && shx mkdir -p dist",
-    "reinstall": "shx rm -rf node_modules && npm install",
+    "reinstall": "shx rm -rf package-lock.json node_modules && npm install",
     "add-dist": "npm run clean && npm run build && git add dist/ --force && git commit -am \"Updating dist\"",
     "publish": "git push origin --tags && npm run changelog && git push origin",
     "bower": "node version && git add bower.json && git commit -am \"Update version\"",
