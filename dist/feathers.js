@@ -46,17 +46,32 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
 /******/ 		}
 /******/ 	};
 /******/
 /******/ 	// define __esModule on exports
 /******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
 /******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
 /******/ 	};
 /******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -857,41 +872,38 @@ var _require$_ = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/
     each = _require$_.each,
     pick = _require$_.pick;
 
-function convertGetOrRemove(args) {
-  var id = args[0],
-      _args$ = args[1],
-      params = _args$ === undefined ? {} : _args$;
-
-
-  return { id: id, params: params };
-}
-
-function convertUpdateOrPatch(args) {
-  var id = args[0],
-      data = args[1],
-      _args$2 = args[2],
-      params = _args$2 === undefined ? {} : _args$2;
-
-
-  return { id: id, data: data, params: params };
-}
-
 // To skip further hooks
+
+
 var SKIP = exports.SKIP = typeof Symbol !== 'undefined' ? Symbol('__feathersSkipHooks') : '__feathersSkipHooks';
+
+var convertGetOrRemove = function convertGetOrRemove(_ref) {
+  var id = _ref[0],
+      _ref$ = _ref[1],
+      params = _ref$ === undefined ? {} : _ref$;
+  return { id: id, params: params };
+};
+var convertUpdateOrPatch = function convertUpdateOrPatch(_ref2) {
+  var id = _ref2[0],
+      data = _ref2[1],
+      _ref2$ = _ref2[2],
+      params = _ref2$ === undefined ? {} : _ref2$;
+  return { id: id, data: data, params: params };
+};
 
 // Converters from service method arguments to hook object properties
 exports.converters = {
   find: function find(args) {
-    var _args$3 = args[0],
-        params = _args$3 === undefined ? {} : _args$3;
+    var _args$ = args[0],
+        params = _args$ === undefined ? {} : _args$;
 
 
     return { params: params };
   },
   create: function create(args) {
     var data = args[0],
-        _args$4 = args[1],
-        params = _args$4 === undefined ? {} : _args$4;
+        _args$2 = args[1],
+        params = _args$2 === undefined ? {} : _args$2;
 
 
     return { data: data, params: params };
@@ -1593,10 +1605,10 @@ module.exports = Object.assign({ convert: convert }, errors);
 
 var debug = __webpack_require__(/*! debug */ "./node_modules/debug/src/browser.js")('feathers:application');
 
-var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/commons.js"),
+var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
     stripSlashes = _require.stripSlashes;
 
-var Uberproto = __webpack_require__(/*! uberproto */ "./node_modules/@feathersjs/feathers/node_modules/uberproto/lib/proto.js");
+var Uberproto = __webpack_require__(/*! uberproto */ "./node_modules/uberproto/lib/proto.js");
 var events = __webpack_require__(/*! ./events */ "./node_modules/@feathersjs/feathers/lib/events.js");
 var hooks = __webpack_require__(/*! ./hooks */ "./node_modules/@feathersjs/feathers/lib/hooks.js");
 var version = __webpack_require__(/*! ./version */ "./node_modules/@feathersjs/feathers/lib/version.js");
@@ -1755,7 +1767,7 @@ module.exports = application;
 var _require = __webpack_require__(/*! events */ "./node_modules/node-libs-browser/node_modules/events/events.js"),
     EventEmitter = _require.EventEmitter;
 
-var Proto = __webpack_require__(/*! uberproto */ "./node_modules/@feathersjs/feathers/node_modules/uberproto/lib/proto.js");
+var Proto = __webpack_require__(/*! uberproto */ "./node_modules/uberproto/lib/proto.js");
 
 // Returns a hook that emits service events. Should always be
 // used as the very last hook in the chain
@@ -1855,7 +1867,7 @@ module.exports = function () {
 "use strict";
 
 
-var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/commons.js"),
+var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
     hooks = _require.hooks,
     validateArguments = _require.validateArguments,
     isPromise = _require.isPromise,
@@ -2014,10 +2026,10 @@ module.exports = function () {
 "use strict";
 
 
-var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/commons.js"),
+var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
     hooks = _require.hooks;
 
-var Proto = __webpack_require__(/*! uberproto */ "./node_modules/@feathersjs/feathers/node_modules/uberproto/lib/proto.js");
+var Proto = __webpack_require__(/*! uberproto */ "./node_modules/uberproto/lib/proto.js");
 var Application = __webpack_require__(/*! ./application */ "./node_modules/@feathersjs/feathers/lib/application.js");
 var version = __webpack_require__(/*! ./version */ "./node_modules/@feathersjs/feathers/lib/version.js");
 
@@ -2053,780 +2065,6 @@ module.exports.default = createApplication;
 
 
 module.exports = '3.1.7';
-
-/***/ }),
-
-/***/ "./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/arguments.js":
-/*!*********************************************************************************************!*\
-  !*** ./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/arguments.js ***!
-  \*********************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var paramCounts = {
-  find: 1,
-  get: 2,
-  create: 2,
-  update: 3,
-  patch: 3,
-  remove: 2
-};
-
-function isObjectOrArray(value) {
-  return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value !== null;
-}
-
-exports.validateArguments = function validateArguments(method, args) {
-  // Check if the last argument is a callback which are no longer supported
-  if (typeof args[args.length - 1] === 'function') {
-    throw new Error('Callbacks are no longer supported. Use Promises or async/await instead.');
-  }
-
-  var methodParamCount = paramCounts[method];
-
-  // Check the number of arguments and throw an error if too many are provided
-  if (methodParamCount && args.length > methodParamCount) {
-    throw new Error('Too many arguments for \'' + method + '\' method');
-  }
-
-  // `params` is always the last argument
-  var params = args[methodParamCount - 1];
-
-  // Check if `params` is an object (can be undefined though)
-  if (params !== undefined && !isObjectOrArray(params)) {
-    throw new Error('Params for \'' + method + '\' method must be an object');
-  }
-
-  // Validate other arguments for each method
-  switch (method) {
-    case 'create':
-      if (!isObjectOrArray(args[0])) {
-        throw new Error('A data object must be provided to the \'create\' method');
-      }
-      break;
-    case 'get':
-    case 'remove':
-    case 'update':
-    case 'patch':
-      if (args[0] === undefined) {
-        throw new Error('An id must be provided to the \'' + method + '\' method');
-      }
-
-      if ((method === 'update' || method === 'patch') && !isObjectOrArray(args[1])) {
-        throw new Error('A data object must be provided to the \'' + method + '\' method');
-      }
-  }
-
-  return true;
-};
-
-/***/ }),
-
-/***/ "./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/commons.js":
-/*!*******************************************************************************************!*\
-  !*** ./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/commons.js ***!
-  \*******************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var utils = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/utils.js");
-var hooks = __webpack_require__(/*! ./hooks */ "./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/hooks.js");
-var args = __webpack_require__(/*! ./arguments */ "./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/arguments.js");
-var filterQuery = __webpack_require__(/*! ./filter-query */ "./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/filter-query.js");
-
-module.exports = Object.assign({}, utils, args, { hooks: hooks, filterQuery: filterQuery });
-
-/***/ }),
-
-/***/ "./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/filter-query.js":
-/*!************************************************************************************************!*\
-  !*** ./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/filter-query.js ***!
-  \************************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _require = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/utils.js"),
-    _ = _require._;
-
-// Officially supported query parameters ($populate is kind of special)
-
-
-var PROPERTIES = ['$sort', '$limit', '$skip', '$select', '$populate'];
-
-function parse(number) {
-  if (typeof number !== 'undefined') {
-    return Math.abs(parseInt(number, 10));
-  }
-}
-
-// Returns the pagination limit and will take into account the
-// default and max pagination settings
-function getLimit(limit, paginate) {
-  if (paginate && paginate.default) {
-    var lower = typeof limit === 'number' ? limit : paginate.default;
-    var upper = typeof paginate.max === 'number' ? paginate.max : Number.MAX_VALUE;
-
-    return Math.min(lower, upper);
-  }
-
-  return limit;
-}
-
-// Makes sure that $sort order is always converted to an actual number
-function convertSort(sort) {
-  if ((typeof sort === 'undefined' ? 'undefined' : _typeof(sort)) !== 'object' || Array.isArray(sort)) {
-    return sort;
-  }
-
-  var result = {};
-
-  Object.keys(sort).forEach(function (key) {
-    result[key] = _typeof(sort[key]) === 'object' ? sort[key] : parseInt(sort[key], 10);
-  });
-
-  return result;
-}
-
-// Converts Feathers special query parameters and pagination settings
-// and returns them separately a `filters` and the rest of the query
-// as `query`
-module.exports = function (query, paginate) {
-  var filters = {
-    $sort: convertSort(query.$sort),
-    $limit: getLimit(parse(query.$limit), paginate),
-    $skip: parse(query.$skip),
-    $select: query.$select,
-    $populate: query.$populate
-  };
-
-  return { filters: filters, query: _.omit.apply(_, [query].concat(PROPERTIES)) };
-};
-
-/***/ }),
-
-/***/ "./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/hooks.js":
-/*!*****************************************************************************************!*\
-  !*** ./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/hooks.js ***!
-  \*****************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _require$_ = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/utils.js")._,
-    each = _require$_.each,
-    pick = _require$_.pick;
-
-// To skip further hooks
-
-
-var SKIP = exports.SKIP = typeof Symbol !== 'undefined' ? Symbol('__feathersSkipHooks') : '__feathersSkipHooks';
-
-var convertGetOrRemove = function convertGetOrRemove(_ref) {
-  var id = _ref[0],
-      _ref$ = _ref[1],
-      params = _ref$ === undefined ? {} : _ref$;
-  return { id: id, params: params };
-};
-var convertUpdateOrPatch = function convertUpdateOrPatch(_ref2) {
-  var id = _ref2[0],
-      data = _ref2[1],
-      _ref2$ = _ref2[2],
-      params = _ref2$ === undefined ? {} : _ref2$;
-  return { id: id, data: data, params: params };
-};
-
-// Converters from service method arguments to hook object properties
-exports.converters = {
-  find: function find(args) {
-    var _args$ = args[0],
-        params = _args$ === undefined ? {} : _args$;
-
-
-    return { params: params };
-  },
-  create: function create(args) {
-    var data = args[0],
-        _args$2 = args[1],
-        params = _args$2 === undefined ? {} : _args$2;
-
-
-    return { data: data, params: params };
-  },
-
-  get: convertGetOrRemove,
-  remove: convertGetOrRemove,
-  update: convertUpdateOrPatch,
-  patch: convertUpdateOrPatch
-};
-
-// Create a hook object for a method with arguments `args`
-// `data` is additional data that will be added
-exports.createHookObject = function createHookObject(method, args) {
-  var data = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-  var hook = exports.converters[method](args);
-
-  Object.defineProperty(hook, 'toJSON', {
-    value: function value() {
-      return pick(this, 'type', 'method', 'path', 'params', 'id', 'data', 'result', 'error');
-    }
-  });
-
-  return Object.assign(hook, data, {
-    method: method,
-    // A dynamic getter that returns the path of the service
-    get path() {
-      var app = data.app,
-          service = data.service;
-
-
-      if (!service || !app || !app.services) {
-        return null;
-      }
-
-      return Object.keys(app.services).find(function (path) {
-        return app.services[path] === service;
-      });
-    }
-  });
-};
-
-// Fallback used by `makeArguments` which usually won't be used
-exports.defaultMakeArguments = function defaultMakeArguments(hook) {
-  var result = [];
-
-  if (typeof hook.id !== 'undefined') {
-    result.push(hook.id);
-  }
-
-  if (hook.data) {
-    result.push(hook.data);
-  }
-
-  result.push(hook.params || {});
-
-  return result;
-};
-
-// Turns a hook object back into a list of arguments
-// to call a service method with
-exports.makeArguments = function makeArguments(hook) {
-  switch (hook.method) {
-    case 'find':
-      return [hook.params];
-    case 'get':
-    case 'remove':
-      return [hook.id, hook.params];
-    case 'update':
-    case 'patch':
-      return [hook.id, hook.data, hook.params];
-    case 'create':
-      return [hook.data, hook.params];
-  }
-
-  return exports.defaultMakeArguments(hook);
-};
-
-// Converts different hook registration formats into the
-// same internal format
-exports.convertHookData = function convertHookData(obj) {
-  var hook = {};
-
-  if (Array.isArray(obj)) {
-    hook = { all: obj };
-  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object') {
-    hook = { all: [obj] };
-  } else {
-    each(obj, function (value, key) {
-      hook[key] = !Array.isArray(value) ? [value] : value;
-    });
-  }
-
-  return hook;
-};
-
-// Duck-checks a given object to be a hook object
-// A valid hook object has `type` and `method`
-exports.isHookObject = function isHookObject(hookObject) {
-  return (typeof hookObject === 'undefined' ? 'undefined' : _typeof(hookObject)) === 'object' && typeof hookObject.method === 'string' && typeof hookObject.type === 'string';
-};
-
-// Returns all service and application hooks combined
-// for a given method and type `appLast` sets if the hooks
-// from `app` should be added last (or first by default)
-exports.getHooks = function getHooks(app, service, type, method) {
-  var appLast = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
-
-  var appHooks = app.__hooks[type][method] || [];
-  var serviceHooks = service.__hooks[type][method] || [];
-
-  if (appLast) {
-    // Run hooks in the order of service -> app -> finally
-    return serviceHooks.concat(appHooks);
-  }
-
-  return appHooks.concat(serviceHooks);
-};
-
-exports.processHooks = function processHooks(hooks, initialHookObject) {
-  var _this = this;
-
-  var hookObject = initialHookObject;
-  var updateCurrentHook = function updateCurrentHook(current) {
-    // Either use the returned hook object or the current
-    // hook object from the chain if the hook returned undefined
-    if (current) {
-      if (current === SKIP) {
-        return SKIP;
-      }
-
-      if (!exports.isHookObject(current)) {
-        throw new Error(hookObject.type + ' hook for \'' + hookObject.method + '\' method returned invalid hook object');
-      }
-
-      hookObject = current;
-    }
-
-    return hookObject;
-  };
-  // First step of the hook chain with the initial hook object
-  var promise = Promise.resolve(hookObject);
-
-  // Go through all hooks and chain them into our promise
-  hooks.forEach(function (fn) {
-    var hook = fn.bind(_this);
-
-    if (hook.length === 2) {
-      // function(hook, next)
-      promise = promise.then(function (hookObject) {
-        return hookObject === SKIP ? SKIP : new Promise(function (resolve, reject) {
-          hook(hookObject, function (error, result) {
-            return error ? reject(error) : resolve(result);
-          });
-        });
-      });
-    } else {
-      // function(hook)
-      promise = promise.then(function (hookObject) {
-        return hookObject === SKIP ? SKIP : hook(hookObject);
-      });
-    }
-
-    // Use the returned hook object or the old one
-    promise = promise.then(updateCurrentHook);
-  });
-
-  return promise.then(function () {
-    return hookObject;
-  }).catch(function (error) {
-    // Add the hook information to any errors
-    error.hook = hookObject;
-    throw error;
-  });
-};
-
-// Add `.hooks` functionality to an object
-exports.enableHooks = function enableHooks(obj, methods, types) {
-  if (typeof obj.hooks === 'function') {
-    return obj;
-  }
-
-  var __hooks = {};
-
-  types.forEach(function (type) {
-    // Initialize properties where hook functions are stored
-    __hooks[type] = {};
-  });
-
-  // Add non-enumerable `__hooks` property to the object
-  Object.defineProperty(obj, '__hooks', {
-    value: __hooks
-  });
-
-  return Object.assign(obj, {
-    hooks: function hooks(allHooks) {
-      var _this2 = this;
-
-      each(allHooks, function (obj, type) {
-        if (!_this2.__hooks[type]) {
-          throw new Error('\'' + type + '\' is not a valid hook type');
-        }
-
-        var hooks = exports.convertHookData(obj);
-
-        each(hooks, function (value, method) {
-          if (method !== 'all' && methods.indexOf(method) === -1) {
-            throw new Error('\'' + method + '\' is not a valid hook method');
-          }
-        });
-
-        methods.forEach(function (method) {
-          var myHooks = _this2.__hooks[type][method] || (_this2.__hooks[type][method] = []);
-
-          if (hooks.all) {
-            myHooks.push.apply(myHooks, hooks.all);
-          }
-
-          if (hooks[method]) {
-            myHooks.push.apply(myHooks, hooks[method]);
-          }
-        });
-      });
-
-      return this;
-    }
-  });
-};
-
-/***/ }),
-
-/***/ "./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/utils.js":
-/*!*****************************************************************************************!*\
-  !*** ./node_modules/@feathersjs/feathers/node_modules/@feathersjs/commons/lib/utils.js ***!
-  \*****************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-// Removes all leading and trailing slashes from a path
-exports.stripSlashes = function stripSlashes(name) {
-  return name.replace(/^(\/*)|(\/*)$/g, '');
-};
-
-// A set of lodash-y utility functions that use ES6
-var _ = exports._ = {
-  each: function each(obj, callback) {
-    if (obj && typeof obj.forEach === 'function') {
-      obj.forEach(callback);
-    } else if (_.isObject(obj)) {
-      Object.keys(obj).forEach(function (key) {
-        return callback(obj[key], key);
-      });
-    }
-  },
-  some: function some(value, callback) {
-    return Object.keys(value).map(function (key) {
-      return [value[key], key];
-    }).some(function (_ref) {
-      var val = _ref[0],
-          key = _ref[1];
-      return callback(val, key);
-    });
-  },
-  every: function every(value, callback) {
-    return Object.keys(value).map(function (key) {
-      return [value[key], key];
-    }).every(function (_ref2) {
-      var val = _ref2[0],
-          key = _ref2[1];
-      return callback(val, key);
-    });
-  },
-  keys: function keys(obj) {
-    return Object.keys(obj);
-  },
-  values: function values(obj) {
-    return _.keys(obj).map(function (key) {
-      return obj[key];
-    });
-  },
-  isMatch: function isMatch(obj, item) {
-    return _.keys(item).every(function (key) {
-      return obj[key] === item[key];
-    });
-  },
-  isEmpty: function isEmpty(obj) {
-    return _.keys(obj).length === 0;
-  },
-  isObject: function isObject(item) {
-    return (typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object' && !Array.isArray(item) && item !== null;
-  },
-  extend: function extend() {
-    return Object.assign.apply(Object, arguments);
-  },
-  omit: function omit(obj) {
-    var result = _.extend({}, obj);
-
-    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      keys[_key - 1] = arguments[_key];
-    }
-
-    keys.forEach(function (key) {
-      return delete result[key];
-    });
-    return result;
-  },
-  pick: function pick(source) {
-    var result = {};
-
-    for (var _len2 = arguments.length, keys = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-      keys[_key2 - 1] = arguments[_key2];
-    }
-
-    keys.forEach(function (key) {
-      if (source[key] !== undefined) {
-        result[key] = source[key];
-      }
-    });
-    return result;
-  },
-
-
-  // Recursively merge the source object into the target object
-  merge: function merge(target, source) {
-    if (_.isObject(target) && _.isObject(source)) {
-      Object.keys(source).forEach(function (key) {
-        if (_.isObject(source[key])) {
-          if (!target[key]) {
-            var _Object$assign;
-
-            Object.assign(target, (_Object$assign = {}, _Object$assign[key] = {}, _Object$assign));
-          }
-
-          _.merge(target[key], source[key]);
-        } else {
-          var _Object$assign2;
-
-          Object.assign(target, (_Object$assign2 = {}, _Object$assign2[key] = source[key], _Object$assign2));
-        }
-      });
-    }
-    return target;
-  }
-};
-
-// Return a function that filters a result object or array
-// and picks only the fields passed as `params.query.$select`
-// and additional `otherFields`
-exports.select = function select(params) {
-  var fields = params && params.query && params.query.$select;
-
-  for (var _len3 = arguments.length, otherFields = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-    otherFields[_key3 - 1] = arguments[_key3];
-  }
-
-  if (Array.isArray(fields) && otherFields.length) {
-    fields.push.apply(fields, otherFields);
-  }
-
-  var convert = function convert(result) {
-    if (!Array.isArray(fields)) {
-      return result;
-    }
-
-    return _.pick.apply(_, [result].concat(fields));
-  };
-
-  return function (result) {
-    if (Array.isArray(result)) {
-      return result.map(convert);
-    }
-
-    return convert(result);
-  };
-};
-
-// An in-memory sorting function according to the
-// $sort special query parameter
-exports.sorter = function sorter($sort) {
-  return function (first, second) {
-    var comparator = 0;
-    _.each($sort, function (modifier, key) {
-      modifier = parseInt(modifier, 10);
-
-      if (first[key] < second[key]) {
-        comparator -= 1 * modifier;
-      }
-
-      if (first[key] > second[key]) {
-        comparator += 1 * modifier;
-      }
-    });
-    return comparator;
-  };
-};
-
-// Duck-checks if an object looks like a promise
-exports.isPromise = function isPromise(result) {
-  return _.isObject(result) && typeof result.then === 'function';
-};
-
-exports.makeUrl = function makeUrl(path) {
-  var app = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  var get = typeof app.get === 'function' ? app.get.bind(app) : function () {};
-  var env = get('env') || "development";
-  var host = get('host') || process.env.HOST_NAME || 'localhost';
-  var protocol = env === 'development' || env === 'test' || env === undefined ? 'http' : 'https';
-  var PORT = get('port') || process.env.PORT || 3030;
-  var port = env === 'development' || env === 'test' || env === undefined ? ':' + PORT : '';
-
-  path = path || '';
-
-  return protocol + '://' + host + port + '/' + exports.stripSlashes(path);
-};
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../../../../process/browser.js */ "./node_modules/process/browser.js")))
-
-/***/ }),
-
-/***/ "./node_modules/@feathersjs/feathers/node_modules/uberproto/lib/proto.js":
-/*!*******************************************************************************!*\
-  !*** ./node_modules/@feathersjs/feathers/node_modules/uberproto/lib/proto.js ***!
-  \*******************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* global define */
-/**
- * A base object for ECMAScript 5 style prototypal inheritance.
- *
- * @see https://github.com/rauschma/proto-js/
- * @see http://ejohn.org/blog/simple-javascript-inheritance/
- * @see http://uxebu.com/blog/2011/02/23/object-based-inheritance-for-ecmascript-5/
- */
-(function (root, factory) {
-  if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
-				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
-				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-  } else {}
-}(this, function () {
-  var HAS_SYMBOLS = typeof Object.getOwnPropertySymbols === 'function';
-
-  function makeSuper (_super, old, name, fn) {
-    var isFunction = typeof old === 'function';
-    var newMethod = function () {
-      var tmp = this._super;
-
-      // Add a new ._super() method that is the same method
-      // but either pointing to the prototype method
-      // or to the overwritten method
-      this._super = isFunction ? old : _super[name];
-
-      // The method only need to be bound temporarily, so we
-      // remove it when we're done executing
-      var ret = fn.apply(this, arguments);
-
-      this._super = tmp;
-
-      return ret;
-    };
-
-    if (isFunction && HAS_SYMBOLS) {
-      Object.getOwnPropertySymbols(old).forEach(function (name) {
-        newMethod[name] = old[name];
-      });
-    }
-
-    return newMethod;
-  }
-
-  return {
-    /**
-     * Create a new object using Object.create. The arguments will be
-     * passed to the new instances init method or to a method name set in
-     * __init.
-     */
-    create: function () {
-      var instance = Object.create(this);
-      var init = typeof instance.__init === 'string' ? instance.__init : 'init';
-
-      if (typeof instance[init] === 'function') {
-        instance[init].apply(instance, arguments);
-      }
-      return instance;
-    },
-    /**
-     * Mixin a given set of properties
-     * @param prop The properties to mix in
-     * @param obj [optional]
-     * The object to add the mixin
-     */
-    mixin: function (prop, obj) {
-      var self = obj || this;
-      var fnTest = /\b_super\b/;
-      var _super = Object.getPrototypeOf(self) || self.prototype;
-      var descriptors = {};
-      var proto = prop;
-      var processProperty = function (name) {
-        if (!descriptors[name]) {
-          descriptors[name] = Object.getOwnPropertyDescriptor(proto, name);
-        }
-      };
-
-      // Collect all property descriptors
-      do {
-        Object.getOwnPropertyNames(proto).forEach(processProperty);
-
-        if (HAS_SYMBOLS) {
-          Object.getOwnPropertySymbols(proto).forEach(processProperty);
-        }
-      } while ((proto = Object.getPrototypeOf(proto)) && Object.getPrototypeOf(proto));
-
-      var processDescriptor = function (name) {
-        var descriptor = descriptors[name];
-
-        if (typeof descriptor.value === 'function' && fnTest.test(descriptor.value)) {
-          descriptor.value = makeSuper(_super, self[name], name, descriptor.value);
-        }
-
-        Object.defineProperty(self, name, descriptor);
-      };
-
-      Object.keys(descriptors).forEach(processDescriptor);
-
-      if (HAS_SYMBOLS) {
-        Object.getOwnPropertySymbols(descriptors).forEach(processDescriptor);
-      }
-
-      return self;
-    },
-    /**
-     * Extend the current or a given object with the given property and return the extended object.
-     * @param prop The properties to extend with
-     * @param obj [optional] The object to extend from
-     * @returns The extended object
-     */
-    extend: function (prop, obj) {
-      return this.mixin(prop, Object.create(obj || this));
-    },
-    /**
-     * Return a callback function with this set to the current or a given context object.
-     * @param name Name of the method to proxy
-     * @param args... [optional] Arguments to use for partial application
-     */
-    proxy: function (name) {
-      var fn = this[name];
-      var args = Array.prototype.slice.call(arguments, 1);
-
-      args.unshift(this);
-      return fn.bind.apply(fn, args);
-    }
-  };
-}));
-
 
 /***/ }),
 
@@ -5520,7 +4758,7 @@ var compactQueue = function compactQueue(queue) {
     return obj;
 };
 
-exports.arrayToObject = function arrayToObject(source, options) {
+var arrayToObject = function arrayToObject(source, options) {
     var obj = options && options.plainObjects ? Object.create(null) : {};
     for (var i = 0; i < source.length; ++i) {
         if (typeof source[i] !== 'undefined') {
@@ -5531,7 +4769,7 @@ exports.arrayToObject = function arrayToObject(source, options) {
     return obj;
 };
 
-exports.merge = function merge(target, source, options) {
+var merge = function merge(target, source, options) {
     if (!source) {
         return target;
     }
@@ -5556,14 +4794,14 @@ exports.merge = function merge(target, source, options) {
 
     var mergeTarget = target;
     if (Array.isArray(target) && !Array.isArray(source)) {
-        mergeTarget = exports.arrayToObject(target, options);
+        mergeTarget = arrayToObject(target, options);
     }
 
     if (Array.isArray(target) && Array.isArray(source)) {
         source.forEach(function (item, i) {
             if (has.call(target, i)) {
                 if (target[i] && typeof target[i] === 'object') {
-                    target[i] = exports.merge(target[i], item, options);
+                    target[i] = merge(target[i], item, options);
                 } else {
                     target.push(item);
                 }
@@ -5578,7 +4816,7 @@ exports.merge = function merge(target, source, options) {
         var value = source[key];
 
         if (has.call(acc, key)) {
-            acc[key] = exports.merge(acc[key], value, options);
+            acc[key] = merge(acc[key], value, options);
         } else {
             acc[key] = value;
         }
@@ -5586,14 +4824,14 @@ exports.merge = function merge(target, source, options) {
     }, mergeTarget);
 };
 
-exports.assign = function assignSingleSource(target, source) {
+var assign = function assignSingleSource(target, source) {
     return Object.keys(source).reduce(function (acc, key) {
         acc[key] = source[key];
         return acc;
     }, target);
 };
 
-exports.decode = function (str) {
+var decode = function (str) {
     try {
         return decodeURIComponent(str.replace(/\+/g, ' '));
     } catch (e) {
@@ -5601,7 +4839,7 @@ exports.decode = function (str) {
     }
 };
 
-exports.encode = function encode(str) {
+var encode = function encode(str) {
     // This code was originally written by Brian White (mscdex) for the io.js core querystring library.
     // It has been adapted here for stricter adherence to RFC 3986
     if (str.length === 0) {
@@ -5653,7 +4891,7 @@ exports.encode = function encode(str) {
     return out;
 };
 
-exports.compact = function compact(value) {
+var compact = function compact(value) {
     var queue = [{ obj: { o: value }, prop: 'o' }];
     var refs = [];
 
@@ -5675,17 +4913,170 @@ exports.compact = function compact(value) {
     return compactQueue(queue);
 };
 
-exports.isRegExp = function isRegExp(obj) {
+var isRegExp = function isRegExp(obj) {
     return Object.prototype.toString.call(obj) === '[object RegExp]';
 };
 
-exports.isBuffer = function isBuffer(obj) {
+var isBuffer = function isBuffer(obj) {
     if (obj === null || typeof obj === 'undefined') {
         return false;
     }
 
     return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
 };
+
+module.exports = {
+    arrayToObject: arrayToObject,
+    assign: assign,
+    compact: compact,
+    decode: decode,
+    encode: encode,
+    isBuffer: isBuffer,
+    isRegExp: isRegExp,
+    merge: merge
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/uberproto/lib/proto.js":
+/*!*********************************************!*\
+  !*** ./node_modules/uberproto/lib/proto.js ***!
+  \*********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* global define */
+/**
+ * Uberproto
+ * 
+ * A base object for ECMAScript 5 style prototypal inheritance.
+ *
+ * @see https://github.com/rauschma/proto-js/
+ * @see http://ejohn.org/blog/simple-javascript-inheritance/
+ * @see http://uxebu.com/blog/2011/02/23/object-based-inheritance-for-ecmascript-5/
+ */
+(function (root, factory) {
+  if (true) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+  } else {}
+}(this, function () {
+  var HAS_SYMBOLS = typeof Object.getOwnPropertySymbols === 'function';
+
+  function makeSuper (_super, old, name, fn) {
+    var isFunction = typeof old === 'function';
+    var newMethod = function () {
+      var tmp = this._super;
+
+      // Add a new ._super() method that is the same method
+      // but either pointing to the prototype method
+      // or to the overwritten method
+      this._super = isFunction ? old : _super[name];
+
+      // The method only need to be bound temporarily, so we
+      // remove it when we're done executing
+      var ret = fn.apply(this, arguments);
+
+      this._super = tmp;
+
+      return ret;
+    };
+
+    if (isFunction && HAS_SYMBOLS) {
+      Object.getOwnPropertySymbols(old).forEach(function (name) {
+        newMethod[name] = old[name];
+      });
+    }
+
+    return newMethod;
+  }
+
+  return {
+    /**
+     * Create a new object using Object.create. The arguments will be
+     * passed to the new instances init method or to a method name set in
+     * __init.
+     */
+    create: function () {
+      var instance = Object.create(this);
+      var init = typeof instance.__init === 'string' ? instance.__init : 'init';
+
+      if (typeof instance[init] === 'function') {
+        instance[init].apply(instance, arguments);
+      }
+      return instance;
+    },
+    /**
+     * Mixin a given set of properties
+     * @param prop The properties to mix in
+     * @param obj [optional]
+     * The object to add the mixin
+     */
+    mixin: function (prop, obj) {
+      var self = obj || this;
+      var fnTest = /\b_super\b/;
+      var _super = Object.getPrototypeOf(self) || self.prototype;
+      var descriptors = {};
+      var proto = prop;
+      var processProperty = function (name) {
+        if (!descriptors[name]) {
+          descriptors[name] = Object.getOwnPropertyDescriptor(proto, name);
+        }
+      };
+
+      // Collect all property descriptors
+      do {
+        Object.getOwnPropertyNames(proto).forEach(processProperty);
+
+        if (HAS_SYMBOLS) {
+          Object.getOwnPropertySymbols(proto).forEach(processProperty);
+        }
+      } while ((proto = Object.getPrototypeOf(proto)) && Object.getPrototypeOf(proto));
+
+      var processDescriptor = function (name) {
+        var descriptor = descriptors[name];
+
+        if (typeof descriptor.value === 'function' && fnTest.test(descriptor.value)) {
+          descriptor.value = makeSuper(_super, self[name], name, descriptor.value);
+        }
+
+        Object.defineProperty(self, name, descriptor);
+      };
+
+      Object.keys(descriptors).forEach(processDescriptor);
+
+      if (HAS_SYMBOLS) {
+        Object.getOwnPropertySymbols(descriptors).forEach(processDescriptor);
+      }
+
+      return self;
+    },
+    /**
+     * Extend the current or a given object with the given property and return the extended object.
+     * @param prop The properties to extend with
+     * @param obj [optional] The object to extend from
+     * @returns The extended object
+     */
+    extend: function (prop, obj) {
+      return this.mixin(prop, Object.create(obj || this));
+    },
+    /**
+     * Return a callback function with this set to the current or a given context object.
+     * @param name Name of the method to proxy
+     * @param args... [optional] Arguments to use for partial application
+     */
+    proxy: function (name) {
+      var fn = this[name];
+      var args = Array.prototype.slice.call(arguments, 1);
+
+      args.unshift(this);
+      return fn.bind.apply(fn, args);
+    }
+  };
+}));
 
 
 /***/ }),
