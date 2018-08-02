@@ -446,11 +446,8 @@ exports.processHooks = function processHooks(hooks, initialHookObject) {
 
     return hookObject;
   };
-  // First step of the hook chain with the initial hook object
-  var promise = Promise.resolve(hookObject);
-
   // Go through all hooks and chain them into our promise
-  hooks.forEach(function (fn) {
+  var promise = hooks.reduce(function (promise, fn) {
     var hook = fn.bind(_this);
 
     if (hook.length === 2) {
@@ -470,8 +467,8 @@ exports.processHooks = function processHooks(hooks, initialHookObject) {
     }
 
     // Use the returned hook object or the old one
-    promise = promise.then(updateCurrentHook);
-  });
+    return promise.then(updateCurrentHook);
+  }, Promise.resolve(hookObject));
 
   return promise.then(function () {
     return hookObject;
@@ -618,18 +615,17 @@ var _ = exports._ = {
     return result;
   },
   pick: function pick(source) {
-    var result = {};
-
     for (var _len2 = arguments.length, keys = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
       keys[_key2 - 1] = arguments[_key2];
     }
 
-    keys.forEach(function (key) {
+    return keys.reduce(function (result, key) {
       if (source[key] !== undefined) {
         result[key] = source[key];
       }
-    });
-    return result;
+
+      return result;
+    }, {});
   },
 
 
@@ -687,26 +683,6 @@ exports.select = function select(params) {
   };
 };
 
-// An in-memory sorting function according to the
-// $sort special query parameter
-exports.sorter = function sorter($sort) {
-  return function (first, second) {
-    var comparator = 0;
-    _.each($sort, function (modifier, key) {
-      modifier = parseInt(modifier, 10);
-
-      if (first[key] < second[key]) {
-        comparator -= 1 * modifier;
-      }
-
-      if (first[key] > second[key]) {
-        comparator += 1 * modifier;
-      }
-    });
-    return comparator;
-  };
-};
-
 // Duck-checks if an object looks like a promise
 exports.isPromise = function isPromise(result) {
   return _.isObject(result) && typeof result.then === 'function';
@@ -725,6 +701,140 @@ exports.makeUrl = function makeUrl(path) {
   path = path || '';
 
   return protocol + '://' + host + port + '/' + exports.stripSlashes(path);
+};
+
+// Sorting algorithm taken from NeDB (https://github.com/louischatriot/nedb)
+// See https://github.com/louischatriot/nedb/blob/e3f0078499aa1005a59d0c2372e425ab789145c1/lib/model.js#L189
+
+exports.compareNSB = function (a, b) {
+  if (a < b) {
+    return -1;
+  }
+  if (a > b) {
+    return 1;
+  }
+  return 0;
+};
+
+exports.compareArrays = function (a, b) {
+  var i, comp;
+
+  for (i = 0; i < Math.min(a.length, b.length); i += 1) {
+    comp = exports.compare(a[i], b[i]);
+
+    if (comp !== 0) {
+      return comp;
+    }
+  }
+
+  // Common section was identical, longest one wins
+  return exports.compareNSB(a.length, b.length);
+};
+
+exports.compare = function (a, b) {
+  var compareStrings = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : exports.compareNSB;
+  var _exports = exports,
+      compareNSB = _exports.compareNSB,
+      compare = _exports.compare,
+      compareArrays = _exports.compareArrays;
+
+  // undefined
+
+  if (a === undefined) {
+    return b === undefined ? 0 : -1;
+  }
+  if (b === undefined) {
+    return a === undefined ? 0 : 1;
+  }
+
+  // null
+  if (a === null) {
+    return b === null ? 0 : -1;
+  }
+  if (b === null) {
+    return a === null ? 0 : 1;
+  }
+
+  // Numbers
+  if (typeof a === 'number') {
+    return typeof b === 'number' ? compareNSB(a, b) : -1;
+  }
+  if (typeof b === 'number') {
+    return typeof a === 'number' ? compareNSB(a, b) : 1;
+  }
+
+  // Strings
+  if (typeof a === 'string') {
+    return typeof b === 'string' ? compareStrings(a, b) : -1;
+  }
+  if (typeof b === 'string') {
+    return typeof a === 'string' ? compareStrings(a, b) : 1;
+  }
+
+  // Booleans
+  if (typeof a === 'boolean') {
+    return typeof b === 'boolean' ? compareNSB(a, b) : -1;
+  }
+  if (typeof b === 'boolean') {
+    return typeof a === 'boolean' ? compareNSB(a, b) : 1;
+  }
+
+  // Dates
+  if (a instanceof Date) {
+    return b instanceof Date ? compareNSB(a.getTime(), b.getTime()) : -1;
+  }
+  if (b instanceof Date) {
+    return a instanceof Date ? compareNSB(a.getTime(), b.getTime()) : 1;
+  }
+
+  // Arrays (first element is most significant and so on)
+  if (Array.isArray(a)) {
+    return Array.isArray(b) ? compareArrays(a, b) : -1;
+  }
+  if (Array.isArray(b)) {
+    return Array.isArray(a) ? compareArrays(a, b) : 1;
+  }
+
+  // Objects
+  var aKeys = Object.keys(a).sort();
+  var bKeys = Object.keys(b).sort();
+  var comp = 0;
+
+  for (var i = 0; i < Math.min(aKeys.length, bKeys.length); i += 1) {
+    comp = compare(a[aKeys[i]], b[bKeys[i]]);
+
+    if (comp !== 0) {
+      return comp;
+    }
+  }
+
+  return compareNSB(aKeys.length, bKeys.length);
+};
+
+// An in-memory sorting function according to the
+// $sort special query parameter
+exports.sorter = function ($sort) {
+  var criteria = Object.keys($sort).map(function (key) {
+    var direction = $sort[key];
+
+    return { key: key, direction: direction };
+  });
+
+  return function (a, b) {
+    var compare = void 0;
+
+    for (var i = 0; i < criteria.length; i++) {
+      var criterion = criteria[i];
+
+      compare = criterion.direction * exports.compare(a[criterion.key], b[criterion.key]);
+
+      if (compare !== 0) {
+        return compare;
+      }
+    }
+
+    return 0;
+  };
 };
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../process/browser.js */ "./node_modules/process/browser.js")))
 
@@ -2329,7 +2439,7 @@ process.umask = function() { return 0; };
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* global define */
 /**
  * Uberproto
- * 
+ *
  * A base object for ECMAScript 5 style prototypal inheritance.
  *
  * @see https://github.com/rauschma/proto-js/
@@ -2402,8 +2512,10 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       var descriptors = {};
       var proto = prop;
       var processProperty = function (name) {
-        if (!descriptors[name]) {
-          descriptors[name] = Object.getOwnPropertyDescriptor(proto, name);
+        var descriptor = Object.getOwnPropertyDescriptor(proto, name);
+
+        if (!descriptors[name] && descriptor) {
+          descriptors[name] = descriptor;
         }
       };
 
