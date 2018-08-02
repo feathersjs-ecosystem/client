@@ -1,5 +1,23 @@
 # Change Log
 
+## [v3.5.5](https://github.com/feathersjs/client/tree/v3.5.5) (2018-08-02)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.5.4...v3.5.5)
+
+**Closed issues:**
+
+- IE11: TypeError: Object doesn't support property or method 'from' [\#270](https://github.com/feathersjs/client/issues/270)
+
+**Merged pull requests:**
+
+- Update ws to the latest version 🚀 [\#269](https://github.com/feathersjs/client/pull/269) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
+## [v3.5.4](https://github.com/feathersjs/client/tree/v3.5.4) (2018-07-19)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.5.3...v3.5.4)
+
+**Merged pull requests:**
+
+- Update all dependencies to latest [\#268](https://github.com/feathersjs/client/pull/268) ([daffl](https://github.com/daffl))
+
 ## [v3.5.3](https://github.com/feathersjs/client/tree/v3.5.3) (2018-06-28)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.5.2...v3.5.3)
 
