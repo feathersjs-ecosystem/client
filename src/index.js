@@ -6,11 +6,11 @@ const socketio = require('@feathersjs/socketio-client');
 const primus = require('@feathersjs/primus-client');
 
 Object.assign(feathers, {
-  errors,
-  authentication,
   socketio,
   primus,
-  rest
+  rest,
+  errors,
+  authentication
 });
 
 module.exports = feathers;
