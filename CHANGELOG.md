@@ -1,5 +1,8 @@
 # Change Log
 
+## [v3.5.6](https://github.com/feathersjs/client/tree/v3.5.6) (2018-08-13)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.5.5...v3.5.6)
+
 ## [v3.5.5](https://github.com/feathersjs/client/tree/v3.5.5) (2018-08-02)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.5.4...v3.5.5)
 
