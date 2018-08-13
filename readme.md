@@ -46,6 +46,6 @@ For the full documentation see [the Feathers documentation](http://docs.feathers
 
 ## License
 
-Copyright (c) 2017 [Feathers contributors](https://github.com/feathersjs/client/graphs/contributors)
+Copyright (c) 2018 [Feathers contributors](https://github.com/feathersjs/client/graphs/contributors)
 
 Licensed under the [MIT license](LICENSE).
