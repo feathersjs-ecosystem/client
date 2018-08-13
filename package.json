@@ -69,7 +69,7 @@
     "grunt": "^1.0.3",
     "grunt-cli": "^1.2.0",
     "grunt-saucelabs": "^9.0.0",
-    "jsdom": "11.12.0",
+    "jsdom": "8.1.0",
     "mocha": "^5.2.0",
     "node-fetch": "^2.2.0",
     "parallel-webpack": "^2.3.0",
