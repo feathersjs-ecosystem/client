@@ -96,77 +96,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ({
 
-/***/ "./node_modules/@feathersjs/commons/lib/arguments.js":
-/*!***********************************************************!*\
-  !*** ./node_modules/@feathersjs/commons/lib/arguments.js ***!
-  \***********************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var paramCounts = {
-  find: 1,
-  get: 2,
-  create: 2,
-  update: 3,
-  patch: 3,
-  remove: 2
-};
-
-function isObjectOrArray(value) {
-  return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value !== null;
-}
-
-exports.validateArguments = function validateArguments(method, args) {
-  // Check if the last argument is a callback which are no longer supported
-  if (typeof args[args.length - 1] === 'function') {
-    throw new Error('Callbacks are no longer supported. Use Promises or async/await instead.');
-  }
-
-  var methodParamCount = paramCounts[method];
-
-  // Check the number of arguments and throw an error if too many are provided
-  if (methodParamCount && args.length > methodParamCount) {
-    throw new Error('Too many arguments for \'' + method + '\' method');
-  }
-
-  // `params` is always the last argument
-  var params = args[methodParamCount - 1];
-
-  // Check if `params` is an object (can be undefined though)
-  if (params !== undefined && !isObjectOrArray(params)) {
-    throw new Error('Params for \'' + method + '\' method must be an object');
-  }
-
-  // Validate other arguments for each method
-  switch (method) {
-    case 'create':
-      if (!isObjectOrArray(args[0])) {
-        throw new Error('A data object must be provided to the \'create\' method');
-      }
-      break;
-    case 'get':
-    case 'remove':
-    case 'update':
-    case 'patch':
-      if (args[0] === undefined) {
-        throw new Error('An id must be provided to the \'' + method + '\' method');
-      }
-
-      if ((method === 'update' || method === 'patch') && !isObjectOrArray(args[1])) {
-        throw new Error('A data object must be provided to the \'' + method + '\' method');
-      }
-  }
-
-  return true;
-};
-
-/***/ }),
-
 /***/ "./node_modules/@feathersjs/commons/lib/commons.js":
 /*!*********************************************************!*\
   !*** ./node_modules/@feathersjs/commons/lib/commons.js ***!
@@ -179,10 +108,9 @@ exports.validateArguments = function validateArguments(method, args) {
 
 var utils = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js");
 var hooks = __webpack_require__(/*! ./hooks */ "./node_modules/@feathersjs/commons/lib/hooks.js");
-var args = __webpack_require__(/*! ./arguments */ "./node_modules/@feathersjs/commons/lib/arguments.js");
 var filterQuery = __webpack_require__(/*! ./filter-query */ "./node_modules/@feathersjs/commons/lib/filter-query.js");
 
-module.exports = Object.assign({}, utils, args, { hooks: hooks, filterQuery: filterQuery });
+module.exports = Object.assign({}, utils, { hooks: hooks, filterQuery: filterQuery });
 
 /***/ }),
 
@@ -200,11 +128,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _require = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js"),
     _ = _require._;
-
-// Officially supported query parameters ($populate is kind of special)
-
-
-var PROPERTIES = ['$sort', '$limit', '$skip', '$select', '$populate'];
 
 function parse(number) {
   if (typeof number !== 'undefined') {
@@ -231,29 +154,78 @@ function convertSort(sort) {
     return sort;
   }
 
-  var result = {};
-
-  Object.keys(sort).forEach(function (key) {
+  return Object.keys(sort).reduce(function (result, key) {
     result[key] = _typeof(sort[key]) === 'object' ? sort[key] : parseInt(sort[key], 10);
-  });
 
-  return result;
+    return result;
+  }, {});
 }
+
+function cleanQuery(query, operators) {
+  if (_.isObject(query)) {
+    var result = {};
+    _.each(query, function (query, key) {
+      if (key[0] === '$' && operators.indexOf(key) === -1) return;
+      result[key] = cleanQuery(query, operators);
+    });
+    return result;
+  }
+
+  return query;
+}
+
+function assignFilters(object, query, filters, options) {
+  if (Array.isArray(filters)) {
+    _.each(filters, function (key) {
+      object[key] = query[key];
+    });
+  } else {
+    _.each(filters, function (converter, key) {
+      object[key] = converter(query[key], options);
+    });
+  }
+
+  return object;
+}
+
+var FILTERS = {
+  $sort: function $sort(value) {
+    return convertSort(value);
+  },
+  $limit: function $limit(value, options) {
+    return getLimit(parse(value), options.paginate);
+  },
+  $skip: function $skip(value) {
+    return parse(value);
+  },
+  $select: function $select(value) {
+    return value;
+  }
+};
+
+var OPERATORS = ['$in', '$nin', '$lt', '$lte', '$gt', '$gte', '$ne', '$or'];
 
 // Converts Feathers special query parameters and pagination settings
 // and returns them separately a `filters` and the rest of the query
 // as `query`
-module.exports = function (query, paginate) {
-  var filters = {
-    $sort: convertSort(query.$sort),
-    $limit: getLimit(parse(query.$limit), paginate),
-    $skip: parse(query.$skip),
-    $select: query.$select,
-    $populate: query.$populate
-  };
+module.exports = function filterQuery(query) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var _options$filters = options.filters,
+      additionalFilters = _options$filters === undefined ? {} : _options$filters,
+      _options$operators = options.operators,
+      additionalOperators = _options$operators === undefined ? [] : _options$operators;
 
-  return { filters: filters, query: _.omit.apply(_, [query].concat(PROPERTIES)) };
+  var result = {};
+
+  result.filters = assignFilters({}, query, FILTERS, options);
+  result.filters = assignFilters(result.filters, query, additionalFilters, options);
+
+  result.query = cleanQuery(query, OPERATORS.concat(additionalOperators));
+
+  return result;
 };
+
+Object.assign(module.exports, { OPERATORS: OPERATORS, FILTERS: FILTERS });
 
 /***/ }),
 
@@ -269,59 +241,24 @@ module.exports = function (query, paginate) {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _require$_ = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js")._,
+var _require = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js"),
+    _require$_ = _require._,
     each = _require$_.each,
-    pick = _require$_.pick;
+    pick = _require$_.pick,
+    createSymbol = _require.createSymbol;
 
 // To skip further hooks
 
 
-var SKIP = exports.SKIP = typeof Symbol !== 'undefined' ? Symbol('__feathersSkipHooks') : '__feathersSkipHooks';
+var SKIP = createSymbol('__feathersSkipHooks');
 
-var convertGetOrRemove = function convertGetOrRemove(_ref) {
-  var id = _ref[0],
-      _ref$ = _ref[1],
-      params = _ref$ === undefined ? {} : _ref$;
-  return { id: id, params: params };
-};
-var convertUpdateOrPatch = function convertUpdateOrPatch(_ref2) {
-  var id = _ref2[0],
-      data = _ref2[1],
-      _ref2$ = _ref2[2],
-      params = _ref2$ === undefined ? {} : _ref2$;
-  return { id: id, data: data, params: params };
-};
+exports.SKIP = SKIP;
+exports.ACTIVATE_HOOKS = createSymbol('__feathersActivateHooks');
 
-// Converters from service method arguments to hook object properties
-exports.converters = {
-  find: function find(args) {
-    var _args$ = args[0],
-        params = _args$ === undefined ? {} : _args$;
+exports.createHookObject = function createHookObject(method) {
+  var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-
-    return { params: params };
-  },
-  create: function create(args) {
-    var data = args[0],
-        _args$2 = args[1],
-        params = _args$2 === undefined ? {} : _args$2;
-
-
-    return { data: data, params: params };
-  },
-
-  get: convertGetOrRemove,
-  remove: convertGetOrRemove,
-  update: convertUpdateOrPatch,
-  patch: convertUpdateOrPatch
-};
-
-// Create a hook object for a method with arguments `args`
-// `data` is additional data that will be added
-exports.createHookObject = function createHookObject(method, args) {
-  var data = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-  var hook = exports.converters[method](args);
+  var hook = {};
 
   Object.defineProperty(hook, 'toJSON', {
     value: function value() {
@@ -599,6 +536,9 @@ var _ = exports._ = {
   isObject: function isObject(item) {
     return (typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object' && !Array.isArray(item) && item !== null;
   },
+  isObjectOrArray: function isObjectOrArray(value) {
+    return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value !== null;
+  },
   extend: function extend() {
     return Object.assign.apply(Object, arguments);
   },
@@ -701,6 +641,10 @@ exports.makeUrl = function makeUrl(path) {
   path = path || '';
 
   return protocol + '://' + host + port + '/' + exports.stripSlashes(path);
+};
+
+exports.createSymbol = function (name) {
+  return typeof Symbol !== 'undefined' ? Symbol(name) : name;
 };
 
 // Sorting algorithm taken from NeDB (https://github.com/louischatriot/nedb)
@@ -857,7 +801,7 @@ var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@f
 
 var Uberproto = __webpack_require__(/*! uberproto */ "./node_modules/uberproto/lib/proto.js");
 var events = __webpack_require__(/*! ./events */ "./node_modules/@feathersjs/feathers/lib/events.js");
-var hooks = __webpack_require__(/*! ./hooks */ "./node_modules/@feathersjs/feathers/lib/hooks.js");
+var hooks = __webpack_require__(/*! ./hooks */ "./node_modules/@feathersjs/feathers/lib/hooks/index.js");
 var version = __webpack_require__(/*! ./version */ "./node_modules/@feathersjs/feathers/lib/version.js");
 
 var Proto = Uberproto.extend({
@@ -1104,10 +1048,60 @@ module.exports = function () {
 
 /***/ }),
 
-/***/ "./node_modules/@feathersjs/feathers/lib/hooks.js":
-/*!********************************************************!*\
-  !*** ./node_modules/@feathersjs/feathers/lib/hooks.js ***!
-  \********************************************************/
+/***/ "./node_modules/@feathersjs/feathers/lib/hooks/base.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/@feathersjs/feathers/lib/hooks/base.js ***!
+  \*************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
+    _ = _require._;
+
+var assignArguments = function assignArguments(context) {
+  var service = context.service,
+      method = context.method;
+
+  var parameters = service.methods[method];
+
+  var argsObject = context.arguments.reduce(function (result, value, index) {
+    result[parameters[index]] = value;
+    return result;
+  }, { params: {} });
+
+  Object.assign(context, argsObject);
+
+  return context;
+};
+
+var validate = function validate(context) {
+  var service = context.service,
+      method = context.method;
+
+  var parameters = service.methods[method];
+
+  if (parameters.includes('id') && context.id === undefined) {
+    throw new Error('An id must be provided to the \'' + method + '\' method');
+  }
+
+  if (parameters.includes('data') && !_.isObjectOrArray(context.data)) {
+    throw new Error('A data object must be provided to the \'' + method + '\' method');
+  }
+
+  return context;
+};
+
+module.exports = [assignArguments, validate];
+
+/***/ }),
+
+/***/ "./node_modules/@feathersjs/feathers/lib/hooks/index.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/@feathersjs/feathers/lib/hooks/index.js ***!
+  \**************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1116,62 +1110,60 @@ module.exports = function () {
 
 var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
     hooks = _require.hooks,
-    validateArguments = _require.validateArguments,
     isPromise = _require.isPromise,
     _ = _require._;
+
+var baseHooks = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/feathers/lib/hooks/base.js");
 
 var createHookObject = hooks.createHookObject,
     getHooks = hooks.getHooks,
     processHooks = hooks.processHooks,
     enableHooks = hooks.enableHooks,
-    makeArguments = hooks.makeArguments;
+    ACTIVATE_HOOKS = hooks.ACTIVATE_HOOKS;
 
-// A service mixin that adds `service.hooks()` method and functionality
 
-var hookMixin = exports.hookMixin = function hookMixin(service) {
-  if (typeof service.hooks === 'function') {
-    return;
-  }
+var makeArguments = function makeArguments(service, method, hookObject) {
+  return service.methods[method].reduce(function (result, value) {
+    return [].concat(result, [hookObject[value]]);
+  }, []);
+};
 
-  var app = this;
-  var methods = app.methods;
-  var mixin = {};
+var withHooks = function withHooks(_ref) {
+  var app = _ref.app,
+      service = _ref.service,
+      method = _ref.method,
+      original = _ref.original;
 
-  // Add .hooks method and properties to the service
-  enableHooks(service, methods, app.hookTypes);
+  return function () {
+    var _hooks = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-  // Assemble the mixin object that contains all "hooked" service methods
-  methods.forEach(function (method) {
-    if (typeof service[method] !== 'function') {
-      return;
-    }
+    var hooks = app.hookTypes.reduce(function (result, type) {
+      var value = _hooks[type] || [];
 
-    mixin[method] = function () {
-      var service = this;
-      var args = Array.from(arguments);
-      // If the last argument is `true` we want to return
-      // the actual hook object instead of the result
+      result[type] = Array.isArray(value) ? value : [value];
+
+      return result;
+    }, {});
+
+    return function () {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
       var returnHook = args[args.length - 1] === true ? args.pop() : false;
 
       // A reference to the original method
-      var _super = service._super.bind(service);
+      var _super = original || service[method].bind(service);
       // Create the hook object that gets passed through
-      var hookObject = createHookObject(method, args, {
+      var hookObject = createHookObject(method, {
         type: 'before', // initial hook object type
+        arguments: args,
         service: service,
         app: app
       });
-      // A hook that validates the arguments and will always be the very first
-      var validateHook = function validateHook(context) {
-        validateArguments(method, args);
-
-        return context;
-      };
-      // The `before` hook chain (including the validation hook)
-      var beforeHooks = [validateHook].concat(getHooks(app, service, 'before', method));
 
       // Process all before hooks
-      return processHooks.call(service, beforeHooks, hookObject)
+      return processHooks.call(service, baseHooks.concat(hooks.before), hookObject)
       // Use the hook object to call the original method
       .then(function (hookObject) {
         // If `hookObject.result` is set, skip the original method
@@ -1180,7 +1172,7 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
         }
 
         // Otherwise, call it with arguments created from the hook object
-        var promise = _super.apply(undefined, makeArguments(hookObject));
+        var promise = _super.apply(undefined, makeArguments(service, method, hookObject));
 
         if (!isPromise(promise)) {
           throw new Error('Service method \'' + hookObject.method + '\' for \'' + hookObject.path + '\' service must return a promise');
@@ -1199,9 +1191,7 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
       // Run through all `after` hooks
       .then(function (hookObject) {
         // Combine all app and service `after` and `finally` hooks and process
-        var afterHooks = getHooks(app, service, 'after', method, true);
-        var finallyHooks = getHooks(app, service, 'finally', method, true);
-        var hookChain = afterHooks.concat(finallyHooks);
+        var hookChain = hooks.after.concat(hooks.finally);
 
         return processHooks.call(service, hookChain, hookObject);
       }).then(function (hookObject) {
@@ -1214,9 +1204,7 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
       // Handle errors
       .catch(function (error) {
         // Combine all app and service `error` and `finally` hooks and process
-        var errorHooks = getHooks(app, service, 'error', method, true);
-        var finallyHooks = getHooks(app, service, 'finally', method, true);
-        var hookChain = errorHooks.concat(finallyHooks);
+        var hookChain = hooks.error.concat(hooks.finally);
 
         // A shallow copy of the hook object
         var errorHookObject = _.omit(Object.assign({}, error.hook, hookObject, {
@@ -1241,7 +1229,62 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
         });
       });
     };
+  };
+};
+
+// A service mixin that adds `service.hooks()` method and functionality
+var hookMixin = exports.hookMixin = function hookMixin(service) {
+  if (typeof service.hooks === 'function') {
+    return;
+  }
+
+  service.methods = Object.getOwnPropertyNames(service).filter(function (key) {
+    return typeof service[key] === 'function' && service[key][ACTIVATE_HOOKS];
+  }).reduce(function (result, methodName) {
+    result[methodName] = service[methodName][ACTIVATE_HOOKS];
+    return result;
+  }, service.methods || {});
+
+  Object.assign(service.methods, {
+    find: ['params'],
+    get: ['id', 'params'],
+    create: ['data', 'params'],
+    update: ['id', 'data', 'params'],
+    patch: ['id', 'data', 'params'],
+    remove: ['id', 'params']
   });
+
+  var app = this;
+  var methodNames = Object.keys(service.methods);
+  // Assemble the mixin object that contains all "hooked" service methods
+  var mixin = methodNames.reduce(function (mixin, method) {
+    if (typeof service[method] !== 'function') {
+      return mixin;
+    }
+
+    mixin[method] = function () {
+      var service = this;
+      var args = Array.from(arguments);
+      var original = service._super.bind(service);
+
+      return withHooks({
+        app: app,
+        service: service,
+        method: method,
+        original: original
+      })({
+        before: getHooks(app, service, 'before', method),
+        after: getHooks(app, service, 'after', method, true),
+        error: getHooks(app, service, 'error', method, true),
+        finally: getHooks(app, service, 'finally', method, true)
+      }).apply(undefined, args);
+    };
+
+    return mixin;
+  }, {});
+
+  // Add .hooks method and properties to the service
+  enableHooks(service, methodNames, app.hookTypes);
 
   service.mixin(mixin);
 };
@@ -1258,6 +1301,17 @@ module.exports = function () {
     enableHooks(app, app.methods, app.hookTypes);
 
     app.mixins.push(hookMixin);
+  };
+};
+
+module.exports.withHooks = withHooks;
+
+module.exports.ACTIVATE_HOOKS = ACTIVATE_HOOKS;
+
+module.exports.activateHooks = function activateHooks(args) {
+  return function (fn) {
+    Object.defineProperty(fn, ACTIVATE_HOOKS, { value: args });
+    return fn;
   };
 };
 
@@ -1280,6 +1334,10 @@ var Proto = __webpack_require__(/*! uberproto */ "./node_modules/uberproto/lib/p
 var Application = __webpack_require__(/*! ./application */ "./node_modules/@feathersjs/feathers/lib/application.js");
 var version = __webpack_require__(/*! ./version */ "./node_modules/@feathersjs/feathers/lib/version.js");
 
+var _require2 = __webpack_require__(/*! ./hooks */ "./node_modules/@feathersjs/feathers/lib/hooks/index.js"),
+    ACTIVATE_HOOKS = _require2.ACTIVATE_HOOKS,
+    activateHooks = _require2.activateHooks;
+
 function createApplication() {
   var app = {};
 
@@ -1293,6 +1351,8 @@ function createApplication() {
 
 createApplication.version = version;
 createApplication.SKIP = hooks.SKIP;
+createApplication.ACTIVATE_HOOKS = ACTIVATE_HOOKS;
+createApplication.activateHooks = activateHooks;
 
 module.exports = createApplication;
 
@@ -1311,7 +1371,7 @@ module.exports.default = createApplication;
 "use strict";
 
 
-module.exports = '3.1.7';
+module.exports = '3.2.1';
 
 /***/ }),
 
