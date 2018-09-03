@@ -1,5 +1,14 @@
 # Change Log
 
+## [v3.6.0](https://github.com/feathersjs/client/tree/v3.6.0) (2018-09-03)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.5.6...v3.6.0)
+
+**Merged pull requests:**
+
+- Update all dependencies [\#285](https://github.com/feathersjs/client/pull/285) ([daffl](https://github.com/daffl))
+- Update all dependencies [\#278](https://github.com/feathersjs/client/pull/278) ([daffl](https://github.com/daffl))
+- Update @feathersjs/errors to the latest version 🚀 [\#272](https://github.com/feathersjs/client/pull/272) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
 ## [v3.5.6](https://github.com/feathersjs/client/tree/v3.5.6) (2018-08-13)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.5.5...v3.5.6)
 
