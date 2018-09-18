@@ -1,5 +1,17 @@
 # Change Log
 
+## [v3.7.0](https://github.com/feathersjs/client/tree/v3.7.0) (2018-09-18)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.6.0...v3.7.0)
+
+**Closed issues:**
+
+- Cannot patch multiple items [\#267](https://github.com/feathersjs/client/issues/267)
+
+**Merged pull requests:**
+
+- Update all dependencies and build to Babel 8 [\#294](https://github.com/feathersjs/client/pull/294) ([daffl](https://github.com/daffl))
+- Update uglifyjs-webpack-plugin to the latest version 🚀 [\#287](https://github.com/feathersjs/client/pull/287) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+
 ## [v3.6.0](https://github.com/feathersjs/client/tree/v3.6.0) (2018-09-03)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.5.6...v3.6.0)
 
