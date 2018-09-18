@@ -103,14 +103,16 @@ return /******/ (function(modules) { // webpackBootstrap
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
 var utils = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js");
+
 var hooks = __webpack_require__(/*! ./hooks */ "./node_modules/@feathersjs/commons/lib/hooks.js");
+
 var filterQuery = __webpack_require__(/*! ./filter-query */ "./node_modules/@feathersjs/commons/lib/filter-query.js");
 
-module.exports = Object.assign({}, utils, { hooks: hooks, filterQuery: filterQuery });
+module.exports = Object.assign({}, utils, {
+  hooks: hooks,
+  filterQuery: filterQuery
+});
 
 /***/ }),
 
@@ -121,10 +123,7 @@ module.exports = Object.assign({}, utils, { hooks: hooks, filterQuery: filterQue
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 var _require = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js"),
     _ = _require._;
@@ -133,30 +132,28 @@ function parse(number) {
   if (typeof number !== 'undefined') {
     return Math.abs(parseInt(number, 10));
   }
-}
-
-// Returns the pagination limit and will take into account the
+} // Returns the pagination limit and will take into account the
 // default and max pagination settings
+
+
 function getLimit(limit, paginate) {
   if (paginate && paginate.default) {
     var lower = typeof limit === 'number' ? limit : paginate.default;
     var upper = typeof paginate.max === 'number' ? paginate.max : Number.MAX_VALUE;
-
     return Math.min(lower, upper);
   }
 
   return limit;
-}
+} // Makes sure that $sort order is always converted to an actual number
 
-// Makes sure that $sort order is always converted to an actual number
+
 function convertSort(sort) {
-  if ((typeof sort === 'undefined' ? 'undefined' : _typeof(sort)) !== 'object' || Array.isArray(sort)) {
+  if (_typeof(sort) !== 'object' || Array.isArray(sort)) {
     return sort;
   }
 
   return Object.keys(sort).reduce(function (result, key) {
     result[key] = _typeof(sort[key]) === 'object' ? sort[key] : parseInt(sort[key], 10);
-
     return result;
   }, {});
 }
@@ -164,10 +161,12 @@ function convertSort(sort) {
 function cleanQuery(query, operators) {
   if (_.isObject(query)) {
     var result = {};
+
     _.each(query, function (query, key) {
       if (key[0] === '$' && operators.indexOf(key) === -1) return;
       result[key] = cleanQuery(query, operators);
     });
+
     return result;
   }
 
@@ -202,30 +201,27 @@ var FILTERS = {
     return value;
   }
 };
-
-var OPERATORS = ['$in', '$nin', '$lt', '$lte', '$gt', '$gte', '$ne', '$or'];
-
-// Converts Feathers special query parameters and pagination settings
+var OPERATORS = ['$in', '$nin', '$lt', '$lte', '$gt', '$gte', '$ne', '$or']; // Converts Feathers special query parameters and pagination settings
 // and returns them separately a `filters` and the rest of the query
 // as `query`
+
 module.exports = function filterQuery(query) {
   var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
   var _options$filters = options.filters,
-      additionalFilters = _options$filters === undefined ? {} : _options$filters,
+      additionalFilters = _options$filters === void 0 ? {} : _options$filters,
       _options$operators = options.operators,
-      additionalOperators = _options$operators === undefined ? [] : _options$operators;
-
+      additionalOperators = _options$operators === void 0 ? [] : _options$operators;
   var result = {};
-
   result.filters = assignFilters({}, query, FILTERS, options);
   result.filters = assignFilters(result.filters, query, additionalFilters, options);
-
   result.query = cleanQuery(query, OPERATORS.concat(additionalOperators));
-
   return result;
 };
 
-Object.assign(module.exports, { OPERATORS: OPERATORS, FILTERS: FILTERS });
+Object.assign(module.exports, {
+  OPERATORS: OPERATORS,
+  FILTERS: FILTERS
+});
 
 /***/ }),
 
@@ -236,43 +232,34 @@ Object.assign(module.exports, { OPERATORS: OPERATORS, FILTERS: FILTERS });
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 var _require = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js"),
     _require$_ = _require._,
     each = _require$_.each,
     pick = _require$_.pick,
-    createSymbol = _require.createSymbol;
-
-// To skip further hooks
+    createSymbol = _require.createSymbol; // To skip further hooks
 
 
 var SKIP = createSymbol('__feathersSkipHooks');
-
 exports.SKIP = SKIP;
 exports.ACTIVATE_HOOKS = createSymbol('__feathersActivateHooks');
 
 exports.createHookObject = function createHookObject(method) {
   var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
   var hook = {};
-
   Object.defineProperty(hook, 'toJSON', {
     value: function value() {
       return pick(this, 'type', 'method', 'path', 'params', 'id', 'data', 'result', 'error');
     }
   });
-
   return Object.assign(hook, data, {
     method: method,
+
     // A dynamic getter that returns the path of the service
     get path() {
       var app = data.app,
           service = data.service;
-
 
       if (!service || !app || !app.services) {
         return null;
@@ -282,10 +269,11 @@ exports.createHookObject = function createHookObject(method) {
         return app.services[path] === service;
       });
     }
-  });
-};
 
-// Fallback used by `makeArguments` which usually won't be used
+  });
+}; // Fallback used by `makeArguments` which usually won't be used
+
+
 exports.defaultMakeArguments = function defaultMakeArguments(hook) {
   var result = [];
 
@@ -298,38 +286,44 @@ exports.defaultMakeArguments = function defaultMakeArguments(hook) {
   }
 
   result.push(hook.params || {});
-
   return result;
-};
-
-// Turns a hook object back into a list of arguments
+}; // Turns a hook object back into a list of arguments
 // to call a service method with
+
+
 exports.makeArguments = function makeArguments(hook) {
   switch (hook.method) {
     case 'find':
       return [hook.params];
+
     case 'get':
     case 'remove':
       return [hook.id, hook.params];
+
     case 'update':
     case 'patch':
       return [hook.id, hook.data, hook.params];
+
     case 'create':
       return [hook.data, hook.params];
   }
 
   return exports.defaultMakeArguments(hook);
-};
-
-// Converts different hook registration formats into the
+}; // Converts different hook registration formats into the
 // same internal format
+
+
 exports.convertHookData = function convertHookData(obj) {
   var hook = {};
 
   if (Array.isArray(obj)) {
-    hook = { all: obj };
-  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object') {
-    hook = { all: [obj] };
+    hook = {
+      all: obj
+    };
+  } else if (_typeof(obj) !== 'object') {
+    hook = {
+      all: [obj]
+    };
   } else {
     each(obj, function (value, key) {
       hook[key] = !Array.isArray(value) ? [value] : value;
@@ -337,20 +331,19 @@ exports.convertHookData = function convertHookData(obj) {
   }
 
   return hook;
-};
-
-// Duck-checks a given object to be a hook object
+}; // Duck-checks a given object to be a hook object
 // A valid hook object has `type` and `method`
-exports.isHookObject = function isHookObject(hookObject) {
-  return (typeof hookObject === 'undefined' ? 'undefined' : _typeof(hookObject)) === 'object' && typeof hookObject.method === 'string' && typeof hookObject.type === 'string';
-};
 
-// Returns all service and application hooks combined
+
+exports.isHookObject = function isHookObject(hookObject) {
+  return _typeof(hookObject) === 'object' && typeof hookObject.method === 'string' && typeof hookObject.type === 'string';
+}; // Returns all service and application hooks combined
 // for a given method and type `appLast` sets if the hooks
 // from `app` should be added last (or first by default)
+
+
 exports.getHooks = function getHooks(app, service, type, method) {
   var appLast = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
-
   var appHooks = app.__hooks[type][method] || [];
   var serviceHooks = service.__hooks[type][method] || [];
 
@@ -366,6 +359,7 @@ exports.processHooks = function processHooks(hooks, initialHookObject) {
   var _this = this;
 
   var hookObject = initialHookObject;
+
   var updateCurrentHook = function updateCurrentHook(current) {
     // Either use the returned hook object or the current
     // hook object from the chain if the hook returned undefined
@@ -375,15 +369,16 @@ exports.processHooks = function processHooks(hooks, initialHookObject) {
       }
 
       if (!exports.isHookObject(current)) {
-        throw new Error(hookObject.type + ' hook for \'' + hookObject.method + '\' method returned invalid hook object');
+        throw new Error("".concat(hookObject.type, " hook for '").concat(hookObject.method, "' method returned invalid hook object"));
       }
 
       hookObject = current;
     }
 
     return hookObject;
-  };
-  // Go through all hooks and chain them into our promise
+  }; // Go through all hooks and chain them into our promise
+
+
   var promise = hooks.reduce(function (promise, fn) {
     var hook = fn.bind(_this);
 
@@ -401,12 +396,11 @@ exports.processHooks = function processHooks(hooks, initialHookObject) {
       promise = promise.then(function (hookObject) {
         return hookObject === SKIP ? SKIP : hook(hookObject);
       });
-    }
+    } // Use the returned hook object or the old one
 
-    // Use the returned hook object or the old one
+
     return promise.then(updateCurrentHook);
   }, Promise.resolve(hookObject));
-
   return promise.then(function () {
     return hookObject;
   }).catch(function (error) {
@@ -414,43 +408,38 @@ exports.processHooks = function processHooks(hooks, initialHookObject) {
     error.hook = hookObject;
     throw error;
   });
-};
+}; // Add `.hooks` functionality to an object
 
-// Add `.hooks` functionality to an object
+
 exports.enableHooks = function enableHooks(obj, methods, types) {
   if (typeof obj.hooks === 'function') {
     return obj;
   }
 
   var __hooks = {};
-
   types.forEach(function (type) {
     // Initialize properties where hook functions are stored
     __hooks[type] = {};
-  });
+  }); // Add non-enumerable `__hooks` property to the object
 
-  // Add non-enumerable `__hooks` property to the object
   Object.defineProperty(obj, '__hooks', {
     value: __hooks
   });
-
   return Object.assign(obj, {
     hooks: function hooks(allHooks) {
       var _this2 = this;
 
       each(allHooks, function (obj, type) {
         if (!_this2.__hooks[type]) {
-          throw new Error('\'' + type + '\' is not a valid hook type');
+          throw new Error("'".concat(type, "' is not a valid hook type"));
         }
 
         var hooks = exports.convertHookData(obj);
-
         each(hooks, function (value, method) {
           if (method !== 'all' && methods.indexOf(method) === -1) {
-            throw new Error('\'' + method + '\' is not a valid hook method');
+            throw new Error("'".concat(method, "' is not a valid hook method"));
           }
         });
-
         methods.forEach(function (method) {
           var myHooks = _this2.__hooks[type][method] || (_this2.__hooks[type][method] = []);
 
@@ -463,7 +452,6 @@ exports.enableHooks = function enableHooks(obj, methods, types) {
           }
         });
       });
-
       return this;
     }
   });
@@ -478,17 +466,32 @@ exports.enableHooks = function enableHooks(obj, methods, types) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
+/* WEBPACK VAR INJECTION */(function(process) {function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 // Removes all leading and trailing slashes from a path
 exports.stripSlashes = function stripSlashes(name) {
-  return name.replace(/^(\/*)|(\/*)$/g, '');
-};
+  return name.replace(/^(\/+)|(\/+)$/g, '');
+}; // A set of lodash-y utility functions that use ES6
 
-// A set of lodash-y utility functions that use ES6
+
 var _ = exports._ = {
   each: function each(obj, callback) {
     if (obj && typeof obj.forEach === 'function') {
@@ -503,17 +506,21 @@ var _ = exports._ = {
     return Object.keys(value).map(function (key) {
       return [value[key], key];
     }).some(function (_ref) {
-      var val = _ref[0],
-          key = _ref[1];
+      var _ref2 = _slicedToArray(_ref, 2),
+          val = _ref2[0],
+          key = _ref2[1];
+
       return callback(val, key);
     });
   },
   every: function every(value, callback) {
     return Object.keys(value).map(function (key) {
       return [value[key], key];
-    }).every(function (_ref2) {
-      var val = _ref2[0],
-          key = _ref2[1];
+    }).every(function (_ref3) {
+      var _ref4 = _slicedToArray(_ref3, 2),
+          val = _ref4[0],
+          key = _ref4[1];
+
       return callback(val, key);
     });
   },
@@ -534,10 +541,10 @@ var _ = exports._ = {
     return _.keys(obj).length === 0;
   },
   isObject: function isObject(item) {
-    return (typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object' && !Array.isArray(item) && item !== null;
+    return _typeof(item) === 'object' && !Array.isArray(item) && item !== null;
   },
   isObjectOrArray: function isObjectOrArray(value) {
-    return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value !== null;
+    return _typeof(value) === 'object' && value !== null;
   },
   extend: function extend() {
     return Object.assign.apply(Object, arguments);
@@ -545,7 +552,7 @@ var _ = exports._ = {
   omit: function omit(obj) {
     var result = _.extend({}, obj);
 
-    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    for (var _len = arguments.length, keys = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
       keys[_key - 1] = arguments[_key];
     }
 
@@ -555,7 +562,7 @@ var _ = exports._ = {
     return result;
   },
   pick: function pick(source) {
-    for (var _len2 = arguments.length, keys = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+    for (var _len2 = arguments.length, keys = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
       keys[_key2 - 1] = arguments[_key2];
     }
 
@@ -567,38 +574,33 @@ var _ = exports._ = {
       return result;
     }, {});
   },
-
-
   // Recursively merge the source object into the target object
   merge: function merge(target, source) {
     if (_.isObject(target) && _.isObject(source)) {
       Object.keys(source).forEach(function (key) {
         if (_.isObject(source[key])) {
           if (!target[key]) {
-            var _Object$assign;
-
-            Object.assign(target, (_Object$assign = {}, _Object$assign[key] = {}, _Object$assign));
+            Object.assign(target, _defineProperty({}, key, {}));
           }
 
           _.merge(target[key], source[key]);
         } else {
-          var _Object$assign2;
-
-          Object.assign(target, (_Object$assign2 = {}, _Object$assign2[key] = source[key], _Object$assign2));
+          Object.assign(target, _defineProperty({}, key, source[key]));
         }
       });
     }
+
     return target;
   }
-};
-
-// Return a function that filters a result object or array
+}; // Return a function that filters a result object or array
 // and picks only the fields passed as `params.query.$select`
 // and additional `otherFields`
+
+
 exports.select = function select(params) {
   var fields = params && params.query && params.query.$select;
 
-  for (var _len3 = arguments.length, otherFields = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+  for (var _len3 = arguments.length, otherFields = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
     otherFields[_key3 - 1] = arguments[_key3];
   }
 
@@ -611,7 +613,7 @@ exports.select = function select(params) {
       return result;
     }
 
-    return _.pick.apply(_, [result].concat(fields));
+    return _.pick.apply(_, [result].concat(_toConsumableArray(fields)));
   };
 
   return function (result) {
@@ -621,42 +623,40 @@ exports.select = function select(params) {
 
     return convert(result);
   };
-};
+}; // Duck-checks if an object looks like a promise
 
-// Duck-checks if an object looks like a promise
+
 exports.isPromise = function isPromise(result) {
   return _.isObject(result) && typeof result.then === 'function';
 };
 
 exports.makeUrl = function makeUrl(path) {
   var app = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
   var get = typeof app.get === 'function' ? app.get.bind(app) : function () {};
   var env = get('env') || "development";
   var host = get('host') || process.env.HOST_NAME || 'localhost';
   var protocol = env === 'development' || env === 'test' || env === undefined ? 'http' : 'https';
   var PORT = get('port') || process.env.PORT || 3030;
-  var port = env === 'development' || env === 'test' || env === undefined ? ':' + PORT : '';
-
+  var port = env === 'development' || env === 'test' || env === undefined ? ":".concat(PORT) : '';
   path = path || '';
-
-  return protocol + '://' + host + port + '/' + exports.stripSlashes(path);
+  return "".concat(protocol, "://").concat(host).concat(port, "/").concat(exports.stripSlashes(path));
 };
 
 exports.createSymbol = function (name) {
   return typeof Symbol !== 'undefined' ? Symbol(name) : name;
-};
-
-// Sorting algorithm taken from NeDB (https://github.com/louischatriot/nedb)
+}; // Sorting algorithm taken from NeDB (https://github.com/louischatriot/nedb)
 // See https://github.com/louischatriot/nedb/blob/e3f0078499aa1005a59d0c2372e425ab789145c1/lib/model.js#L189
+
 
 exports.compareNSB = function (a, b) {
   if (a < b) {
     return -1;
   }
+
   if (a > b) {
     return 1;
   }
+
   return 0;
 };
 
@@ -669,9 +669,9 @@ exports.compareArrays = function (a, b) {
     if (comp !== 0) {
       return comp;
     }
-  }
+  } // Common section was identical, longest one wins
 
-  // Common section was identical, longest one wins
+
   return exports.compareNSB(a.length, b.length);
 };
 
@@ -680,66 +680,71 @@ exports.compare = function (a, b) {
   var _exports = exports,
       compareNSB = _exports.compareNSB,
       compare = _exports.compare,
-      compareArrays = _exports.compareArrays;
-
-  // undefined
+      compareArrays = _exports.compareArrays; // undefined
 
   if (a === undefined) {
     return b === undefined ? 0 : -1;
   }
+
   if (b === undefined) {
     return a === undefined ? 0 : 1;
-  }
+  } // null
 
-  // null
+
   if (a === null) {
     return b === null ? 0 : -1;
   }
+
   if (b === null) {
     return a === null ? 0 : 1;
-  }
+  } // Numbers
 
-  // Numbers
+
   if (typeof a === 'number') {
     return typeof b === 'number' ? compareNSB(a, b) : -1;
   }
+
   if (typeof b === 'number') {
     return typeof a === 'number' ? compareNSB(a, b) : 1;
-  }
+  } // Strings
 
-  // Strings
+
   if (typeof a === 'string') {
     return typeof b === 'string' ? compareStrings(a, b) : -1;
   }
+
   if (typeof b === 'string') {
     return typeof a === 'string' ? compareStrings(a, b) : 1;
-  }
+  } // Booleans
 
-  // Booleans
+
   if (typeof a === 'boolean') {
     return typeof b === 'boolean' ? compareNSB(a, b) : -1;
   }
+
   if (typeof b === 'boolean') {
     return typeof a === 'boolean' ? compareNSB(a, b) : 1;
-  }
+  } // Dates
 
-  // Dates
+
   if (a instanceof Date) {
     return b instanceof Date ? compareNSB(a.getTime(), b.getTime()) : -1;
   }
+
   if (b instanceof Date) {
     return a instanceof Date ? compareNSB(a.getTime(), b.getTime()) : 1;
-  }
+  } // Arrays (first element is most significant and so on)
 
-  // Arrays (first element is most significant and so on)
+
   if (Array.isArray(a)) {
     return Array.isArray(b) ? compareArrays(a, b) : -1;
   }
+
   if (Array.isArray(b)) {
     return Array.isArray(a) ? compareArrays(a, b) : 1;
-  }
+  } // Objects
 
-  // Objects
+
   var aKeys = Object.keys(a).sort();
   var bKeys = Object.keys(b).sort();
   var comp = 0;
@@ -753,23 +758,23 @@ exports.compare = function (a, b) {
   }
 
   return compareNSB(aKeys.length, bKeys.length);
-};
-
-// An in-memory sorting function according to the
+}; // An in-memory sorting function according to the
 // $sort special query parameter
+
+
 exports.sorter = function ($sort) {
   var criteria = Object.keys($sort).map(function (key) {
     var direction = $sort[key];
-
-    return { key: key, direction: direction };
+    return {
+      key: key,
+      direction: direction
+    };
   });
-
   return function (a, b) {
-    var compare = void 0;
+    var compare;
 
     for (var i = 0; i < criteria.length; i++) {
       var criterion = criteria[i];
-
       compare = criterion.direction * exports.compare(a[criterion.key], b[criterion.key]);
 
       if (compare !== 0) {
@@ -791,23 +796,22 @@ exports.sorter = function ($sort) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
 var debug = __webpack_require__(/*! debug */ "./node_modules/debug/src/browser.js")('feathers:application');
 
 var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
     stripSlashes = _require.stripSlashes;
 
 var Uberproto = __webpack_require__(/*! uberproto */ "./node_modules/uberproto/lib/proto.js");
+
 var events = __webpack_require__(/*! ./events */ "./node_modules/@feathersjs/feathers/lib/events.js");
+
 var hooks = __webpack_require__(/*! ./hooks */ "./node_modules/@feathersjs/feathers/lib/hooks/index.js");
+
 var version = __webpack_require__(/*! ./version */ "./node_modules/@feathersjs/feathers/lib/version.js");
 
 var Proto = Uberproto.extend({
   create: null
 });
-
 var application = {
   init: function init() {
     Object.assign(this, {
@@ -819,7 +823,6 @@ var application = {
       _setup: false,
       settings: {}
     });
-
     this.configure(hooks());
     this.configure(events());
   },
@@ -846,7 +849,6 @@ var application = {
   },
   configure: function configure(fn) {
     fn.call(this, this);
-
     return this;
   },
   service: function service(path, _service) {
@@ -858,7 +860,7 @@ var application = {
     var current = this.services[location];
 
     if (typeof current === 'undefined' && typeof this.defaultService === 'function') {
-      return this.use('/' + location, this.defaultService(location)).service(location);
+      return this.use("/".concat(location), this.defaultService(location)).service(location);
     }
 
     return current;
@@ -869,7 +871,7 @@ var application = {
     var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
     if (typeof path !== 'string' || stripSlashes(path) === '') {
-      throw new Error('\'' + path + '\' is not a valid service path.');
+      throw new Error("'".concat(path, "' is not a valid service path."));
     }
 
     var location = stripSlashes(path);
@@ -880,45 +882,39 @@ var application = {
 
     if (isSubApp) {
       var subApp = service;
-
       Object.keys(subApp.services).forEach(function (subPath) {
-        return _this.use(location + '/' + subPath, subApp.service(subPath));
+        return _this.use("".concat(location, "/").concat(subPath), subApp.service(subPath));
       });
-
       return this;
     }
 
     if (!isService) {
-      throw new Error('Invalid service object passed for path `' + location + '`');
-    }
+      throw new Error("Invalid service object passed for path `".concat(location, "`"));
+    } // If the service is already Uberproto'd use it directly
 
-    // If the service is already Uberproto'd use it directly
+
     var protoService = Proto.isPrototypeOf(service) ? service : Proto.extend(service);
+    debug("Registering new service at `".concat(location, "`")); // Add all the mixins
 
-    debug('Registering new service at `' + location + '`');
-
-    // Add all the mixins
     this.mixins.forEach(function (fn) {
       return fn.call(_this, protoService, location, options);
     });
 
     if (typeof protoService._setup === 'function') {
       protoService._setup(this, location);
-    }
+    } // Run the provider functions to register the service
 
-    // Run the provider functions to register the service
+
     this.providers.forEach(function (provider) {
       return provider.call(_this, protoService, location, options);
-    });
+    }); // If we ran setup already, set this service up explicitly
 
-    // If we ran setup already, set this service up explicitly
     if (this._isSetup && typeof protoService.setup === 'function') {
-      debug('Setting up service for `' + location + '`');
+      debug("Setting up service for `".concat(location, "`"));
       protoService.setup(this, location);
     }
 
     this.services[location] = protoService;
-
     return this;
   },
   setup: function setup() {
@@ -927,20 +923,16 @@ var application = {
     // Setup each service (pass the app so that they can look up other services etc.)
     Object.keys(this.services).forEach(function (path) {
       var service = _this2.services[path];
-
-      debug('Setting up service for `' + path + '`');
+      debug("Setting up service for `".concat(path, "`"));
 
       if (typeof service.setup === 'function') {
         service.setup(_this2, path);
       }
     });
-
     this._isSetup = true;
-
     return this;
   }
 };
-
 module.exports = application;
 
 /***/ }),
@@ -952,72 +944,63 @@ module.exports = application;
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
 var _require = __webpack_require__(/*! events */ "./node_modules/node-libs-browser/node_modules/events/events.js"),
     EventEmitter = _require.EventEmitter;
 
-var Proto = __webpack_require__(/*! uberproto */ "./node_modules/uberproto/lib/proto.js");
-
-// Returns a hook that emits service events. Should always be
+var Proto = __webpack_require__(/*! uberproto */ "./node_modules/uberproto/lib/proto.js"); // Returns a hook that emits service events. Should always be
 // used as the very last hook in the chain
+
+
 var eventHook = exports.eventHook = function eventHook() {
   return function (hook) {
     var app = hook.app,
         service = hook.service;
-
     var eventName = app.eventMappings[hook.method];
-    var isHookEvent = service._hookEvents && service._hookEvents.indexOf(eventName) !== -1;
+    var isHookEvent = service._hookEvents && service._hookEvents.indexOf(eventName) !== -1; // If this event is not being sent yet and we are not in an error hook
 
-    // If this event is not being sent yet and we are not in an error hook
     if (eventName && isHookEvent && hook.type !== 'error') {
       var results = Array.isArray(hook.result) ? hook.result : [hook.result];
-
       results.forEach(function (element) {
         return service.emit(eventName, element, hook);
       });
     }
   };
-};
+}; // Mixin that turns a service into a Node event emitter
 
-// Mixin that turns a service into a Node event emitter
+
 var eventMixin = exports.eventMixin = function eventMixin(service) {
   if (service._serviceEvents) {
     return;
   }
 
-  var app = this;
-  // Indicates if the service is already an event emitter
-  var isEmitter = typeof service.on === 'function' && typeof service.emit === 'function';
+  var app = this; // Indicates if the service is already an event emitter
 
-  // If not, mix it in (the service is always an Uberproto object that has a .mixin)
+  var isEmitter = typeof service.on === 'function' && typeof service.emit === 'function'; // If not, mix it in (the service is always an Uberproto object that has a .mixin)
+
   if (typeof service.mixin === 'function' && !isEmitter) {
     service.mixin(EventEmitter.prototype);
-  }
+  } // Define non-enumerable properties of
 
-  // Define non-enumerable properties of
+
   Object.defineProperties(service, {
     // A list of all events that this service sends
     _serviceEvents: {
       value: Array.isArray(service.events) ? service.events.slice() : []
     },
-
     // A list of events that should be handled through the event hooks
     _hookEvents: {
       value: []
     }
-  });
+  }); // `app.eventMappings` has the mapping from method name to event name
 
-  // `app.eventMappings` has the mapping from method name to event name
   Object.keys(app.eventMappings).forEach(function (method) {
     var event = app.eventMappings[method];
-    var alreadyEmits = service._serviceEvents.indexOf(event) !== -1;
-
-    // Add events for known methods to _serviceEvents and _hookEvents
+    var alreadyEmits = service._serviceEvents.indexOf(event) !== -1; // Add events for known methods to _serviceEvents and _hookEvents
     // if the service indicated it does not send it itself yet
+
     if (typeof service[method] === 'function' && !alreadyEmits) {
       service._serviceEvents.push(event);
+
       service._hookEvents.push(event);
     }
   });
@@ -1033,15 +1016,14 @@ module.exports = function () {
         remove: 'removed',
         patch: 'patched'
       }
-    });
-
-    // Register the event hook
+    }); // Register the event hook
     // `finally` hooks always run last after `error` and `after` hooks
-    app.hooks({ finally: eventHook() });
 
-    // Make the app an event emitter
+    app.hooks({
+      finally: eventHook()
+    }); // Make the app an event emitter
+
     Proto.mixin(EventEmitter.prototype, app);
-
     app.mixins.push(eventMixin);
   };
 };
@@ -1055,40 +1037,34 @@ module.exports = function () {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
 var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
     _ = _require._;
 
 var assignArguments = function assignArguments(context) {
   var service = context.service,
       method = context.method;
-
   var parameters = service.methods[method];
-
   var argsObject = context.arguments.reduce(function (result, value, index) {
     result[parameters[index]] = value;
     return result;
-  }, { params: {} });
-
+  }, {
+    params: {}
+  });
   Object.assign(context, argsObject);
-
   return context;
 };
 
 var validate = function validate(context) {
   var service = context.service,
       method = context.method;
-
   var parameters = service.methods[method];
 
   if (parameters.includes('id') && context.id === undefined) {
-    throw new Error('An id must be provided to the \'' + method + '\' method');
+    throw new Error("An id must be provided to the '".concat(method, "' method"));
   }
 
   if (parameters.includes('data') && !_.isObjectOrArray(context.data)) {
-    throw new Error('A data object must be provided to the \'' + method + '\' method');
+    throw new Error("A data object must be provided to the '".concat(method, "' method"));
   }
 
   return context;
@@ -1105,8 +1081,13 @@ module.exports = [assignArguments, validate];
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
 
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
 var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
     hooks = _require.hooks,
@@ -1121,10 +1102,9 @@ var createHookObject = hooks.createHookObject,
     enableHooks = hooks.enableHooks,
     ACTIVATE_HOOKS = hooks.ACTIVATE_HOOKS;
 
-
 var makeArguments = function makeArguments(service, method, hookObject) {
   return service.methods[method].reduce(function (result, value) {
-    return [].concat(result, [hookObject[value]]);
+    return _toConsumableArray(result).concat([hookObject[value]]);
   }, []);
 };
 
@@ -1133,80 +1113,70 @@ var withHooks = function withHooks(_ref) {
       service = _ref.service,
       method = _ref.method,
       original = _ref.original;
-
   return function () {
     var _hooks = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
     var hooks = app.hookTypes.reduce(function (result, type) {
       var value = _hooks[type] || [];
-
       result[type] = Array.isArray(value) ? value : [value];
-
       return result;
     }, {});
-
     return function () {
-      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
         args[_key] = arguments[_key];
       }
 
-      var returnHook = args[args.length - 1] === true ? args.pop() : false;
+      var returnHook = args[args.length - 1] === true ? args.pop() : false; // A reference to the original method
 
-      // A reference to the original method
-      var _super = original || service[method].bind(service);
-      // Create the hook object that gets passed through
+      var _super = original || service[method].bind(service); // Create the hook object that gets passed through
+
+
       var hookObject = createHookObject(method, {
-        type: 'before', // initial hook object type
+        type: 'before',
+        // initial hook object type
         arguments: args,
         service: service,
         app: app
-      });
+      }); // Process all before hooks
 
-      // Process all before hooks
-      return processHooks.call(service, baseHooks.concat(hooks.before), hookObject)
-      // Use the hook object to call the original method
+      return processHooks.call(service, baseHooks.concat(hooks.before), hookObject) // Use the hook object to call the original method
       .then(function (hookObject) {
         // If `hookObject.result` is set, skip the original method
         if (typeof hookObject.result !== 'undefined') {
           return hookObject;
-        }
+        } // Otherwise, call it with arguments created from the hook object
 
-        // Otherwise, call it with arguments created from the hook object
-        var promise = _super.apply(undefined, makeArguments(service, method, hookObject));
+
+        var promise = _super.apply(void 0, _toConsumableArray(makeArguments(service, method, hookObject)));
 
         if (!isPromise(promise)) {
-          throw new Error('Service method \'' + hookObject.method + '\' for \'' + hookObject.path + '\' service must return a promise');
+          throw new Error("Service method '".concat(hookObject.method, "' for '").concat(hookObject.path, "' service must return a promise"));
         }
 
         return promise.then(function (result) {
           hookObject.result = result;
-
           return hookObject;
         });
-      })
-      // Make a (shallow) copy of hookObject from `before` hooks and update type
+      }) // Make a (shallow) copy of hookObject from `before` hooks and update type
       .then(function (hookObject) {
-        return Object.assign({}, hookObject, { type: 'after' });
-      })
-      // Run through all `after` hooks
+        return Object.assign({}, hookObject, {
+          type: 'after'
+        });
+      }) // Run through all `after` hooks
       .then(function (hookObject) {
         // Combine all app and service `after` and `finally` hooks and process
         var hookChain = hooks.after.concat(hooks.finally);
-
         return processHooks.call(service, hookChain, hookObject);
       }).then(function (hookObject) {
-        return (
-          // Finally, return the result
+        return (// Finally, return the result
           // Or the hook object if the `returnHook` flag is set
           returnHook ? hookObject : hookObject.result
         );
-      })
-      // Handle errors
+      }) // Handle errors
       .catch(function (error) {
         // Combine all app and service `error` and `finally` hooks and process
-        var hookChain = hooks.error.concat(hooks.finally);
+        var hookChain = hooks.error.concat(hooks.finally); // A shallow copy of the hook object
 
-        // A shallow copy of the hook object
         var errorHookObject = _.omit(Object.assign({}, error.hook, hookObject, {
           type: 'error',
           original: error.hook,
@@ -1215,24 +1185,23 @@ var withHooks = function withHooks(_ref) {
 
         return processHooks.call(service, hookChain, errorHookObject).catch(function (error) {
           errorHookObject.error = error;
-
           return errorHookObject;
         }).then(function (hook) {
           if (returnHook) {
             // Either resolve or reject with the hook object
             return typeof hook.result !== 'undefined' ? hook : Promise.reject(hook);
-          }
-
-          // Otherwise return either the result if set (to swallow errors)
+          } // Otherwise return either the result if set (to swallow errors)
           // Or reject with the hook error
+
+
           return typeof hook.result !== 'undefined' ? hook.result : Promise.reject(hook.error);
         });
       });
     };
   };
-};
+}; // A service mixin that adds `service.hooks()` method and functionality
 
-// A service mixin that adds `service.hooks()` method and functionality
+
 var hookMixin = exports.hookMixin = function hookMixin(service) {
   if (typeof service.hooks === 'function') {
     return;
@@ -1244,7 +1213,6 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
     result[methodName] = service[methodName][ACTIVATE_HOOKS];
     return result;
   }, service.methods || {});
-
   Object.assign(service.methods, {
     find: ['params'],
     get: ['id', 'params'],
@@ -1253,10 +1221,9 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
     patch: ['id', 'data', 'params'],
     remove: ['id', 'params']
   });
-
   var app = this;
-  var methodNames = Object.keys(service.methods);
-  // Assemble the mixin object that contains all "hooked" service methods
+  var methodNames = Object.keys(service.methods); // Assemble the mixin object that contains all "hooked" service methods
+
   var mixin = methodNames.reduce(function (mixin, method) {
     if (typeof service[method] !== 'function') {
       return mixin;
@@ -1265,6 +1232,7 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
     mixin[method] = function () {
       var service = this;
       var args = Array.from(arguments);
+
       var original = service._super.bind(service);
 
       return withHooks({
@@ -1277,15 +1245,13 @@ var hookMixin = exports.hookMixin = function hookMixin(service) {
         after: getHooks(app, service, 'after', method, true),
         error: getHooks(app, service, 'error', method, true),
         finally: getHooks(app, service, 'finally', method, true)
-      }).apply(undefined, args);
+      }).apply(void 0, _toConsumableArray(args));
     };
 
     return mixin;
-  }, {});
+  }, {}); // Add .hooks method and properties to the service
 
-  // Add .hooks method and properties to the service
   enableHooks(service, methodNames, app.hookTypes);
-
   service.mixin(mixin);
 };
 
@@ -1295,22 +1261,21 @@ module.exports = function () {
     // in case someone needs it
     Object.assign(app, {
       hookTypes: ['before', 'after', 'error', 'finally']
-    });
+    }); // Add functionality for hooks to be registered as app.hooks
 
-    // Add functionality for hooks to be registered as app.hooks
     enableHooks(app, app.methods, app.hookTypes);
-
     app.mixins.push(hookMixin);
   };
 };
 
 module.exports.withHooks = withHooks;
-
 module.exports.ACTIVATE_HOOKS = ACTIVATE_HOOKS;
 
 module.exports.activateHooks = function activateHooks(args) {
   return function (fn) {
-    Object.defineProperty(fn, ACTIVATE_HOOKS, { value: args });
+    Object.defineProperty(fn, ACTIVATE_HOOKS, {
+      value: args
+    });
     return fn;
   };
 };
@@ -1324,14 +1289,13 @@ module.exports.activateHooks = function activateHooks(args) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
 var _require = __webpack_require__(/*! @feathersjs/commons */ "./node_modules/@feathersjs/commons/lib/commons.js"),
     hooks = _require.hooks;
 
 var Proto = __webpack_require__(/*! uberproto */ "./node_modules/uberproto/lib/proto.js");
+
 var Application = __webpack_require__(/*! ./application */ "./node_modules/@feathersjs/feathers/lib/application.js");
+
 var version = __webpack_require__(/*! ./version */ "./node_modules/@feathersjs/feathers/lib/version.js");
 
 var _require2 = __webpack_require__(/*! ./hooks */ "./node_modules/@feathersjs/feathers/lib/hooks/index.js"),
@@ -1339,13 +1303,10 @@ var _require2 = __webpack_require__(/*! ./hooks */ "./node_modules/@feathersjs/f
     activateHooks = _require2.activateHooks;
 
 function createApplication() {
-  var app = {};
+  var app = {}; // Mix in the base application
 
-  // Mix in the base application
   Proto.mixin(Application, app);
-
   app.init();
-
   return app;
 }
 
@@ -1353,10 +1314,8 @@ createApplication.version = version;
 createApplication.SKIP = hooks.SKIP;
 createApplication.ACTIVATE_HOOKS = ACTIVATE_HOOKS;
 createApplication.activateHooks = activateHooks;
+module.exports = createApplication; // For better ES module (TypeScript) compatibility
 
-module.exports = createApplication;
-
-// For better ES module (TypeScript) compatibility
 module.exports.default = createApplication;
 
 /***/ }),
@@ -1366,12 +1325,9 @@ module.exports.default = createApplication;
   !*** ./node_modules/@feathersjs/feathers/lib/version.js ***!
   \**********************************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-module.exports = '3.2.1';
+module.exports = '3.2.2';
 
 /***/ }),
 
@@ -1382,41 +1338,24 @@ module.exports = '3.2.1';
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(process) {/**
- * This is the web browser implementation of `debug()`.
- *
- * Expose `debug()` as the module.
- */
+/* WEBPACK VAR INJECTION */(function(process) {function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-exports = module.exports = __webpack_require__(/*! ./debug */ "./node_modules/debug/src/debug.js");
+/* eslint-env browser */
+
+/**
+ * This is the web browser implementation of `debug()`.
+ */
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
 exports.load = load;
 exports.useColors = useColors;
-exports.storage = 'undefined' != typeof chrome
-               && 'undefined' != typeof chrome.storage
-                  ? chrome.storage.local
-                  : localstorage();
-
+exports.storage = localstorage();
 /**
  * Colors.
  */
 
-exports.colors = [
-  '#0000CC', '#0000FF', '#0033CC', '#0033FF', '#0066CC', '#0066FF', '#0099CC',
-  '#0099FF', '#00CC00', '#00CC33', '#00CC66', '#00CC99', '#00CCCC', '#00CCFF',
-  '#3300CC', '#3300FF', '#3333CC', '#3333FF', '#3366CC', '#3366FF', '#3399CC',
-  '#3399FF', '#33CC00', '#33CC33', '#33CC66', '#33CC99', '#33CCCC', '#33CCFF',
-  '#6600CC', '#6600FF', '#6633CC', '#6633FF', '#66CC00', '#66CC33', '#9900CC',
-  '#9900FF', '#9933CC', '#9933FF', '#99CC00', '#99CC33', '#CC0000', '#CC0033',
-  '#CC0066', '#CC0099', '#CC00CC', '#CC00FF', '#CC3300', '#CC3333', '#CC3366',
-  '#CC3399', '#CC33CC', '#CC33FF', '#CC6600', '#CC6633', '#CC9900', '#CC9933',
-  '#CCCC00', '#CCCC33', '#FF0000', '#FF0033', '#FF0066', '#FF0099', '#FF00CC',
-  '#FF00FF', '#FF3300', '#FF3333', '#FF3366', '#FF3399', '#FF33CC', '#FF33FF',
-  '#FF6600', '#FF6633', '#FF9900', '#FF9933', '#FFCC00', '#FFCC33'
-];
-
+exports.colors = ['#0000CC', '#0000FF', '#0033CC', '#0033FF', '#0066CC', '#0066FF', '#0099CC', '#0099FF', '#00CC00', '#00CC33', '#00CC66', '#00CC99', '#00CCCC', '#00CCFF', '#3300CC', '#3300FF', '#3333CC', '#3333FF', '#3366CC', '#3366FF', '#3399CC', '#3399FF', '#33CC00', '#33CC33', '#33CC66', '#33CC99', '#33CCCC', '#33CCFF', '#6600CC', '#6600FF', '#6633CC', '#6633FF', '#66CC00', '#66CC33', '#9900CC', '#9900FF', '#9933CC', '#9933FF', '#99CC00', '#99CC33', '#CC0000', '#CC0033', '#CC0066', '#CC0099', '#CC00CC', '#CC00FF', '#CC3300', '#CC3333', '#CC3366', '#CC3399', '#CC33CC', '#CC33FF', '#CC6600', '#CC6633', '#CC9900', '#CC9933', '#CCCC00', '#CCCC33', '#FF0000', '#FF0033', '#FF0066', '#FF0099', '#FF00CC', '#FF00FF', '#FF3300', '#FF3333', '#FF3366', '#FF3399', '#FF33CC', '#FF33FF', '#FF6600', '#FF6633', '#FF9900', '#FF9933', '#FFCC00', '#FFCC33'];
 /**
  * Currently only WebKit-based Web Inspectors, Firefox >= v31,
  * and the Firebug extension (any Firefox version) are known
@@ -1424,84 +1363,65 @@ exports.colors = [
  *
  * TODO: add a `localStorage` variable to explicitly enable/disable colors
  */
+// eslint-disable-next-line complexity
 
 function useColors() {
   // NB: In an Electron preload script, document will be defined but not fully
   // initialized. Since we know we're in Chrome, we'll just detect this case
   // explicitly
-  if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
+  if (typeof window !== 'undefined' && window.process && (window.process.type === 'renderer' || window.process.__nwjs)) {
     return true;
-  }
+  } // Internet Explorer and Edge do not support colors.
 
-  // Internet Explorer and Edge do not support colors.
+
   if (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/(edge|trident)\/(\d+)/)) {
     return false;
-  }
-
-  // is webkit? http://stackoverflow.com/a/16459606/376773
+  } // Is webkit? http://stackoverflow.com/a/16459606/376773
   // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
-  return (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
-    // is firebug? http://stackoverflow.com/a/398120/376773
-    (typeof window !== 'undefined' && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
-    // is firefox >= v31?
-    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
-    // double check webkit in userAgent just in case we are in a worker
-    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
+
+
+  return typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance || // Is firebug? http://stackoverflow.com/a/398120/376773
+  typeof window !== 'undefined' && window.console && (window.console.firebug || window.console.exception && window.console.table) || // Is firefox >= v31?
+  // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+  typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31 || // Double check webkit in userAgent just in case we are in a worker
+  typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/);
 }
-
-/**
- * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
- */
-
-exports.formatters.j = function(v) {
-  try {
-    return JSON.stringify(v);
-  } catch (err) {
-    return '[UnexpectedJSONParseError]: ' + err.message;
-  }
-};
-
-
 /**
  * Colorize log arguments if enabled.
  *
  * @api public
  */
 
+
 function formatArgs(args) {
-  var useColors = this.useColors;
+  args[0] = (this.useColors ? '%c' : '') + this.namespace + (this.useColors ? ' %c' : ' ') + args[0] + (this.useColors ? '%c ' : ' ') + '+' + module.exports.humanize(this.diff);
 
-  args[0] = (useColors ? '%c' : '')
-    + this.namespace
-    + (useColors ? ' %c' : ' ')
-    + args[0]
-    + (useColors ? '%c ' : ' ')
-    + '+' + exports.humanize(this.diff);
-
-  if (!useColors) return;
+  if (!this.useColors) {
+    return;
+  }
 
   var c = 'color: ' + this.color;
-  args.splice(1, 0, c, 'color: inherit')
-
-  // the final "%c" is somewhat tricky, because there could be other
+  args.splice(1, 0, c, 'color: inherit'); // The final "%c" is somewhat tricky, because there could be other
   // arguments passed either before or after the %c, so we need to
   // figure out the correct index to insert the CSS into
+
   var index = 0;
   var lastC = 0;
-  args[0].replace(/%[a-zA-Z%]/g, function(match) {
-    if ('%%' === match) return;
+  args[0].replace(/%[a-zA-Z%]/g, function (match) {
+    if (match === '%%') {
+      return;
+    }
+
     index++;
-    if ('%c' === match) {
-      // we only are interested in the *last* %c
+
+    if (match === '%c') {
+      // We only are interested in the *last* %c
       // (the user may have provided their own)
       lastC = index;
     }
   });
-
   args.splice(lastC, 0, c);
 }
-
 /**
  * Invokes `console.log()` when available.
  * No-op when `console.log` is not a "function".
@@ -1509,14 +1429,14 @@ function formatArgs(args) {
  * @api public
  */
 
-function log() {
-  // this hackery is required for IE8/9, where
-  // the `console.log` function doesn't have 'apply'
-  return 'object' === typeof console
-    && console.log
-    && Function.prototype.apply.call(console.log, console, arguments);
-}
 
+function log() {
+  var _console;
+
+  // This hackery is required for IE8/9, where
+  // the `console.log` function doesn't have 'apply'
+  return (typeof console === "undefined" ? "undefined" : _typeof(console)) === 'object' && console.log && (_console = console).log.apply(_console, arguments);
+}
 /**
  * Save `namespaces`.
  *
@@ -1524,16 +1444,18 @@ function log() {
  * @api private
  */
 
+
 function save(namespaces) {
   try {
-    if (null == namespaces) {
-      exports.storage.removeItem('debug');
+    if (namespaces) {
+      exports.storage.setItem('debug', namespaces);
     } else {
-      exports.storage.debug = namespaces;
+      exports.storage.removeItem('debug');
     }
-  } catch(e) {}
+  } catch (error) {// Swallow
+    // XXX (@Qix-) should we be logging these?
+  }
 }
-
 /**
  * Load `namespaces`.
  *
@@ -1541,26 +1463,23 @@ function save(namespaces) {
  * @api private
  */
 
+
 function load() {
   var r;
-  try {
-    r = exports.storage.debug;
-  } catch(e) {}
 
+  try {
+    r = exports.storage.getItem('debug');
+  } catch (error) {} // Swallow
+  // XXX (@Qix-) should we be logging these?
   // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+
+
   if (!r && typeof process !== 'undefined' && 'env' in process) {
     r = process.env.DEBUG;
   }
 
   return r;
 }
-
-/**
- * Enable namespaces listed in `localStorage.debug` initially.
- */
-
-exports.enable(load());
-
 /**
  * Localstorage attempts to return the localstorage.
  *
@@ -1572,249 +1491,287 @@ exports.enable(load());
  * @api private
  */
 
+
 function localstorage() {
   try {
-    return window.localStorage;
-  } catch (e) {}
+    // TVMLKit (Apple TV JS Runtime) does not have a window object, just localStorage in the global context
+    // The Browser also has localStorage in the global context.
+    return localStorage;
+  } catch (error) {// Swallow
+    // XXX (@Qix-) should we be logging these?
+  }
 }
 
+module.exports = __webpack_require__(/*! ./common */ "./node_modules/debug/src/common.js")(exports);
+var formatters = module.exports.formatters;
+/**
+ * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+ */
+
+formatters.j = function (v) {
+  try {
+    return JSON.stringify(v);
+  } catch (error) {
+    return '[UnexpectedJSONParseError]: ' + error.message;
+  }
+};
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../process/browser.js */ "./node_modules/process/browser.js")))
 
 /***/ }),
 
-/***/ "./node_modules/debug/src/debug.js":
-/*!*****************************************!*\
-  !*** ./node_modules/debug/src/debug.js ***!
-  \*****************************************/
+/***/ "./node_modules/debug/src/common.js":
+/*!******************************************!*\
+  !*** ./node_modules/debug/src/common.js ***!
+  \******************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
-
 
 /**
  * This is the common logic for both the Node.js and web browser
  * implementations of `debug()`.
- *
- * Expose `debug()` as the module.
  */
+function setup(env) {
+  createDebug.debug = createDebug;
+  createDebug.default = createDebug;
+  createDebug.coerce = coerce;
+  createDebug.disable = disable;
+  createDebug.enable = enable;
+  createDebug.enabled = enabled;
+  createDebug.humanize = __webpack_require__(/*! ms */ "./node_modules/ms/index.js");
+  Object.keys(env).forEach(function (key) {
+    createDebug[key] = env[key];
+  });
+  /**
+  * Active `debug` instances.
+  */
 
-exports = module.exports = createDebug.debug = createDebug['default'] = createDebug;
-exports.coerce = coerce;
-exports.disable = disable;
-exports.enable = enable;
-exports.enabled = enabled;
-exports.humanize = __webpack_require__(/*! ms */ "./node_modules/ms/index.js");
+  createDebug.instances = [];
+  /**
+  * The currently active debug mode names, and names to skip.
+  */
 
-/**
- * Active `debug` instances.
- */
-exports.instances = [];
+  createDebug.names = [];
+  createDebug.skips = [];
+  /**
+  * Map of special "%n" handling functions, for the debug "format" argument.
+  *
+  * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
+  */
 
-/**
- * The currently active debug mode names, and names to skip.
- */
+  createDebug.formatters = {};
+  /**
+  * Selects a color for a debug namespace
+  * @param {String} namespace The namespace string for the for the debug instance to be colored
+  * @return {Number|String} An ANSI color code for the given namespace
+  * @api private
+  */
 
-exports.names = [];
-exports.skips = [];
+  function selectColor(namespace) {
+    var hash = 0;
 
-/**
- * Map of special "%n" handling functions, for the debug "format" argument.
- *
- * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
- */
+    for (var i = 0; i < namespace.length; i++) {
+      hash = (hash << 5) - hash + namespace.charCodeAt(i);
+      hash |= 0; // Convert to 32bit integer
+    }
 
-exports.formatters = {};
-
-/**
- * Select a color.
- * @param {String} namespace
- * @return {Number}
- * @api private
- */
-
-function selectColor(namespace) {
-  var hash = 0, i;
-
-  for (i in namespace) {
-    hash  = ((hash << 5) - hash) + namespace.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
+    return createDebug.colors[Math.abs(hash) % createDebug.colors.length];
   }
 
-  return exports.colors[Math.abs(hash) % exports.colors.length];
-}
+  createDebug.selectColor = selectColor;
+  /**
+  * Create a debugger with the given `namespace`.
+  *
+  * @param {String} namespace
+  * @return {Function}
+  * @api public
+  */
 
-/**
- * Create a debugger with the given `namespace`.
- *
- * @param {String} namespace
- * @return {Function}
- * @api public
- */
+  function createDebug(namespace) {
+    var prevTime;
 
-function createDebug(namespace) {
-
-  var prevTime;
-
-  function debug() {
-    // disabled?
-    if (!debug.enabled) return;
-
-    var self = debug;
-
-    // set `diff` timestamp
-    var curr = +new Date();
-    var ms = curr - (prevTime || curr);
-    self.diff = ms;
-    self.prev = prevTime;
-    self.curr = curr;
-    prevTime = curr;
-
-    // turn the `arguments` into a proper Array
-    var args = new Array(arguments.length);
-    for (var i = 0; i < args.length; i++) {
-      args[i] = arguments[i];
-    }
-
-    args[0] = exports.coerce(args[0]);
-
-    if ('string' !== typeof args[0]) {
-      // anything else let's inspect with %O
-      args.unshift('%O');
-    }
-
-    // apply any `formatters` transformations
-    var index = 0;
-    args[0] = args[0].replace(/%([a-zA-Z%])/g, function(match, format) {
-      // if we encounter an escaped % then don't increase the array index
-      if (match === '%%') return match;
-      index++;
-      var formatter = exports.formatters[format];
-      if ('function' === typeof formatter) {
-        var val = args[index];
-        match = formatter.call(self, val);
-
-        // now we need to remove `args[index]` since it's inlined in the `format`
-        args.splice(index, 1);
-        index--;
+    function debug() {
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
       }
-      return match;
-    });
 
-    // apply env-specific formatting (colors, etc.)
-    exports.formatArgs.call(self, args);
+      // Disabled?
+      if (!debug.enabled) {
+        return;
+      }
 
-    var logFn = debug.log || exports.log || console.log.bind(console);
-    logFn.apply(self, args);
-  }
+      var self = debug; // Set `diff` timestamp
 
-  debug.namespace = namespace;
-  debug.enabled = exports.enabled(namespace);
-  debug.useColors = exports.useColors();
-  debug.color = selectColor(namespace);
-  debug.destroy = destroy;
+      var curr = Number(new Date());
+      var ms = curr - (prevTime || curr);
+      self.diff = ms;
+      self.prev = prevTime;
+      self.curr = curr;
+      prevTime = curr;
+      args[0] = createDebug.coerce(args[0]);
 
-  // env-specific initialization logic for debug instances
-  if ('function' === typeof exports.init) {
-    exports.init(debug);
-  }
+      if (typeof args[0] !== 'string') {
+        // Anything else let's inspect with %O
+        args.unshift('%O');
+      } // Apply any `formatters` transformations
 
-  exports.instances.push(debug);
 
-  return debug;
-}
+      var index = 0;
+      args[0] = args[0].replace(/%([a-zA-Z%])/g, function (match, format) {
+        // If we encounter an escaped % then don't increase the array index
+        if (match === '%%') {
+          return match;
+        }
 
-function destroy () {
-  var index = exports.instances.indexOf(this);
-  if (index !== -1) {
-    exports.instances.splice(index, 1);
-    return true;
-  } else {
-    return false;
-  }
-}
+        index++;
+        var formatter = createDebug.formatters[format];
 
-/**
- * Enables a debug mode by namespaces. This can include modes
- * separated by a colon and wildcards.
- *
- * @param {String} namespaces
- * @api public
- */
+        if (typeof formatter === 'function') {
+          var val = args[index];
+          match = formatter.call(self, val); // Now we need to remove `args[index]` since it's inlined in the `format`
 
-function enable(namespaces) {
-  exports.save(namespaces);
+          args.splice(index, 1);
+          index--;
+        }
 
-  exports.names = [];
-  exports.skips = [];
+        return match;
+      }); // Apply env-specific formatting (colors, etc.)
 
-  var i;
-  var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
-  var len = split.length;
-
-  for (i = 0; i < len; i++) {
-    if (!split[i]) continue; // ignore empty strings
-    namespaces = split[i].replace(/\*/g, '.*?');
-    if (namespaces[0] === '-') {
-      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
-    } else {
-      exports.names.push(new RegExp('^' + namespaces + '$'));
+      createDebug.formatArgs.call(self, args);
+      var logFn = self.log || createDebug.log;
+      logFn.apply(self, args);
     }
-  }
 
-  for (i = 0; i < exports.instances.length; i++) {
-    var instance = exports.instances[i];
-    instance.enabled = exports.enabled(instance.namespace);
-  }
-}
+    debug.namespace = namespace;
+    debug.enabled = createDebug.enabled(namespace);
+    debug.useColors = createDebug.useColors();
+    debug.color = selectColor(namespace);
+    debug.destroy = destroy;
+    debug.extend = extend; // Debug.formatArgs = formatArgs;
+    // debug.rawLog = rawLog;
+    // env-specific initialization logic for debug instances
 
-/**
- * Disable debug output.
- *
- * @api public
- */
-
-function disable() {
-  exports.enable('');
-}
-
-/**
- * Returns true if the given mode name is enabled, false otherwise.
- *
- * @param {String} name
- * @return {Boolean}
- * @api public
- */
-
-function enabled(name) {
-  if (name[name.length - 1] === '*') {
-    return true;
-  }
-  var i, len;
-  for (i = 0, len = exports.skips.length; i < len; i++) {
-    if (exports.skips[i].test(name)) {
-      return false;
+    if (typeof createDebug.init === 'function') {
+      createDebug.init(debug);
     }
+
+    createDebug.instances.push(debug);
+    return debug;
   }
-  for (i = 0, len = exports.names.length; i < len; i++) {
-    if (exports.names[i].test(name)) {
+
+  function destroy() {
+    var index = createDebug.instances.indexOf(this);
+
+    if (index !== -1) {
+      createDebug.instances.splice(index, 1);
       return true;
     }
+
+    return false;
   }
-  return false;
+
+  function extend(namespace, delimiter) {
+    return createDebug(this.namespace + (typeof delimiter === 'undefined' ? ':' : delimiter) + namespace);
+  }
+  /**
+  * Enables a debug mode by namespaces. This can include modes
+  * separated by a colon and wildcards.
+  *
+  * @param {String} namespaces
+  * @api public
+  */
+
+
+  function enable(namespaces) {
+    createDebug.save(namespaces);
+    createDebug.names = [];
+    createDebug.skips = [];
+    var i;
+    var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
+    var len = split.length;
+
+    for (i = 0; i < len; i++) {
+      if (!split[i]) {
+        // ignore empty strings
+        continue;
+      }
+
+      namespaces = split[i].replace(/\*/g, '.*?');
+
+      if (namespaces[0] === '-') {
+        createDebug.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+      } else {
+        createDebug.names.push(new RegExp('^' + namespaces + '$'));
+      }
+    }
+
+    for (i = 0; i < createDebug.instances.length; i++) {
+      var instance = createDebug.instances[i];
+      instance.enabled = createDebug.enabled(instance.namespace);
+    }
+  }
+  /**
+  * Disable debug output.
+  *
+  * @api public
+  */
+
+
+  function disable() {
+    createDebug.enable('');
+  }
+  /**
+  * Returns true if the given mode name is enabled, false otherwise.
+  *
+  * @param {String} name
+  * @return {Boolean}
+  * @api public
+  */
+
+
+  function enabled(name) {
+    if (name[name.length - 1] === '*') {
+      return true;
+    }
+
+    var i;
+    var len;
+
+    for (i = 0, len = createDebug.skips.length; i < len; i++) {
+      if (createDebug.skips[i].test(name)) {
+        return false;
+      }
+    }
+
+    for (i = 0, len = createDebug.names.length; i < len; i++) {
+      if (createDebug.names[i].test(name)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+  /**
+  * Coerce `val`.
+  *
+  * @param {Mixed} val
+  * @return {Mixed}
+  * @api private
+  */
+
+
+  function coerce(val) {
+    if (val instanceof Error) {
+      return val.stack || val.message;
+    }
+
+    return val;
+  }
+
+  createDebug.enable(createDebug.load());
+  return createDebug;
 }
 
-/**
- * Coerce `val`.
- *
- * @param {Mixed} val
- * @return {Mixed}
- * @api private
- */
-
-function coerce(val) {
-  if (val instanceof Error) return val.stack || val.message;
-  return val;
-}
-
+module.exports = setup;
 
 /***/ }),
 
@@ -1833,6 +1790,7 @@ var s = 1000;
 var m = s * 60;
 var h = m * 60;
 var d = h * 24;
+var w = d * 7;
 var y = d * 365.25;
 
 /**
@@ -1876,7 +1834,7 @@ function parse(str) {
   if (str.length > 100) {
     return;
   }
-  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(
+  var match = /^((?:\d+)?\-?\d?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(
     str
   );
   if (!match) {
@@ -1891,6 +1849,10 @@ function parse(str) {
     case 'yr':
     case 'y':
       return n * y;
+    case 'weeks':
+    case 'week':
+    case 'w':
+      return n * w;
     case 'days':
     case 'day':
     case 'd':
@@ -1933,16 +1895,17 @@ function parse(str) {
  */
 
 function fmtShort(ms) {
-  if (ms >= d) {
+  var msAbs = Math.abs(ms);
+  if (msAbs >= d) {
     return Math.round(ms / d) + 'd';
   }
-  if (ms >= h) {
+  if (msAbs >= h) {
     return Math.round(ms / h) + 'h';
   }
-  if (ms >= m) {
+  if (msAbs >= m) {
     return Math.round(ms / m) + 'm';
   }
-  if (ms >= s) {
+  if (msAbs >= s) {
     return Math.round(ms / s) + 's';
   }
   return ms + 'ms';
@@ -1957,25 +1920,29 @@ function fmtShort(ms) {
  */
 
 function fmtLong(ms) {
-  return plural(ms, d, 'day') ||
-    plural(ms, h, 'hour') ||
-    plural(ms, m, 'minute') ||
-    plural(ms, s, 'second') ||
-    ms + ' ms';
+  var msAbs = Math.abs(ms);
+  if (msAbs >= d) {
+    return plural(ms, msAbs, d, 'day');
+  }
+  if (msAbs >= h) {
+    return plural(ms, msAbs, h, 'hour');
+  }
+  if (msAbs >= m) {
+    return plural(ms, msAbs, m, 'minute');
+  }
+  if (msAbs >= s) {
+    return plural(ms, msAbs, s, 'second');
+  }
+  return ms + ' ms';
 }
 
 /**
  * Pluralization helper.
  */
 
-function plural(ms, n, name) {
-  if (ms < n) {
-    return;
-  }
-  if (ms < n * 1.5) {
-    return Math.floor(ms / n) + ' ' + name;
-  }
-  return Math.ceil(ms / n) + ' ' + name + 's';
+function plural(ms, msAbs, n, name) {
+  var isPlural = msAbs >= n * 1.5;
+  return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
 }
 
 
@@ -2639,9 +2606,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   \*********************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
 
 module.exports = __webpack_require__(/*! @feathersjs/feathers */ "./node_modules/@feathersjs/feathers/lib/index.js");
 

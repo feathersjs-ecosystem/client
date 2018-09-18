@@ -103,14 +103,16 @@ return /******/ (function(modules) { // webpackBootstrap
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
 var utils = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js");
+
 var hooks = __webpack_require__(/*! ./hooks */ "./node_modules/@feathersjs/commons/lib/hooks.js");
+
 var filterQuery = __webpack_require__(/*! ./filter-query */ "./node_modules/@feathersjs/commons/lib/filter-query.js");
 
-module.exports = Object.assign({}, utils, { hooks: hooks, filterQuery: filterQuery });
+module.exports = Object.assign({}, utils, {
+  hooks: hooks,
+  filterQuery: filterQuery
+});
 
 /***/ }),
 
@@ -121,10 +123,7 @@ module.exports = Object.assign({}, utils, { hooks: hooks, filterQuery: filterQue
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 var _require = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js"),
     _ = _require._;
@@ -133,30 +132,28 @@ function parse(number) {
   if (typeof number !== 'undefined') {
     return Math.abs(parseInt(number, 10));
   }
-}
-
-// Returns the pagination limit and will take into account the
+} // Returns the pagination limit and will take into account the
 // default and max pagination settings
+
+
 function getLimit(limit, paginate) {
   if (paginate && paginate.default) {
     var lower = typeof limit === 'number' ? limit : paginate.default;
     var upper = typeof paginate.max === 'number' ? paginate.max : Number.MAX_VALUE;
-
     return Math.min(lower, upper);
   }
 
   return limit;
-}
+} // Makes sure that $sort order is always converted to an actual number
 
-// Makes sure that $sort order is always converted to an actual number
+
 function convertSort(sort) {
-  if ((typeof sort === 'undefined' ? 'undefined' : _typeof(sort)) !== 'object' || Array.isArray(sort)) {
+  if (_typeof(sort) !== 'object' || Array.isArray(sort)) {
     return sort;
   }
 
   return Object.keys(sort).reduce(function (result, key) {
     result[key] = _typeof(sort[key]) === 'object' ? sort[key] : parseInt(sort[key], 10);
-
     return result;
   }, {});
 }
@@ -164,10 +161,12 @@ function convertSort(sort) {
 function cleanQuery(query, operators) {
   if (_.isObject(query)) {
     var result = {};
+
     _.each(query, function (query, key) {
       if (key[0] === '$' && operators.indexOf(key) === -1) return;
       result[key] = cleanQuery(query, operators);
     });
+
     return result;
   }
 
@@ -202,30 +201,27 @@ var FILTERS = {
     return value;
   }
 };
-
-var OPERATORS = ['$in', '$nin', '$lt', '$lte', '$gt', '$gte', '$ne', '$or'];
-
-// Converts Feathers special query parameters and pagination settings
+var OPERATORS = ['$in', '$nin', '$lt', '$lte', '$gt', '$gte', '$ne', '$or']; // Converts Feathers special query parameters and pagination settings
 // and returns them separately a `filters` and the rest of the query
 // as `query`
+
 module.exports = function filterQuery(query) {
   var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
   var _options$filters = options.filters,
-      additionalFilters = _options$filters === undefined ? {} : _options$filters,
+      additionalFilters = _options$filters === void 0 ? {} : _options$filters,
       _options$operators = options.operators,
-      additionalOperators = _options$operators === undefined ? [] : _options$operators;
-
+      additionalOperators = _options$operators === void 0 ? [] : _options$operators;
   var result = {};
-
   result.filters = assignFilters({}, query, FILTERS, options);
   result.filters = assignFilters(result.filters, query, additionalFilters, options);
-
   result.query = cleanQuery(query, OPERATORS.concat(additionalOperators));
-
   return result;
 };
 
-Object.assign(module.exports, { OPERATORS: OPERATORS, FILTERS: FILTERS });
+Object.assign(module.exports, {
+  OPERATORS: OPERATORS,
+  FILTERS: FILTERS
+});
 
 /***/ }),
 
@@ -236,43 +232,34 @@ Object.assign(module.exports, { OPERATORS: OPERATORS, FILTERS: FILTERS });
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 var _require = __webpack_require__(/*! ./utils */ "./node_modules/@feathersjs/commons/lib/utils.js"),
     _require$_ = _require._,
     each = _require$_.each,
     pick = _require$_.pick,
-    createSymbol = _require.createSymbol;
-
-// To skip further hooks
+    createSymbol = _require.createSymbol; // To skip further hooks
 
 
 var SKIP = createSymbol('__feathersSkipHooks');
-
 exports.SKIP = SKIP;
 exports.ACTIVATE_HOOKS = createSymbol('__feathersActivateHooks');
 
 exports.createHookObject = function createHookObject(method) {
   var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
   var hook = {};
-
   Object.defineProperty(hook, 'toJSON', {
     value: function value() {
       return pick(this, 'type', 'method', 'path', 'params', 'id', 'data', 'result', 'error');
     }
   });
-
   return Object.assign(hook, data, {
     method: method,
+
     // A dynamic getter that returns the path of the service
     get path() {
       var app = data.app,
           service = data.service;
-
 
       if (!service || !app || !app.services) {
         return null;
@@ -282,10 +269,11 @@ exports.createHookObject = function createHookObject(method) {
         return app.services[path] === service;
       });
     }
-  });
-};
 
-// Fallback used by `makeArguments` which usually won't be used
+  });
+}; // Fallback used by `makeArguments` which usually won't be used
+
+
 exports.defaultMakeArguments = function defaultMakeArguments(hook) {
   var result = [];
 
@@ -298,38 +286,44 @@ exports.defaultMakeArguments = function defaultMakeArguments(hook) {
   }
 
   result.push(hook.params || {});
-
   return result;
-};
-
-// Turns a hook object back into a list of arguments
+}; // Turns a hook object back into a list of arguments
 // to call a service method with
+
+
 exports.makeArguments = function makeArguments(hook) {
   switch (hook.method) {
     case 'find':
       return [hook.params];
+
     case 'get':
     case 'remove':
       return [hook.id, hook.params];
+
     case 'update':
     case 'patch':
       return [hook.id, hook.data, hook.params];
+
     case 'create':
       return [hook.data, hook.params];
   }
 
   return exports.defaultMakeArguments(hook);
-};
-
-// Converts different hook registration formats into the
+}; // Converts different hook registration formats into the
 // same internal format
+
+
 exports.convertHookData = function convertHookData(obj) {
   var hook = {};
 
   if (Array.isArray(obj)) {
-    hook = { all: obj };
-  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object') {
-    hook = { all: [obj] };
+    hook = {
+      all: obj
+    };
+  } else if (_typeof(obj) !== 'object') {
+    hook = {
+      all: [obj]
+    };
   } else {
     each(obj, function (value, key) {
       hook[key] = !Array.isArray(value) ? [value] : value;
@@ -337,20 +331,19 @@ exports.convertHookData = function convertHookData(obj) {
   }
 
   return hook;
-};
-
-// Duck-checks a given object to be a hook object
+}; // Duck-checks a given object to be a hook object
 // A valid hook object has `type` and `method`
-exports.isHookObject = function isHookObject(hookObject) {
-  return (typeof hookObject === 'undefined' ? 'undefined' : _typeof(hookObject)) === 'object' && typeof hookObject.method === 'string' && typeof hookObject.type === 'string';
-};
 
-// Returns all service and application hooks combined
+
+exports.isHookObject = function isHookObject(hookObject) {
+  return _typeof(hookObject) === 'object' && typeof hookObject.method === 'string' && typeof hookObject.type === 'string';
+}; // Returns all service and application hooks combined
 // for a given method and type `appLast` sets if the hooks
 // from `app` should be added last (or first by default)
+
+
 exports.getHooks = function getHooks(app, service, type, method) {
   var appLast = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
-
   var appHooks = app.__hooks[type][method] || [];
   var serviceHooks = service.__hooks[type][method] || [];
 
@@ -366,6 +359,7 @@ exports.processHooks = function processHooks(hooks, initialHookObject) {
   var _this = this;
 
   var hookObject = initialHookObject;
+
   var updateCurrentHook = function updateCurrentHook(current) {
     // Either use the returned hook object or the current
     // hook object from the chain if the hook returned undefined
@@ -375,15 +369,16 @@ exports.processHooks = function processHooks(hooks, initialHookObject) {
       }
 
       if (!exports.isHookObject(current)) {
-        throw new Error(hookObject.type + ' hook for \'' + hookObject.method + '\' method returned invalid hook object');
+        throw new Error("".concat(hookObject.type, " hook for '").concat(hookObject.method, "' method returned invalid hook object"));
       }
 
       hookObject = current;
     }
 
     return hookObject;
-  };
-  // Go through all hooks and chain them into our promise
+  }; // Go through all hooks and chain them into our promise
+
+
   var promise = hooks.reduce(function (promise, fn) {
     var hook = fn.bind(_this);
 
@@ -401,12 +396,11 @@ exports.processHooks = function processHooks(hooks, initialHookObject) {
       promise = promise.then(function (hookObject) {
         return hookObject === SKIP ? SKIP : hook(hookObject);
       });
-    }
+    } // Use the returned hook object or the old one
 
-    // Use the returned hook object or the old one
+
     return promise.then(updateCurrentHook);
   }, Promise.resolve(hookObject));
-
   return promise.then(function () {
     return hookObject;
   }).catch(function (error) {
@@ -414,43 +408,38 @@ exports.processHooks = function processHooks(hooks, initialHookObject) {
     error.hook = hookObject;
     throw error;
   });
-};
+}; // Add `.hooks` functionality to an object
 
-// Add `.hooks` functionality to an object
+
 exports.enableHooks = function enableHooks(obj, methods, types) {
   if (typeof obj.hooks === 'function') {
     return obj;
   }
 
   var __hooks = {};
-
   types.forEach(function (type) {
     // Initialize properties where hook functions are stored
     __hooks[type] = {};
-  });
+  }); // Add non-enumerable `__hooks` property to the object
 
-  // Add non-enumerable `__hooks` property to the object
   Object.defineProperty(obj, '__hooks', {
     value: __hooks
   });
-
   return Object.assign(obj, {
     hooks: function hooks(allHooks) {
       var _this2 = this;
 
       each(allHooks, function (obj, type) {
         if (!_this2.__hooks[type]) {
-          throw new Error('\'' + type + '\' is not a valid hook type');
+          throw new Error("'".concat(type, "' is not a valid hook type"));
         }
 
         var hooks = exports.convertHookData(obj);
-
         each(hooks, function (value, method) {
           if (method !== 'all' && methods.indexOf(method) === -1) {
-            throw new Error('\'' + method + '\' is not a valid hook method');
+            throw new Error("'".concat(method, "' is not a valid hook method"));
           }
         });
-
         methods.forEach(function (method) {
           var myHooks = _this2.__hooks[type][method] || (_this2.__hooks[type][method] = []);
 
@@ -463,7 +452,6 @@ exports.enableHooks = function enableHooks(obj, methods, types) {
           }
         });
       });
-
       return this;
     }
   });
@@ -478,17 +466,32 @@ exports.enableHooks = function enableHooks(obj, methods, types) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
+/* WEBPACK VAR INJECTION */(function(process) {function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 // Removes all leading and trailing slashes from a path
 exports.stripSlashes = function stripSlashes(name) {
-  return name.replace(/^(\/*)|(\/*)$/g, '');
-};
+  return name.replace(/^(\/+)|(\/+)$/g, '');
+}; // A set of lodash-y utility functions that use ES6
 
-// A set of lodash-y utility functions that use ES6
+
 var _ = exports._ = {
   each: function each(obj, callback) {
     if (obj && typeof obj.forEach === 'function') {
@@ -503,17 +506,21 @@ var _ = exports._ = {
     return Object.keys(value).map(function (key) {
       return [value[key], key];
     }).some(function (_ref) {
-      var val = _ref[0],
-          key = _ref[1];
+      var _ref2 = _slicedToArray(_ref, 2),
+          val = _ref2[0],
+          key = _ref2[1];
+
       return callback(val, key);
     });
   },
   every: function every(value, callback) {
     return Object.keys(value).map(function (key) {
       return [value[key], key];
-    }).every(function (_ref2) {
-      var val = _ref2[0],
-          key = _ref2[1];
+    }).every(function (_ref3) {
+      var _ref4 = _slicedToArray(_ref3, 2),
+          val = _ref4[0],
+          key = _ref4[1];
+
       return callback(val, key);
     });
   },
@@ -534,10 +541,10 @@ var _ = exports._ = {
     return _.keys(obj).length === 0;
   },
   isObject: function isObject(item) {
-    return (typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object' && !Array.isArray(item) && item !== null;
+    return _typeof(item) === 'object' && !Array.isArray(item) && item !== null;
   },
   isObjectOrArray: function isObjectOrArray(value) {
-    return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value !== null;
+    return _typeof(value) === 'object' && value !== null;
   },
   extend: function extend() {
     return Object.assign.apply(Object, arguments);
@@ -545,7 +552,7 @@ var _ = exports._ = {
   omit: function omit(obj) {
     var result = _.extend({}, obj);
 
-    for (var _len = arguments.length, keys = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    for (var _len = arguments.length, keys = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
       keys[_key - 1] = arguments[_key];
     }
 
@@ -555,7 +562,7 @@ var _ = exports._ = {
     return result;
   },
   pick: function pick(source) {
-    for (var _len2 = arguments.length, keys = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+    for (var _len2 = arguments.length, keys = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
       keys[_key2 - 1] = arguments[_key2];
     }
 
@@ -567,38 +574,33 @@ var _ = exports._ = {
       return result;
     }, {});
   },
-
-
   // Recursively merge the source object into the target object
   merge: function merge(target, source) {
     if (_.isObject(target) && _.isObject(source)) {
       Object.keys(source).forEach(function (key) {
         if (_.isObject(source[key])) {
           if (!target[key]) {
-            var _Object$assign;
-
-            Object.assign(target, (_Object$assign = {}, _Object$assign[key] = {}, _Object$assign));
+            Object.assign(target, _defineProperty({}, key, {}));
           }
 
           _.merge(target[key], source[key]);
         } else {
-          var _Object$assign2;
-
-          Object.assign(target, (_Object$assign2 = {}, _Object$assign2[key] = source[key], _Object$assign2));
+          Object.assign(target, _defineProperty({}, key, source[key]));
         }
       });
     }
+
     return target;
   }
-};
-
-// Return a function that filters a result object or array
+}; // Return a function that filters a result object or array
 // and picks only the fields passed as `params.query.$select`
 // and additional `otherFields`
+
+
 exports.select = function select(params) {
   var fields = params && params.query && params.query.$select;
 
-  for (var _len3 = arguments.length, otherFields = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+  for (var _len3 = arguments.length, otherFields = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
     otherFields[_key3 - 1] = arguments[_key3];
   }
 
@@ -611,7 +613,7 @@ exports.select = function select(params) {
       return result;
     }
 
-    return _.pick.apply(_, [result].concat(fields));
+    return _.pick.apply(_, [result].concat(_toConsumableArray(fields)));
   };
 
   return function (result) {
@@ -621,42 +623,40 @@ exports.select = function select(params) {
 
     return convert(result);
   };
-};
+}; // Duck-checks if an object looks like a promise
 
-// Duck-checks if an object looks like a promise
+
 exports.isPromise = function isPromise(result) {
   return _.isObject(result) && typeof result.then === 'function';
 };
 
 exports.makeUrl = function makeUrl(path) {
   var app = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
   var get = typeof app.get === 'function' ? app.get.bind(app) : function () {};
   var env = get('env') || "development";
   var host = get('host') || process.env.HOST_NAME || 'localhost';
   var protocol = env === 'development' || env === 'test' || env === undefined ? 'http' : 'https';
   var PORT = get('port') || process.env.PORT || 3030;
-  var port = env === 'development' || env === 'test' || env === undefined ? ':' + PORT : '';
-
+  var port = env === 'development' || env === 'test' || env === undefined ? ":".concat(PORT) : '';
   path = path || '';
-
-  return protocol + '://' + host + port + '/' + exports.stripSlashes(path);
+  return "".concat(protocol, "://").concat(host).concat(port, "/").concat(exports.stripSlashes(path));
 };
 
 exports.createSymbol = function (name) {
   return typeof Symbol !== 'undefined' ? Symbol(name) : name;
-};
-
-// Sorting algorithm taken from NeDB (https://github.com/louischatriot/nedb)
+}; // Sorting algorithm taken from NeDB (https://github.com/louischatriot/nedb)
 // See https://github.com/louischatriot/nedb/blob/e3f0078499aa1005a59d0c2372e425ab789145c1/lib/model.js#L189
+
 
 exports.compareNSB = function (a, b) {
   if (a < b) {
     return -1;
   }
+
   if (a > b) {
     return 1;
   }
+
   return 0;
 };
 
@@ -669,9 +669,9 @@ exports.compareArrays = function (a, b) {
     if (comp !== 0) {
       return comp;
     }
-  }
+  } // Common section was identical, longest one wins
 
-  // Common section was identical, longest one wins
+
   return exports.compareNSB(a.length, b.length);
 };
 
@@ -680,66 +680,71 @@ exports.compare = function (a, b) {
   var _exports = exports,
       compareNSB = _exports.compareNSB,
       compare = _exports.compare,
-      compareArrays = _exports.compareArrays;
-
-  // undefined
+      compareArrays = _exports.compareArrays; // undefined
 
   if (a === undefined) {
     return b === undefined ? 0 : -1;
   }
+
   if (b === undefined) {
     return a === undefined ? 0 : 1;
-  }
+  } // null
 
-  // null
+
   if (a === null) {
     return b === null ? 0 : -1;
   }
+
   if (b === null) {
     return a === null ? 0 : 1;
-  }
+  } // Numbers
 
-  // Numbers
+
   if (typeof a === 'number') {
     return typeof b === 'number' ? compareNSB(a, b) : -1;
   }
+
   if (typeof b === 'number') {
     return typeof a === 'number' ? compareNSB(a, b) : 1;
-  }
+  } // Strings
 
-  // Strings
+
   if (typeof a === 'string') {
     return typeof b === 'string' ? compareStrings(a, b) : -1;
   }
+
   if (typeof b === 'string') {
     return typeof a === 'string' ? compareStrings(a, b) : 1;
-  }
+  } // Booleans
 
-  // Booleans
+
   if (typeof a === 'boolean') {
     return typeof b === 'boolean' ? compareNSB(a, b) : -1;
   }
+
   if (typeof b === 'boolean') {
     return typeof a === 'boolean' ? compareNSB(a, b) : 1;
-  }
+  } // Dates
 
-  // Dates
+
   if (a instanceof Date) {
     return b instanceof Date ? compareNSB(a.getTime(), b.getTime()) : -1;
   }
+
   if (b instanceof Date) {
     return a instanceof Date ? compareNSB(a.getTime(), b.getTime()) : 1;
-  }
+  } // Arrays (first element is most significant and so on)
 
-  // Arrays (first element is most significant and so on)
+
   if (Array.isArray(a)) {
     return Array.isArray(b) ? compareArrays(a, b) : -1;
   }
+
   if (Array.isArray(b)) {
     return Array.isArray(a) ? compareArrays(a, b) : 1;
-  }
+  } // Objects
 
-  // Objects
+
   var aKeys = Object.keys(a).sort();
   var bKeys = Object.keys(b).sort();
   var comp = 0;
@@ -753,23 +758,23 @@ exports.compare = function (a, b) {
   }
 
   return compareNSB(aKeys.length, bKeys.length);
-};
-
-// An in-memory sorting function according to the
+}; // An in-memory sorting function according to the
 // $sort special query parameter
+
+
 exports.sorter = function ($sort) {
   var criteria = Object.keys($sort).map(function (key) {
     var direction = $sort[key];
-
-    return { key: key, direction: direction };
+    return {
+      key: key,
+      direction: direction
+    };
   });
-
   return function (a, b) {
-    var compare = void 0;
+    var compare;
 
     for (var i = 0; i < criteria.length; i++) {
       var criterion = criteria[i];
-
       compare = criterion.direction * exports.compare(a[criterion.key], b[criterion.key]);
 
       if (compare !== 0) {
@@ -791,28 +796,23 @@ exports.sorter = function ($sort) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 var debug = __webpack_require__(/*! debug */ "./node_modules/debug/src/browser.js")('@feathersjs/errors');
 
 function FeathersError(msg, name, code, className, data) {
   msg = msg || 'Error';
-
-  var errors = void 0;
-  var message = void 0;
-  var newData = void 0;
+  var errors;
+  var message;
+  var newData;
 
   if (msg instanceof Error) {
-    message = msg.message || 'Error';
+    message = msg.message || 'Error'; // NOTE (EK): This is typically to handle validation errors
 
-    // NOTE (EK): This is typically to handle validation errors
     if (msg.errors) {
       errors = msg.errors;
     }
-  } else if ((typeof msg === 'undefined' ? 'undefined' : _typeof(msg)) === 'object') {
+  } else if (_typeof(msg) === 'object') {
     // Support plain old objects
     message = msg.message || 'Error';
     data = msg;
@@ -836,11 +836,11 @@ function FeathersError(msg, name, code, className, data) {
       // For example: when cloning arrays this property
       errors = JSON.parse(JSON.stringify(data.errors));
     }
-  }
-
-  // NOTE (EK): Babel doesn't support this so
+  } // NOTE (EK): Babel doesn't support this so
   // we have to pass in the class name manually.
   // this.name = this.constructor.name;
+
+
   this.type = 'FeathersError';
   this.name = name;
   this.message = message;
@@ -848,8 +848,7 @@ function FeathersError(msg, name, code, className, data) {
   this.className = className;
   this.data = newData;
   this.errors = errors || {};
-
-  debug(this.name + '(' + this.code + '): ' + this.message);
+  debug("".concat(this.name, "(").concat(this.code, "): ").concat(this.message));
   debug(this.errors);
 
   if (Error.captureStackTrace) {
@@ -864,10 +863,9 @@ function inheritsFrom(Child, Parent) {
   Child.prototype.constructor = Child;
 }
 
-inheritsFrom(FeathersError, Error);
-
-// NOTE (EK): A little hack to get around `message` not
+inheritsFrom(FeathersError, Error); // NOTE (EK): A little hack to get around `message` not
 // being included in the default toJSON call.
+
 Object.defineProperty(FeathersError.prototype, 'toJSON', {
   value: function value() {
     return {
@@ -879,120 +877,103 @@ Object.defineProperty(FeathersError.prototype, 'toJSON', {
       errors: this.errors
     };
   }
-});
+}); // 400 - Bad Request
 
-// 400 - Bad Request
 function BadRequest(message, data) {
   FeathersError.call(this, message, 'BadRequest', 400, 'bad-request', data);
 }
 
-inheritsFrom(BadRequest, FeathersError);
+inheritsFrom(BadRequest, FeathersError); // 401 - Not Authenticated
 
-// 401 - Not Authenticated
 function NotAuthenticated(message, data) {
   FeathersError.call(this, message, 'NotAuthenticated', 401, 'not-authenticated', data);
 }
 
-inheritsFrom(NotAuthenticated, FeathersError);
+inheritsFrom(NotAuthenticated, FeathersError); // 402 - Payment Error
 
-// 402 - Payment Error
 function PaymentError(message, data) {
   FeathersError.call(this, message, 'PaymentError', 402, 'payment-error', data);
 }
 
-inheritsFrom(PaymentError, FeathersError);
+inheritsFrom(PaymentError, FeathersError); // 403 - Forbidden
 
-// 403 - Forbidden
 function Forbidden(message, data) {
   FeathersError.call(this, message, 'Forbidden', 403, 'forbidden', data);
 }
 
-inheritsFrom(Forbidden, FeathersError);
+inheritsFrom(Forbidden, FeathersError); // 404 - Not Found
 
-// 404 - Not Found
 function NotFound(message, data) {
   FeathersError.call(this, message, 'NotFound', 404, 'not-found', data);
 }
 
-inheritsFrom(NotFound, FeathersError);
+inheritsFrom(NotFound, FeathersError); // 405 - Method Not Allowed
 
-// 405 - Method Not Allowed
 function MethodNotAllowed(message, data) {
   FeathersError.call(this, message, 'MethodNotAllowed', 405, 'method-not-allowed', data);
 }
 
-inheritsFrom(MethodNotAllowed, FeathersError);
+inheritsFrom(MethodNotAllowed, FeathersError); // 406 - Not Acceptable
 
-// 406 - Not Acceptable
 function NotAcceptable(message, data) {
   FeathersError.call(this, message, 'NotAcceptable', 406, 'not-acceptable', data);
 }
 
-inheritsFrom(NotAcceptable, FeathersError);
+inheritsFrom(NotAcceptable, FeathersError); // 408 - Timeout
 
-// 408 - Timeout
 function Timeout(message, data) {
   FeathersError.call(this, message, 'Timeout', 408, 'timeout', data);
 }
 
-inheritsFrom(Timeout, FeathersError);
+inheritsFrom(Timeout, FeathersError); // 409 - Conflict
 
-// 409 - Conflict
 function Conflict(message, data) {
   FeathersError.call(this, message, 'Conflict', 409, 'conflict', data);
 }
 
-inheritsFrom(Conflict, FeathersError);
+inheritsFrom(Conflict, FeathersError); // 411 - Length Required
 
-// 411 - Length Required
 function LengthRequired(message, data) {
   FeathersError.call(this, message, 'LengthRequired', 411, 'length-required', data);
 }
 
-inheritsFrom(LengthRequired, FeathersError);
+inheritsFrom(LengthRequired, FeathersError); // 422 Unprocessable
 
-// 422 Unprocessable
 function Unprocessable(message, data) {
   FeathersError.call(this, message, 'Unprocessable', 422, 'unprocessable', data);
 }
 
-inheritsFrom(Unprocessable, FeathersError);
+inheritsFrom(Unprocessable, FeathersError); // 429 Too Many Requests
 
-// 429 Too Many Requests
 function TooManyRequests(message, data) {
   FeathersError.call(this, message, 'TooManyRequests', 429, 'too-many-requests', data);
 }
 
-inheritsFrom(TooManyRequests, FeathersError);
+inheritsFrom(TooManyRequests, FeathersError); // 500 - General Error
 
-// 500 - General Error
 function GeneralError(message, data) {
   FeathersError.call(this, message, 'GeneralError', 500, 'general-error', data);
 }
 
-inheritsFrom(GeneralError, FeathersError);
+inheritsFrom(GeneralError, FeathersError); // 501 - Not Implemented
 
-// 501 - Not Implemented
 function NotImplemented(message, data) {
   FeathersError.call(this, message, 'NotImplemented', 501, 'not-implemented', data);
 }
 
-inheritsFrom(NotImplemented, FeathersError);
+inheritsFrom(NotImplemented, FeathersError); // 502 - Bad Gateway
 
-// 502 - Bad Gateway
 function BadGateway(message, data) {
   FeathersError.call(this, message, 'BadGateway', 502, 'bad-gateway', data);
 }
 
-inheritsFrom(BadGateway, FeathersError);
+inheritsFrom(BadGateway, FeathersError); // 503 - Unavailable
 
-// 503 - Unavailable
 function Unavailable(message, data) {
   FeathersError.call(this, message, 'Unavailable', 503, 'unavailable', data);
 }
 
 inheritsFrom(Unavailable, FeathersError);
-
 var errors = {
   FeathersError: FeathersError,
   BadRequest: BadRequest,
@@ -1037,14 +1018,16 @@ function convert(error) {
   var FeathersError = errors[error.name];
   var result = FeathersError ? new FeathersError(error.message, error.data) : new Error(error.message || error);
 
-  if ((typeof error === 'undefined' ? 'undefined' : _typeof(error)) === 'object') {
+  if (_typeof(error) === 'object') {
     Object.assign(result, error);
   }
 
   return result;
 }
 
-module.exports = Object.assign({ convert: convert }, errors);
+module.exports = Object.assign({
+  convert: convert
+}, errors);
 
 /***/ }),
 
@@ -1055,56 +1038,72 @@ module.exports = Object.assign({ convert: convert }, errors);
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
 
-var AngularHttpService = function (_Base) {
+var AngularHttpService =
+/*#__PURE__*/
+function (_Base) {
   _inherits(AngularHttpService, _Base);
 
   function AngularHttpService() {
     _classCallCheck(this, AngularHttpService);
 
-    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+    return _possibleConstructorReturn(this, _getPrototypeOf(AngularHttpService).apply(this, arguments));
   }
 
-  AngularHttpService.prototype.request = function request(options, params) {
-    var httpClient = this.connection;
-    var HttpHeaders = this.options.HttpHeaders;
+  _createClass(AngularHttpService, [{
+    key: "request",
+    value: function request(options, params) {
+      var httpClient = this.connection;
+      var HttpHeaders = this.options.HttpHeaders;
 
-    if (!httpClient || !HttpHeaders) {
-      throw new Error('Please pass angular\'s \'httpClient\' (instance) and and object with \'HttpHeaders\' (class) to feathers-rest');
-    }
-
-    var url = options.url;
-    var _params$connection = params.connection,
-        connection = _params$connection === undefined ? {} : _params$connection;
-
-    var headers = new HttpHeaders(Object.assign({ Accept: 'application/json' }, this.options.headers, options.headers, connection.headers));
-    var requestOptions = Object.assign({
-      // method: options.method,
-      body: options.body
-    }, params.connection, { headers: headers });
-
-    return new Promise(function (resolve, reject) {
-      httpClient.request(options.method, url, requestOptions).subscribe(resolve, reject);
-    }).catch(function (error) {
-      var e = error.error;
-
-      if (e) {
-        throw typeof e === 'string' ? JSON.parse(e) : e;
+      if (!httpClient || !HttpHeaders) {
+        throw new Error("Please pass angular's 'httpClient' (instance) and and object with 'HttpHeaders' (class) to feathers-rest");
       }
 
-      throw error;
-    });
-  };
+      var url = options.url;
+      var _params$connection = params.connection,
+          connection = _params$connection === void 0 ? {} : _params$connection;
+      var headers = new HttpHeaders(Object.assign({
+        Accept: 'application/json'
+      }, this.options.headers, options.headers, connection.headers));
+      var requestOptions = Object.assign({
+        // method: options.method,
+        body: options.body
+      }, params.connection, {
+        headers: headers
+      });
+      return new Promise(function (resolve, reject) {
+        httpClient.request(options.method, url, requestOptions).subscribe(resolve, reject);
+      }).catch(function (error) {
+        var e = error.error;
+
+        if (e) {
+          throw typeof e === 'string' ? JSON.parse(e) : e;
+        }
+
+        throw error;
+      });
+    }
+  }]);
 
   return AngularHttpService;
 }(Base);
@@ -1120,54 +1119,69 @@ module.exports = AngularHttpService;
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
 
-var AngularService = function (_Base) {
+var AngularService =
+/*#__PURE__*/
+function (_Base) {
   _inherits(AngularService, _Base);
 
   function AngularService() {
     _classCallCheck(this, AngularService);
 
-    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+    return _possibleConstructorReturn(this, _getPrototypeOf(AngularService).apply(this, arguments));
   }
 
-  AngularService.prototype.request = function request(options, params) {
-    var http = this.connection;
-    var Headers = this.options.Headers;
+  _createClass(AngularService, [{
+    key: "request",
+    value: function request(options, params) {
+      var http = this.connection;
+      var Headers = this.options.Headers;
 
-    if (!http || !Headers) {
-      throw new Error('Please pass angular\'s \'http\' (instance) and and object with \'Headers\' (class) to feathers-rest');
+      if (!http || !Headers) {
+        throw new Error("Please pass angular's 'http' (instance) and and object with 'Headers' (class) to feathers-rest");
+      }
+
+      var url = options.url;
+      var _params$connection = params.connection,
+          connection = _params$connection === void 0 ? {} : _params$connection;
+      var headers = new Headers(Object.assign({
+        Accept: 'application/json'
+      }, this.options.headers, options.headers, connection.headers));
+      var requestOptions = Object.assign({
+        method: options.method,
+        body: options.body
+      }, connection, {
+        headers: headers
+      });
+      return new Promise(function (resolve, reject) {
+        http.request(url, requestOptions).subscribe(resolve, reject);
+      }).then(function (res) {
+        return res.json();
+      }).catch(function (error) {
+        var response = error.response || error;
+        throw response instanceof Error ? response : response.json() || response;
+      });
     }
-
-    var url = options.url;
-    var _params$connection = params.connection,
-        connection = _params$connection === undefined ? {} : _params$connection;
-
-    var headers = new Headers(Object.assign({ Accept: 'application/json' }, this.options.headers, options.headers, connection.headers));
-    var requestOptions = Object.assign({
-      method: options.method,
-      body: options.body
-    }, connection, { headers: headers });
-
-    return new Promise(function (resolve, reject) {
-      http.request(url, requestOptions).subscribe(resolve, reject);
-    }).then(function (res) {
-      return res.json();
-    }).catch(function (error) {
-      var response = error.response || error;
-
-      throw response instanceof Error ? response : response.json() || response;
-    });
-  };
+  }]);
 
   return AngularService;
 }(Base);
@@ -1183,44 +1197,56 @@ module.exports = AngularService;
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
 
-var AxiosService = function (_Base) {
+var AxiosService =
+/*#__PURE__*/
+function (_Base) {
   _inherits(AxiosService, _Base);
 
   function AxiosService() {
     _classCallCheck(this, AxiosService);
 
-    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+    return _possibleConstructorReturn(this, _getPrototypeOf(AxiosService).apply(this, arguments));
   }
 
-  AxiosService.prototype.request = function request(options, params) {
-    var config = Object.assign({
-      url: options.url,
-      method: options.method,
-      data: options.body,
-      headers: Object.assign({
-        Accept: 'application/json'
-      }, this.options.headers, options.headers)
-    }, params.connection);
-
-    return this.connection.request(config).then(function (res) {
-      return res.data;
-    }).catch(function (error) {
-      var response = error.response || error;
-
-      throw response instanceof Error ? response : response.data || response;
-    });
-  };
+  _createClass(AxiosService, [{
+    key: "request",
+    value: function request(options, params) {
+      var config = Object.assign({
+        url: options.url,
+        method: options.method,
+        data: options.body,
+        headers: Object.assign({
+          Accept: 'application/json'
+        }, this.options.headers, options.headers)
+      }, params.connection);
+      return this.connection.request(config).then(function (res) {
+        return res.data;
+      }).catch(function (error) {
+        var response = error.response || error;
+        throw response instanceof Error ? response : response.data || response;
+      });
+    }
+  }]);
 
   return AxiosService;
 }(Base);
@@ -1236,10 +1262,11 @@ module.exports = AxiosService;
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 var query = __webpack_require__(/*! qs */ "./node_modules/qs/lib/index.js");
 
@@ -1263,111 +1290,125 @@ function toError(error) {
   throw convert(error);
 }
 
-var Base = function () {
+var Base =
+/*#__PURE__*/
+function () {
   function Base(settings) {
     _classCallCheck(this, Base);
 
     this.name = stripSlashes(settings.name);
     this.options = settings.options;
     this.connection = settings.connection;
-    this.base = settings.base + '/' + this.name;
+    this.base = "".concat(settings.base, "/").concat(this.name);
   }
 
-  Base.prototype.makeUrl = function makeUrl(params, id) {
-    params = params || {};
-    var url = this.base;
+  _createClass(Base, [{
+    key: "makeUrl",
+    value: function makeUrl(params, id) {
+      params = params || {};
+      var url = this.base;
 
-    if (typeof id !== 'undefined' && id !== null) {
-      url += '/' + encodeURIComponent(id);
+      if (typeof id !== 'undefined' && id !== null) {
+        url += "/".concat(encodeURIComponent(id));
+      }
+
+      if (Object.keys(params).length !== 0) {
+        var queryString = query.stringify(params);
+        url += "?".concat(queryString);
+      }
+
+      return url;
     }
-
-    if (Object.keys(params).length !== 0) {
-      var queryString = query.stringify(params);
-
-      url += '?' + queryString;
+  }, {
+    key: "find",
+    value: function find() {
+      var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      return this.request({
+        url: this.makeUrl(params.query),
+        method: 'GET',
+        headers: Object.assign({}, params.headers)
+      }, params).catch(toError);
     }
+  }, {
+    key: "get",
+    value: function get(id) {
+      var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-    return url;
-  };
+      if (typeof id === 'undefined') {
+        return Promise.reject(new Error("id for 'get' can not be undefined"));
+      }
 
-  Base.prototype.find = function find() {
-    var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-    return this.request({
-      url: this.makeUrl(params.query),
-      method: 'GET',
-      headers: Object.assign({}, params.headers)
-    }, params).catch(toError);
-  };
-
-  Base.prototype.get = function get(id) {
-    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-    if (typeof id === 'undefined') {
-      return Promise.reject(new Error('id for \'get\' can not be undefined'));
+      return this.request({
+        url: this.makeUrl(params.query, id),
+        method: 'GET',
+        headers: Object.assign({}, params.headers)
+      }, params).catch(toError);
     }
-
-    return this.request({
-      url: this.makeUrl(params.query, id),
-      method: 'GET',
-      headers: Object.assign({}, params.headers)
-    }, params).catch(toError);
-  };
-
-  Base.prototype.create = function create(body) {
-    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-    return this.request({
-      url: this.makeUrl(params.query),
-      body: body,
-      method: 'POST',
-      headers: Object.assign({ 'Content-Type': 'application/json' }, params.headers)
-    }, params).catch(toError);
-  };
-
-  Base.prototype.update = function update(id, body) {
-    var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-    if (typeof id === 'undefined') {
-      return Promise.reject(new Error('id for \'update\' can not be undefined, only \'null\' when updating multiple entries'));
+  }, {
+    key: "create",
+    value: function create(body) {
+      var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return this.request({
+        url: this.makeUrl(params.query),
+        body: body,
+        method: 'POST',
+        headers: Object.assign({
+          'Content-Type': 'application/json'
+        }, params.headers)
+      }, params).catch(toError);
     }
+  }, {
+    key: "update",
+    value: function update(id, body) {
+      var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-    return this.request({
-      url: this.makeUrl(params.query, id),
-      body: body,
-      method: 'PUT',
-      headers: Object.assign({ 'Content-Type': 'application/json' }, params.headers)
-    }, params).catch(toError);
-  };
+      if (typeof id === 'undefined') {
+        return Promise.reject(new Error("id for 'update' can not be undefined, only 'null' when updating multiple entries"));
+      }
 
-  Base.prototype.patch = function patch(id, body) {
-    var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-    if (typeof id === 'undefined') {
-      return Promise.reject(new Error('id for \'patch\' can not be undefined, only \'null\' when updating multiple entries'));
+      return this.request({
+        url: this.makeUrl(params.query, id),
+        body: body,
+        method: 'PUT',
+        headers: Object.assign({
+          'Content-Type': 'application/json'
+        }, params.headers)
+      }, params).catch(toError);
     }
+  }, {
+    key: "patch",
+    value: function patch(id, body) {
+      var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-    return this.request({
-      url: this.makeUrl(params.query, id),
-      body: body,
-      method: 'PATCH',
-      headers: Object.assign({ 'Content-Type': 'application/json' }, params.headers)
-    }, params).catch(toError);
-  };
+      if (typeof id === 'undefined') {
+        return Promise.reject(new Error("id for 'patch' can not be undefined, only 'null' when updating multiple entries"));
+      }
 
-  Base.prototype.remove = function remove(id) {
-    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-    if (typeof id === 'undefined') {
-      return Promise.reject(new Error('id for \'remove\' can not be undefined, only \'null\' when removing multiple entries'));
+      return this.request({
+        url: this.makeUrl(params.query, id),
+        body: body,
+        method: 'PATCH',
+        headers: Object.assign({
+          'Content-Type': 'application/json'
+        }, params.headers)
+      }, params).catch(toError);
     }
+  }, {
+    key: "remove",
+    value: function remove(id) {
+      var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-    return this.request({
-      url: this.makeUrl(params.query, id),
-      method: 'DELETE',
-      headers: Object.assign({}, params.headers)
-    }, params).catch(toError);
-  };
+      if (typeof id === 'undefined') {
+        return Promise.reject(new Error("id for 'remove' can not be undefined, only 'null' when removing multiple entries"));
+      }
+
+      return this.request({
+        url: this.makeUrl(params.query, id),
+        method: 'DELETE',
+        headers: Object.assign({}, params.headers)
+      }, params).catch(toError);
+    }
+  }]);
 
   return Base;
 }();
@@ -1383,58 +1424,71 @@ module.exports = Base;
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
 
-var FetchService = function (_Base) {
+var FetchService =
+/*#__PURE__*/
+function (_Base) {
   _inherits(FetchService, _Base);
 
   function FetchService() {
     _classCallCheck(this, FetchService);
 
-    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+    return _possibleConstructorReturn(this, _getPrototypeOf(FetchService).apply(this, arguments));
   }
 
-  FetchService.prototype.request = function request(options, params) {
-    var fetchOptions = Object.assign({}, options, params.connection);
+  _createClass(FetchService, [{
+    key: "request",
+    value: function request(options, params) {
+      var fetchOptions = Object.assign({}, options, params.connection);
+      fetchOptions.headers = Object.assign({
+        Accept: 'application/json'
+      }, this.options.headers, fetchOptions.headers);
 
-    fetchOptions.headers = Object.assign({
-      Accept: 'application/json'
-    }, this.options.headers, fetchOptions.headers);
-
-    if (options.body) {
-      fetchOptions.body = JSON.stringify(options.body);
-    }
-
-    var fetch = this.connection;
-
-    return fetch(options.url, fetchOptions).then(this.checkStatus).then(function (response) {
-      if (response.status === 204) {
-        return null;
+      if (options.body) {
+        fetchOptions.body = JSON.stringify(options.body);
       }
 
-      return response.json();
-    });
-  };
+      var fetch = this.connection;
+      return fetch(options.url, fetchOptions).then(this.checkStatus).then(function (response) {
+        if (response.status === 204) {
+          return null;
+        }
 
-  FetchService.prototype.checkStatus = function checkStatus(response) {
-    if (response.ok) {
-      return response;
+        return response.json();
+      });
     }
+  }, {
+    key: "checkStatus",
+    value: function checkStatus(response) {
+      if (response.ok) {
+        return response;
+      }
 
-    return response.json().then(function (error) {
-      error.response = response;
-      throw error;
-    });
-  };
+      return response.json().then(function (error) {
+        error.response = response;
+        throw error;
+      });
+    }
+  }]);
 
   return FetchService;
 }(Base);
@@ -1450,16 +1504,20 @@ module.exports = FetchService;
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
 var jQuery = __webpack_require__(/*! ./jquery */ "./node_modules/@feathersjs/rest-client/lib/jquery.js");
+
 var Superagent = __webpack_require__(/*! ./superagent */ "./node_modules/@feathersjs/rest-client/lib/superagent.js");
+
 var Request = __webpack_require__(/*! ./request */ "./node_modules/@feathersjs/rest-client/lib/request.js");
+
 var Fetch = __webpack_require__(/*! ./fetch */ "./node_modules/@feathersjs/rest-client/lib/fetch.js");
+
 var Axios = __webpack_require__(/*! ./axios */ "./node_modules/@feathersjs/rest-client/lib/axios.js");
+
 var Angular = __webpack_require__(/*! ./angular */ "./node_modules/@feathersjs/rest-client/lib/angular.js");
+
 var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
+
 var AngularHttpClient = __webpack_require__(/*! ./angular-http-client */ "./node_modules/@feathersjs/rest-client/lib/angular-http-client.js");
 
 var transports = {
@@ -1474,9 +1532,9 @@ var transports = {
 
 function restClient() {
   var base = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-
-  var result = { Base: Base };
-
+  var result = {
+    Base: Base
+  };
   Object.keys(transports).forEach(function (key) {
     var Service = transports[key];
 
@@ -1484,11 +1542,16 @@ function restClient() {
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       if (!connection) {
-        throw new Error(key + ' has to be provided to feathers-rest');
+        throw new Error("".concat(key, " has to be provided to feathers-rest"));
       }
 
       var defaultService = function defaultService(name) {
-        return new Service({ base: base, name: name, connection: connection, options: options });
+        return new Service({
+          base: base,
+          name: name,
+          connection: connection,
+          options: options
+        });
       };
 
       var initialize = function initialize() {
@@ -1502,11 +1565,9 @@ function restClient() {
 
       initialize.Service = Service;
       initialize.service = defaultService;
-
       return initialize;
     };
   });
-
   return result;
 }
 
@@ -1522,61 +1583,74 @@ module.exports.default = restClient;
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
 
-var jQueryService = function (_Base) {
+var jQueryService =
+/*#__PURE__*/
+function (_Base) {
   _inherits(jQueryService, _Base);
 
   function jQueryService() {
     _classCallCheck(this, jQueryService);
 
-    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+    return _possibleConstructorReturn(this, _getPrototypeOf(jQueryService).apply(this, arguments));
   }
 
-  jQueryService.prototype.request = function request(options, params) {
-    var _this2 = this;
+  _createClass(jQueryService, [{
+    key: "request",
+    value: function request(options, params) {
+      var _this = this;
 
-    var _params$connection = params.connection,
-        connection = _params$connection === undefined ? {} : _params$connection;
-
-    var headers = Object.assign({}, options.headers, this.options.headers, connection.headers);
-    var opts = Object.assign({
-      dataType: options.type || 'json'
-    }, connection, options, { headers: headers });
-
-    if (options.body) {
-      opts.data = JSON.stringify(options.body);
-      opts.contentType = 'application/json';
-    }
-
-    delete opts.type;
-    delete opts.body;
-
-    return new Promise(function (resolve, reject) {
-      _this2.connection.ajax(opts).then(resolve, function (xhr) {
-        var error = xhr.responseText;
-
-        try {
-          error = JSON.parse(error);
-        } catch (e) {
-          error = new Error(xhr.responseText);
-        }
-
-        error.xhr = error.response = xhr;
-
-        reject(error);
+      var _params$connection = params.connection,
+          connection = _params$connection === void 0 ? {} : _params$connection;
+      var headers = Object.assign({}, options.headers, this.options.headers, connection.headers);
+      var opts = Object.assign({
+        dataType: options.type || 'json'
+      }, connection, options, {
+        headers: headers
       });
-    });
-  };
+
+      if (options.body) {
+        opts.data = JSON.stringify(options.body);
+        opts.contentType = 'application/json';
+      }
+
+      delete opts.type;
+      delete opts.body;
+      return new Promise(function (resolve, reject) {
+        _this.connection.ajax(opts).then(resolve, function (xhr) {
+          var error = xhr.responseText;
+
+          try {
+            error = JSON.parse(error);
+          } catch (e) {
+            error = new Error(xhr.responseText);
+          }
+
+          error.xhr = error.response = xhr;
+          reject(error);
+        });
+      });
+    }
+  }]);
 
   return jQueryService;
 }(Base);
@@ -1592,56 +1666,70 @@ module.exports = jQueryService;
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
 
-var RequestService = function (_Base) {
+var RequestService =
+/*#__PURE__*/
+function (_Base) {
   _inherits(RequestService, _Base);
 
   function RequestService() {
     _classCallCheck(this, RequestService);
 
-    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+    return _possibleConstructorReturn(this, _getPrototypeOf(RequestService).apply(this, arguments));
   }
 
-  RequestService.prototype.request = function request(options, params) {
-    var _this2 = this;
+  _createClass(RequestService, [{
+    key: "request",
+    value: function request(options, params) {
+      var _this = this;
 
-    return new Promise(function (resolve, reject) {
-      var _params$connection = params.connection,
-          connection = _params$connection === undefined ? {} : _params$connection;
+      return new Promise(function (resolve, reject) {
+        var _params$connection = params.connection,
+            connection = _params$connection === void 0 ? {} : _params$connection;
+        var headers = Object.assign({}, options.headers, connection.headers);
 
-      var headers = Object.assign({}, options.headers, connection.headers);
-
-      _this2.connection(Object.assign({
-        json: true
-      }, options, params.connection, { headers: headers }), function (error, res, data) {
-        if (error) {
-          return reject(error);
-        }
-
-        if (!error && res.statusCode >= 400) {
-          if (typeof data === 'string') {
-            return reject(new Error(data));
+        _this.connection(Object.assign({
+          json: true
+        }, options, params.connection, {
+          headers: headers
+        }), function (error, res, data) {
+          if (error) {
+            return reject(error);
           }
 
-          data.response = res;
+          if (!error && res.statusCode >= 400) {
+            if (typeof data === 'string') {
+              return reject(new Error(data));
+            }
 
-          return reject(Object.assign(new Error(data.message), data));
-        }
+            data.response = res;
+            return reject(Object.assign(new Error(data.message), data));
+          }
 
-        resolve(data);
+          resolve(data);
+        });
       });
-    });
-  };
+    }
+  }]);
 
   return RequestService;
 }(Base);
@@ -1657,51 +1745,64 @@ module.exports = RequestService;
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 var Base = __webpack_require__(/*! ./base */ "./node_modules/@feathersjs/rest-client/lib/base.js");
 
-var SuperagentService = function (_Base) {
+var SuperagentService =
+/*#__PURE__*/
+function (_Base) {
   _inherits(SuperagentService, _Base);
 
   function SuperagentService() {
     _classCallCheck(this, SuperagentService);
 
-    return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+    return _possibleConstructorReturn(this, _getPrototypeOf(SuperagentService).apply(this, arguments));
   }
 
-  SuperagentService.prototype.request = function request(options, params) {
-    var superagent = this.connection(options.method, options.url).set(this.options.headers || {}).set('Accept', 'application/json').set(params.connection || {}).set(options.headers || {}).type(options.type || 'json');
+  _createClass(SuperagentService, [{
+    key: "request",
+    value: function request(options, params) {
+      var superagent = this.connection(options.method, options.url).set(this.options.headers || {}).set('Accept', 'application/json').set(params.connection || {}).set(options.headers || {}).type(options.type || 'json');
+      return new Promise(function (resolve, reject) {
+        superagent.set(options.headers);
 
-    return new Promise(function (resolve, reject) {
-      superagent.set(options.headers);
-
-      if (options.body) {
-        superagent.send(options.body);
-      }
-
-      superagent.end(function (error, res) {
-        if (error) {
-          try {
-            var response = error.response;
-            error = JSON.parse(error.response.text);
-            error.response = response;
-          } catch (e) {}
-
-          return reject(error);
+        if (options.body) {
+          superagent.send(options.body);
         }
 
-        resolve(res && res.body);
+        superagent.end(function (error, res) {
+          if (error) {
+            try {
+              var response = error.response;
+              error = JSON.parse(error.response.text);
+              error.response = response;
+            } catch (e) {}
+
+            return reject(error);
+          }
+
+          resolve(res && res.body);
+        });
       });
-    });
-  };
+    }
+  }]);
 
   return SuperagentService;
 }(Base);
@@ -1717,41 +1818,24 @@ module.exports = SuperagentService;
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(process) {/**
- * This is the web browser implementation of `debug()`.
- *
- * Expose `debug()` as the module.
- */
+/* WEBPACK VAR INJECTION */(function(process) {function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-exports = module.exports = __webpack_require__(/*! ./debug */ "./node_modules/debug/src/debug.js");
+/* eslint-env browser */
+
+/**
+ * This is the web browser implementation of `debug()`.
+ */
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
 exports.load = load;
 exports.useColors = useColors;
-exports.storage = 'undefined' != typeof chrome
-               && 'undefined' != typeof chrome.storage
-                  ? chrome.storage.local
-                  : localstorage();
-
+exports.storage = localstorage();
 /**
  * Colors.
  */
 
-exports.colors = [
-  '#0000CC', '#0000FF', '#0033CC', '#0033FF', '#0066CC', '#0066FF', '#0099CC',
-  '#0099FF', '#00CC00', '#00CC33', '#00CC66', '#00CC99', '#00CCCC', '#00CCFF',
-  '#3300CC', '#3300FF', '#3333CC', '#3333FF', '#3366CC', '#3366FF', '#3399CC',
-  '#3399FF', '#33CC00', '#33CC33', '#33CC66', '#33CC99', '#33CCCC', '#33CCFF',
-  '#6600CC', '#6600FF', '#6633CC', '#6633FF', '#66CC00', '#66CC33', '#9900CC',
-  '#9900FF', '#9933CC', '#9933FF', '#99CC00', '#99CC33', '#CC0000', '#CC0033',
-  '#CC0066', '#CC0099', '#CC00CC', '#CC00FF', '#CC3300', '#CC3333', '#CC3366',
-  '#CC3399', '#CC33CC', '#CC33FF', '#CC6600', '#CC6633', '#CC9900', '#CC9933',
-  '#CCCC00', '#CCCC33', '#FF0000', '#FF0033', '#FF0066', '#FF0099', '#FF00CC',
-  '#FF00FF', '#FF3300', '#FF3333', '#FF3366', '#FF3399', '#FF33CC', '#FF33FF',
-  '#FF6600', '#FF6633', '#FF9900', '#FF9933', '#FFCC00', '#FFCC33'
-];
-
+exports.colors = ['#0000CC', '#0000FF', '#0033CC', '#0033FF', '#0066CC', '#0066FF', '#0099CC', '#0099FF', '#00CC00', '#00CC33', '#00CC66', '#00CC99', '#00CCCC', '#00CCFF', '#3300CC', '#3300FF', '#3333CC', '#3333FF', '#3366CC', '#3366FF', '#3399CC', '#3399FF', '#33CC00', '#33CC33', '#33CC66', '#33CC99', '#33CCCC', '#33CCFF', '#6600CC', '#6600FF', '#6633CC', '#6633FF', '#66CC00', '#66CC33', '#9900CC', '#9900FF', '#9933CC', '#9933FF', '#99CC00', '#99CC33', '#CC0000', '#CC0033', '#CC0066', '#CC0099', '#CC00CC', '#CC00FF', '#CC3300', '#CC3333', '#CC3366', '#CC3399', '#CC33CC', '#CC33FF', '#CC6600', '#CC6633', '#CC9900', '#CC9933', '#CCCC00', '#CCCC33', '#FF0000', '#FF0033', '#FF0066', '#FF0099', '#FF00CC', '#FF00FF', '#FF3300', '#FF3333', '#FF3366', '#FF3399', '#FF33CC', '#FF33FF', '#FF6600', '#FF6633', '#FF9900', '#FF9933', '#FFCC00', '#FFCC33'];
 /**
  * Currently only WebKit-based Web Inspectors, Firefox >= v31,
  * and the Firebug extension (any Firefox version) are known
@@ -1759,84 +1843,65 @@ exports.colors = [
  *
  * TODO: add a `localStorage` variable to explicitly enable/disable colors
  */
+// eslint-disable-next-line complexity
 
 function useColors() {
   // NB: In an Electron preload script, document will be defined but not fully
   // initialized. Since we know we're in Chrome, we'll just detect this case
   // explicitly
-  if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
+  if (typeof window !== 'undefined' && window.process && (window.process.type === 'renderer' || window.process.__nwjs)) {
     return true;
-  }
+  } // Internet Explorer and Edge do not support colors.
 
-  // Internet Explorer and Edge do not support colors.
+
   if (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/(edge|trident)\/(\d+)/)) {
     return false;
-  }
-
-  // is webkit? http://stackoverflow.com/a/16459606/376773
+  } // Is webkit? http://stackoverflow.com/a/16459606/376773
   // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
-  return (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
-    // is firebug? http://stackoverflow.com/a/398120/376773
-    (typeof window !== 'undefined' && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
-    // is firefox >= v31?
-    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
-    // double check webkit in userAgent just in case we are in a worker
-    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
+
+
+  return typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance || // Is firebug? http://stackoverflow.com/a/398120/376773
+  typeof window !== 'undefined' && window.console && (window.console.firebug || window.console.exception && window.console.table) || // Is firefox >= v31?
+  // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+  typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31 || // Double check webkit in userAgent just in case we are in a worker
+  typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/);
 }
-
-/**
- * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
- */
-
-exports.formatters.j = function(v) {
-  try {
-    return JSON.stringify(v);
-  } catch (err) {
-    return '[UnexpectedJSONParseError]: ' + err.message;
-  }
-};
-
-
 /**
  * Colorize log arguments if enabled.
  *
  * @api public
  */
 
+
 function formatArgs(args) {
-  var useColors = this.useColors;
+  args[0] = (this.useColors ? '%c' : '') + this.namespace + (this.useColors ? ' %c' : ' ') + args[0] + (this.useColors ? '%c ' : ' ') + '+' + module.exports.humanize(this.diff);
 
-  args[0] = (useColors ? '%c' : '')
-    + this.namespace
-    + (useColors ? ' %c' : ' ')
-    + args[0]
-    + (useColors ? '%c ' : ' ')
-    + '+' + exports.humanize(this.diff);
-
-  if (!useColors) return;
+  if (!this.useColors) {
+    return;
+  }
 
   var c = 'color: ' + this.color;
-  args.splice(1, 0, c, 'color: inherit')
-
-  // the final "%c" is somewhat tricky, because there could be other
+  args.splice(1, 0, c, 'color: inherit'); // The final "%c" is somewhat tricky, because there could be other
   // arguments passed either before or after the %c, so we need to
   // figure out the correct index to insert the CSS into
+
   var index = 0;
   var lastC = 0;
-  args[0].replace(/%[a-zA-Z%]/g, function(match) {
-    if ('%%' === match) return;
+  args[0].replace(/%[a-zA-Z%]/g, function (match) {
+    if (match === '%%') {
+      return;
+    }
+
     index++;
-    if ('%c' === match) {
-      // we only are interested in the *last* %c
+
+    if (match === '%c') {
+      // We only are interested in the *last* %c
       // (the user may have provided their own)
       lastC = index;
     }
   });
-
   args.splice(lastC, 0, c);
 }
-
 /**
  * Invokes `console.log()` when available.
  * No-op when `console.log` is not a "function".
@@ -1844,14 +1909,14 @@ function formatArgs(args) {
  * @api public
  */
 
-function log() {
-  // this hackery is required for IE8/9, where
-  // the `console.log` function doesn't have 'apply'
-  return 'object' === typeof console
-    && console.log
-    && Function.prototype.apply.call(console.log, console, arguments);
-}
 
+function log() {
+  var _console;
+
+  // This hackery is required for IE8/9, where
+  // the `console.log` function doesn't have 'apply'
+  return (typeof console === "undefined" ? "undefined" : _typeof(console)) === 'object' && console.log && (_console = console).log.apply(_console, arguments);
+}
 /**
  * Save `namespaces`.
  *
@@ -1859,16 +1924,18 @@ function log() {
  * @api private
  */
 
+
 function save(namespaces) {
   try {
-    if (null == namespaces) {
-      exports.storage.removeItem('debug');
+    if (namespaces) {
+      exports.storage.setItem('debug', namespaces);
     } else {
-      exports.storage.debug = namespaces;
+      exports.storage.removeItem('debug');
     }
-  } catch(e) {}
+  } catch (error) {// Swallow
+    // XXX (@Qix-) should we be logging these?
+  }
 }
-
 /**
  * Load `namespaces`.
  *
@@ -1876,26 +1943,23 @@ function save(namespaces) {
  * @api private
  */
 
+
 function load() {
   var r;
-  try {
-    r = exports.storage.debug;
-  } catch(e) {}
 
+  try {
+    r = exports.storage.getItem('debug');
+  } catch (error) {} // Swallow
+  // XXX (@Qix-) should we be logging these?
   // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+
+
   if (!r && typeof process !== 'undefined' && 'env' in process) {
     r = process.env.DEBUG;
   }
 
   return r;
 }
-
-/**
- * Enable namespaces listed in `localStorage.debug` initially.
- */
-
-exports.enable(load());
-
 /**
  * Localstorage attempts to return the localstorage.
  *
@@ -1907,249 +1971,287 @@ exports.enable(load());
  * @api private
  */
 
+
 function localstorage() {
   try {
-    return window.localStorage;
-  } catch (e) {}
+    // TVMLKit (Apple TV JS Runtime) does not have a window object, just localStorage in the global context
+    // The Browser also has localStorage in the global context.
+    return localStorage;
+  } catch (error) {// Swallow
+    // XXX (@Qix-) should we be logging these?
+  }
 }
 
+module.exports = __webpack_require__(/*! ./common */ "./node_modules/debug/src/common.js")(exports);
+var formatters = module.exports.formatters;
+/**
+ * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+ */
+
+formatters.j = function (v) {
+  try {
+    return JSON.stringify(v);
+  } catch (error) {
+    return '[UnexpectedJSONParseError]: ' + error.message;
+  }
+};
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../process/browser.js */ "./node_modules/process/browser.js")))
 
 /***/ }),
 
-/***/ "./node_modules/debug/src/debug.js":
-/*!*****************************************!*\
-  !*** ./node_modules/debug/src/debug.js ***!
-  \*****************************************/
+/***/ "./node_modules/debug/src/common.js":
+/*!******************************************!*\
+  !*** ./node_modules/debug/src/common.js ***!
+  \******************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
-
 
 /**
  * This is the common logic for both the Node.js and web browser
  * implementations of `debug()`.
- *
- * Expose `debug()` as the module.
  */
+function setup(env) {
+  createDebug.debug = createDebug;
+  createDebug.default = createDebug;
+  createDebug.coerce = coerce;
+  createDebug.disable = disable;
+  createDebug.enable = enable;
+  createDebug.enabled = enabled;
+  createDebug.humanize = __webpack_require__(/*! ms */ "./node_modules/ms/index.js");
+  Object.keys(env).forEach(function (key) {
+    createDebug[key] = env[key];
+  });
+  /**
+  * Active `debug` instances.
+  */
 
-exports = module.exports = createDebug.debug = createDebug['default'] = createDebug;
-exports.coerce = coerce;
-exports.disable = disable;
-exports.enable = enable;
-exports.enabled = enabled;
-exports.humanize = __webpack_require__(/*! ms */ "./node_modules/ms/index.js");
+  createDebug.instances = [];
+  /**
+  * The currently active debug mode names, and names to skip.
+  */
 
-/**
- * Active `debug` instances.
- */
-exports.instances = [];
+  createDebug.names = [];
+  createDebug.skips = [];
+  /**
+  * Map of special "%n" handling functions, for the debug "format" argument.
+  *
+  * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
+  */
 
-/**
- * The currently active debug mode names, and names to skip.
- */
+  createDebug.formatters = {};
+  /**
+  * Selects a color for a debug namespace
+  * @param {String} namespace The namespace string for the for the debug instance to be colored
+  * @return {Number|String} An ANSI color code for the given namespace
+  * @api private
+  */
 
-exports.names = [];
-exports.skips = [];
+  function selectColor(namespace) {
+    var hash = 0;
 
-/**
- * Map of special "%n" handling functions, for the debug "format" argument.
- *
- * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
- */
+    for (var i = 0; i < namespace.length; i++) {
+      hash = (hash << 5) - hash + namespace.charCodeAt(i);
+      hash |= 0; // Convert to 32bit integer
+    }
 
-exports.formatters = {};
-
-/**
- * Select a color.
- * @param {String} namespace
- * @return {Number}
- * @api private
- */
-
-function selectColor(namespace) {
-  var hash = 0, i;
-
-  for (i in namespace) {
-    hash  = ((hash << 5) - hash) + namespace.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
+    return createDebug.colors[Math.abs(hash) % createDebug.colors.length];
   }
 
-  return exports.colors[Math.abs(hash) % exports.colors.length];
-}
+  createDebug.selectColor = selectColor;
+  /**
+  * Create a debugger with the given `namespace`.
+  *
+  * @param {String} namespace
+  * @return {Function}
+  * @api public
+  */
 
-/**
- * Create a debugger with the given `namespace`.
- *
- * @param {String} namespace
- * @return {Function}
- * @api public
- */
+  function createDebug(namespace) {
+    var prevTime;
 
-function createDebug(namespace) {
-
-  var prevTime;
-
-  function debug() {
-    // disabled?
-    if (!debug.enabled) return;
-
-    var self = debug;
-
-    // set `diff` timestamp
-    var curr = +new Date();
-    var ms = curr - (prevTime || curr);
-    self.diff = ms;
-    self.prev = prevTime;
-    self.curr = curr;
-    prevTime = curr;
-
-    // turn the `arguments` into a proper Array
-    var args = new Array(arguments.length);
-    for (var i = 0; i < args.length; i++) {
-      args[i] = arguments[i];
-    }
-
-    args[0] = exports.coerce(args[0]);
-
-    if ('string' !== typeof args[0]) {
-      // anything else let's inspect with %O
-      args.unshift('%O');
-    }
-
-    // apply any `formatters` transformations
-    var index = 0;
-    args[0] = args[0].replace(/%([a-zA-Z%])/g, function(match, format) {
-      // if we encounter an escaped % then don't increase the array index
-      if (match === '%%') return match;
-      index++;
-      var formatter = exports.formatters[format];
-      if ('function' === typeof formatter) {
-        var val = args[index];
-        match = formatter.call(self, val);
-
-        // now we need to remove `args[index]` since it's inlined in the `format`
-        args.splice(index, 1);
-        index--;
+    function debug() {
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
       }
-      return match;
-    });
 
-    // apply env-specific formatting (colors, etc.)
-    exports.formatArgs.call(self, args);
+      // Disabled?
+      if (!debug.enabled) {
+        return;
+      }
 
-    var logFn = debug.log || exports.log || console.log.bind(console);
-    logFn.apply(self, args);
-  }
+      var self = debug; // Set `diff` timestamp
 
-  debug.namespace = namespace;
-  debug.enabled = exports.enabled(namespace);
-  debug.useColors = exports.useColors();
-  debug.color = selectColor(namespace);
-  debug.destroy = destroy;
+      var curr = Number(new Date());
+      var ms = curr - (prevTime || curr);
+      self.diff = ms;
+      self.prev = prevTime;
+      self.curr = curr;
+      prevTime = curr;
+      args[0] = createDebug.coerce(args[0]);
 
-  // env-specific initialization logic for debug instances
-  if ('function' === typeof exports.init) {
-    exports.init(debug);
-  }
+      if (typeof args[0] !== 'string') {
+        // Anything else let's inspect with %O
+        args.unshift('%O');
+      } // Apply any `formatters` transformations
 
-  exports.instances.push(debug);
 
-  return debug;
-}
+      var index = 0;
+      args[0] = args[0].replace(/%([a-zA-Z%])/g, function (match, format) {
+        // If we encounter an escaped % then don't increase the array index
+        if (match === '%%') {
+          return match;
+        }
 
-function destroy () {
-  var index = exports.instances.indexOf(this);
-  if (index !== -1) {
-    exports.instances.splice(index, 1);
-    return true;
-  } else {
-    return false;
-  }
-}
+        index++;
+        var formatter = createDebug.formatters[format];
 
-/**
- * Enables a debug mode by namespaces. This can include modes
- * separated by a colon and wildcards.
- *
- * @param {String} namespaces
- * @api public
- */
+        if (typeof formatter === 'function') {
+          var val = args[index];
+          match = formatter.call(self, val); // Now we need to remove `args[index]` since it's inlined in the `format`
 
-function enable(namespaces) {
-  exports.save(namespaces);
+          args.splice(index, 1);
+          index--;
+        }
 
-  exports.names = [];
-  exports.skips = [];
+        return match;
+      }); // Apply env-specific formatting (colors, etc.)
 
-  var i;
-  var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
-  var len = split.length;
-
-  for (i = 0; i < len; i++) {
-    if (!split[i]) continue; // ignore empty strings
-    namespaces = split[i].replace(/\*/g, '.*?');
-    if (namespaces[0] === '-') {
-      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
-    } else {
-      exports.names.push(new RegExp('^' + namespaces + '$'));
+      createDebug.formatArgs.call(self, args);
+      var logFn = self.log || createDebug.log;
+      logFn.apply(self, args);
     }
-  }
 
-  for (i = 0; i < exports.instances.length; i++) {
-    var instance = exports.instances[i];
-    instance.enabled = exports.enabled(instance.namespace);
-  }
-}
+    debug.namespace = namespace;
+    debug.enabled = createDebug.enabled(namespace);
+    debug.useColors = createDebug.useColors();
+    debug.color = selectColor(namespace);
+    debug.destroy = destroy;
+    debug.extend = extend; // Debug.formatArgs = formatArgs;
+    // debug.rawLog = rawLog;
+    // env-specific initialization logic for debug instances
 
-/**
- * Disable debug output.
- *
- * @api public
- */
-
-function disable() {
-  exports.enable('');
-}
-
-/**
- * Returns true if the given mode name is enabled, false otherwise.
- *
- * @param {String} name
- * @return {Boolean}
- * @api public
- */
-
-function enabled(name) {
-  if (name[name.length - 1] === '*') {
-    return true;
-  }
-  var i, len;
-  for (i = 0, len = exports.skips.length; i < len; i++) {
-    if (exports.skips[i].test(name)) {
-      return false;
+    if (typeof createDebug.init === 'function') {
+      createDebug.init(debug);
     }
+
+    createDebug.instances.push(debug);
+    return debug;
   }
-  for (i = 0, len = exports.names.length; i < len; i++) {
-    if (exports.names[i].test(name)) {
+
+  function destroy() {
+    var index = createDebug.instances.indexOf(this);
+
+    if (index !== -1) {
+      createDebug.instances.splice(index, 1);
       return true;
     }
+
+    return false;
   }
-  return false;
+
+  function extend(namespace, delimiter) {
+    return createDebug(this.namespace + (typeof delimiter === 'undefined' ? ':' : delimiter) + namespace);
+  }
+  /**
+  * Enables a debug mode by namespaces. This can include modes
+  * separated by a colon and wildcards.
+  *
+  * @param {String} namespaces
+  * @api public
+  */
+
+
+  function enable(namespaces) {
+    createDebug.save(namespaces);
+    createDebug.names = [];
+    createDebug.skips = [];
+    var i;
+    var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
+    var len = split.length;
+
+    for (i = 0; i < len; i++) {
+      if (!split[i]) {
+        // ignore empty strings
+        continue;
+      }
+
+      namespaces = split[i].replace(/\*/g, '.*?');
+
+      if (namespaces[0] === '-') {
+        createDebug.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+      } else {
+        createDebug.names.push(new RegExp('^' + namespaces + '$'));
+      }
+    }
+
+    for (i = 0; i < createDebug.instances.length; i++) {
+      var instance = createDebug.instances[i];
+      instance.enabled = createDebug.enabled(instance.namespace);
+    }
+  }
+  /**
+  * Disable debug output.
+  *
+  * @api public
+  */
+
+
+  function disable() {
+    createDebug.enable('');
+  }
+  /**
+  * Returns true if the given mode name is enabled, false otherwise.
+  *
+  * @param {String} name
+  * @return {Boolean}
+  * @api public
+  */
+
+
+  function enabled(name) {
+    if (name[name.length - 1] === '*') {
+      return true;
+    }
+
+    var i;
+    var len;
+
+    for (i = 0, len = createDebug.skips.length; i < len; i++) {
+      if (createDebug.skips[i].test(name)) {
+        return false;
+      }
+    }
+
+    for (i = 0, len = createDebug.names.length; i < len; i++) {
+      if (createDebug.names[i].test(name)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+  /**
+  * Coerce `val`.
+  *
+  * @param {Mixed} val
+  * @return {Mixed}
+  * @api private
+  */
+
+
+  function coerce(val) {
+    if (val instanceof Error) {
+      return val.stack || val.message;
+    }
+
+    return val;
+  }
+
+  createDebug.enable(createDebug.load());
+  return createDebug;
 }
 
-/**
- * Coerce `val`.
- *
- * @param {Mixed} val
- * @return {Mixed}
- * @api private
- */
-
-function coerce(val) {
-  if (val instanceof Error) return val.stack || val.message;
-  return val;
-}
-
+module.exports = setup;
 
 /***/ }),
 
@@ -2168,6 +2270,7 @@ var s = 1000;
 var m = s * 60;
 var h = m * 60;
 var d = h * 24;
+var w = d * 7;
 var y = d * 365.25;
 
 /**
@@ -2211,7 +2314,7 @@ function parse(str) {
   if (str.length > 100) {
     return;
   }
-  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(
+  var match = /^((?:\d+)?\-?\d?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(
     str
   );
   if (!match) {
@@ -2226,6 +2329,10 @@ function parse(str) {
     case 'yr':
     case 'y':
       return n * y;
+    case 'weeks':
+    case 'week':
+    case 'w':
+      return n * w;
     case 'days':
     case 'day':
     case 'd':
@@ -2268,16 +2375,17 @@ function parse(str) {
  */
 
 function fmtShort(ms) {
-  if (ms >= d) {
+  var msAbs = Math.abs(ms);
+  if (msAbs >= d) {
     return Math.round(ms / d) + 'd';
   }
-  if (ms >= h) {
+  if (msAbs >= h) {
     return Math.round(ms / h) + 'h';
   }
-  if (ms >= m) {
+  if (msAbs >= m) {
     return Math.round(ms / m) + 'm';
   }
-  if (ms >= s) {
+  if (msAbs >= s) {
     return Math.round(ms / s) + 's';
   }
   return ms + 'ms';
@@ -2292,25 +2400,29 @@ function fmtShort(ms) {
  */
 
 function fmtLong(ms) {
-  return plural(ms, d, 'day') ||
-    plural(ms, h, 'hour') ||
-    plural(ms, m, 'minute') ||
-    plural(ms, s, 'second') ||
-    ms + ' ms';
+  var msAbs = Math.abs(ms);
+  if (msAbs >= d) {
+    return plural(ms, msAbs, d, 'day');
+  }
+  if (msAbs >= h) {
+    return plural(ms, msAbs, h, 'hour');
+  }
+  if (msAbs >= m) {
+    return plural(ms, msAbs, m, 'minute');
+  }
+  if (msAbs >= s) {
+    return plural(ms, msAbs, s, 'second');
+  }
+  return ms + ' ms';
 }
 
 /**
  * Pluralization helper.
  */
 
-function plural(ms, n, name) {
-  if (ms < n) {
-    return;
-  }
-  if (ms < n * 1.5) {
-    return Math.floor(ms / n) + ' ' + name;
-  }
-  return Math.ceil(ms / n) + ' ' + name + 's';
+function plural(ms, msAbs, n, name) {
+  var isPlural = msAbs >= n * 1.5;
+  return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
 }
 
 
@@ -3203,9 +3315,6 @@ module.exports = {
   \*********************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
 
 module.exports = __webpack_require__(/*! @feathersjs/rest-client */ "./node_modules/@feathersjs/rest-client/lib/index.js");
 
