@@ -1,12 +1,8 @@
 # @feathersjs/client
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/feathersjs/client.svg)](https://greenkeeper.io/)
+> __Important:__ The code for this module has been moved into the main Feathers repository at [feathersjs/feathers](https://github.com/feathersjs/feathers) ([package direct link](https://github.com/feathersjs/feathers/tree/master/packages/client)). Please open issues and pull requests there. No changes in your existing Feathers applications are necessary.
 
 [![Build Status](https://travis-ci.org/feathersjs/client.png?branch=master)](https://travis-ci.org/feathersjs/client)
-[![Dependency Status](https://img.shields.io/david/feathersjs/client.svg?style=flat-square)](https://david-dm.org/feathersjs/client)
-[![Download Status](https://img.shields.io/npm/dm/@feathersjs/client.svg?style=flat-square)](https://www.npmjs.com/package/@feathersjs/client)
-
-[![Sauce Test Status](https://saucelabs.com/browser-matrix/feathersjs.svg)](https://saucelabs.com/u/feathersjs)
 
 > A client for Feathers services supporting many different transport libraries.
 
