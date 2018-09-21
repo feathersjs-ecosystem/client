@@ -5312,10 +5312,10 @@ var socketio = __webpack_require__(/*! @feathersjs/socketio-client */ "./node_mo
 var primus = __webpack_require__(/*! @feathersjs/primus-client */ "./node_modules/@feathersjs/primus-client/lib/index.js");
 
 Object.assign(feathers, {
+  errors: errors,
   socketio: socketio,
   primus: primus,
   rest: rest,
-  errors: errors,
   authentication: authentication
 });
 module.exports = feathers;
