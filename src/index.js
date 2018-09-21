@@ -6,10 +6,10 @@ const socketio = require('@feathersjs/socketio-client');
 const primus = require('@feathersjs/primus-client');
 
 Object.assign(feathers, {
+  errors,
   socketio,
   primus,
   rest,
-  errors,
   authentication
 });
 
