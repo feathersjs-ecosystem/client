@@ -1,5 +1,8 @@
 # Change Log
 
+## [v3.7.1](https://github.com/feathersjs/client/tree/v3.7.1) (2018-09-21)
+[Full Changelog](https://github.com/feathersjs/client/compare/v3.7.0...v3.7.1)
+
 ## [v3.7.0](https://github.com/feathersjs/client/tree/v3.7.0) (2018-09-18)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.6.0...v3.7.0)
 
@@ -10,7 +13,7 @@
 **Merged pull requests:**
 
 - Update all dependencies and build to Babel 8 [\#294](https://github.com/feathersjs/client/pull/294) ([daffl](https://github.com/daffl))
-- Update uglifyjs-webpack-plugin to the latest version 🚀 [\#287](https://github.com/feathersjs/client/pull/287) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update uglifyjs-webpack-plugin to the latest version 🚀 [\#287](https://github.com/feathersjs/client/pull/287) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.6.0](https://github.com/feathersjs/client/tree/v3.6.0) (2018-09-03)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.5.6...v3.6.0)
@@ -19,7 +22,7 @@
 
 - Update all dependencies [\#285](https://github.com/feathersjs/client/pull/285) ([daffl](https://github.com/daffl))
 - Update all dependencies [\#278](https://github.com/feathersjs/client/pull/278) ([daffl](https://github.com/daffl))
-- Update @feathersjs/errors to the latest version 🚀 [\#272](https://github.com/feathersjs/client/pull/272) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/errors to the latest version 🚀 [\#272](https://github.com/feathersjs/client/pull/272) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.5.6](https://github.com/feathersjs/client/tree/v3.5.6) (2018-08-13)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.5.5...v3.5.6)
@@ -33,7 +36,7 @@
 
 **Merged pull requests:**
 
-- Update ws to the latest version 🚀 [\#269](https://github.com/feathersjs/client/pull/269) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update ws to the latest version 🚀 [\#269](https://github.com/feathersjs/client/pull/269) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.5.4](https://github.com/feathersjs/client/tree/v3.5.4) (2018-07-19)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.5.3...v3.5.4)
@@ -47,7 +50,7 @@
 
 **Merged pull requests:**
 
-- Update @feathersjs/rest-client to the latest version 🚀 [\#266](https://github.com/feathersjs/client/pull/266) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/rest-client to the latest version 🚀 [\#266](https://github.com/feathersjs/client/pull/266) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.5.2](https://github.com/feathersjs/client/tree/v3.5.2) (2018-06-16)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.5.1...v3.5.2)
@@ -58,8 +61,8 @@
 
 **Merged pull requests:**
 
-- Update @feathersjs/feathers to the latest version 🚀 [\#265](https://github.com/feathersjs/client/pull/265) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update shx to the latest version 🚀 [\#263](https://github.com/feathersjs/client/pull/263) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#265](https://github.com/feathersjs/client/pull/265) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update shx to the latest version 🚀 [\#263](https://github.com/feathersjs/client/pull/263) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.5.1](https://github.com/feathersjs/client/tree/v3.5.1) (2018-06-03)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.5.0...v3.5.1)
@@ -71,29 +74,29 @@
 
 **Merged pull requests:**
 
-- Update @feathersjs/feathers to the latest version 🚀 [\#262](https://github.com/feathersjs/client/pull/262) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#262](https://github.com/feathersjs/client/pull/262) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.5.0](https://github.com/feathersjs/client/tree/v3.5.0) (2018-05-17)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.4.5...v3.5.0)
 
 **Merged pull requests:**
 
-- Update @feathersjs/rest-client to the latest version 🚀 [\#259](https://github.com/feathersjs/client/pull/259) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/rest-client to the latest version 🚀 [\#259](https://github.com/feathersjs/client/pull/259) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.4.5](https://github.com/feathersjs/client/tree/v3.4.5) (2018-05-04)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.4.4...v3.4.5)
 
 **Merged pull requests:**
 
-- Update @feathersjs/feathers to the latest version 🚀 [\#258](https://github.com/feathersjs/client/pull/258) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#258](https://github.com/feathersjs/client/pull/258) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.4.4](https://github.com/feathersjs/client/tree/v3.4.4) (2018-03-27)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.4.3...v3.4.4)
 
 **Merged pull requests:**
 
-- Update @feathersjs/feathers to the latest version 🚀 [\#257](https://github.com/feathersjs/client/pull/257) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update @feathersjs/rest-client to the latest version 🚀 [\#256](https://github.com/feathersjs/client/pull/256) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#257](https://github.com/feathersjs/client/pull/257) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update @feathersjs/rest-client to the latest version 🚀 [\#256](https://github.com/feathersjs/client/pull/256) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.4.3](https://github.com/feathersjs/client/tree/v3.4.3) (2018-03-07)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.4.2...v3.4.3)
@@ -104,8 +107,8 @@
 
 **Merged pull requests:**
 
-- Update ws to the latest version 🚀 [\#255](https://github.com/feathersjs/client/pull/255) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update webpack to the latest version 🚀 [\#254](https://github.com/feathersjs/client/pull/254) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update ws to the latest version 🚀 [\#255](https://github.com/feathersjs/client/pull/255) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update webpack to the latest version 🚀 [\#254](https://github.com/feathersjs/client/pull/254) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.4.2](https://github.com/feathersjs/client/tree/v3.4.2) (2018-02-16)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.4.1...v3.4.2)
@@ -116,30 +119,30 @@
 
 **Merged pull requests:**
 
-- Update @feathersjs/feathers to the latest version 🚀 [\#252](https://github.com/feathersjs/client/pull/252) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update @feathersjs/errors to the latest version 🚀 [\#251](https://github.com/feathersjs/client/pull/251) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#252](https://github.com/feathersjs/client/pull/252) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update @feathersjs/errors to the latest version 🚀 [\#251](https://github.com/feathersjs/client/pull/251) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.4.1](https://github.com/feathersjs/client/tree/v3.4.1) (2018-02-10)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.4.0...v3.4.1)
 
 **Merged pull requests:**
 
-- Update @feathersjs/feathers to the latest version 🚀 [\#249](https://github.com/feathersjs/client/pull/249) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#249](https://github.com/feathersjs/client/pull/249) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.4.0](https://github.com/feathersjs/client/tree/v3.4.0) (2018-02-09)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.3.2...v3.4.0)
 
 **Merged pull requests:**
 
-- Update @feathersjs/primus-client to the latest version 🚀 [\#248](https://github.com/feathersjs/client/pull/248) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update @feathersjs/socketio-client to the latest version 🚀 [\#247](https://github.com/feathersjs/client/pull/247) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/primus-client to the latest version 🚀 [\#248](https://github.com/feathersjs/client/pull/248) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update @feathersjs/socketio-client to the latest version 🚀 [\#247](https://github.com/feathersjs/client/pull/247) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.3.2](https://github.com/feathersjs/client/tree/v3.3.2) (2018-02-09)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.3.1...v3.3.2)
 
 **Merged pull requests:**
 
-- Update @feathersjs/feathers to the latest version 🚀 [\#246](https://github.com/feathersjs/client/pull/246) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#246](https://github.com/feathersjs/client/pull/246) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 - delete slack link [\#245](https://github.com/feathersjs/client/pull/245) ([vodniciarv](https://github.com/vodniciarv))
 
 ## [v3.3.1](https://github.com/feathersjs/client/tree/v3.3.1) (2018-02-05)
@@ -147,16 +150,16 @@
 
 **Merged pull requests:**
 
-- Update @feathersjs/socketio-client to the latest version 🚀 [\#244](https://github.com/feathersjs/client/pull/244) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update @feathersjs/primus-client to the latest version 🚀 [\#243](https://github.com/feathersjs/client/pull/243) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update node-fetch to the latest version 🚀 [\#242](https://github.com/feathersjs/client/pull/242) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/socketio-client to the latest version 🚀 [\#244](https://github.com/feathersjs/client/pull/244) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update @feathersjs/primus-client to the latest version 🚀 [\#243](https://github.com/feathersjs/client/pull/243) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update node-fetch to the latest version 🚀 [\#242](https://github.com/feathersjs/client/pull/242) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.3.0](https://github.com/feathersjs/client/tree/v3.3.0) (2018-01-26)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.2.0...v3.3.0)
 
 **Merged pull requests:**
 
-- Update @feathersjs/feathers to the latest version 🚀 [\#241](https://github.com/feathersjs/client/pull/241) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#241](https://github.com/feathersjs/client/pull/241) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.2.0](https://github.com/feathersjs/client/tree/v3.2.0) (2018-01-24)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.1.2...v3.2.0)
@@ -169,16 +172,16 @@
 
 **Merged pull requests:**
 
-- Update @feathersjs/errors to the latest version 🚀 [\#240](https://github.com/feathersjs/client/pull/240) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update mocha to the latest version 🚀 [\#239](https://github.com/feathersjs/client/pull/239) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update ws to the latest version 🚀 [\#235](https://github.com/feathersjs/client/pull/235) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update @feathersjs/feathers to the latest version 🚀 [\#234](https://github.com/feathersjs/client/pull/234) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update @feathersjs/rest-client to the latest version 🚀 [\#233](https://github.com/feathersjs/client/pull/233) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update @feathersjs/feathers to the latest version 🚀 [\#232](https://github.com/feathersjs/client/pull/232) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update @feathersjs/authentication-client to the latest version 🚀 [\#231](https://github.com/feathersjs/client/pull/231) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update @feathersjs/socketio-client to the latest version 🚀 [\#230](https://github.com/feathersjs/client/pull/230) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update @feathersjs/primus-client to the latest version 🚀 [\#229](https://github.com/feathersjs/client/pull/229) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update @feathersjs/errors to the latest version 🚀 [\#228](https://github.com/feathersjs/client/pull/228) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/errors to the latest version 🚀 [\#240](https://github.com/feathersjs/client/pull/240) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update mocha to the latest version 🚀 [\#239](https://github.com/feathersjs/client/pull/239) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update ws to the latest version 🚀 [\#235](https://github.com/feathersjs/client/pull/235) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#234](https://github.com/feathersjs/client/pull/234) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update @feathersjs/rest-client to the latest version 🚀 [\#233](https://github.com/feathersjs/client/pull/233) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#232](https://github.com/feathersjs/client/pull/232) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update @feathersjs/authentication-client to the latest version 🚀 [\#231](https://github.com/feathersjs/client/pull/231) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update @feathersjs/socketio-client to the latest version 🚀 [\#230](https://github.com/feathersjs/client/pull/230) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update @feathersjs/primus-client to the latest version 🚀 [\#229](https://github.com/feathersjs/client/pull/229) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update @feathersjs/errors to the latest version 🚀 [\#228](https://github.com/feathersjs/client/pull/228) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.1.2](https://github.com/feathersjs/client/tree/v3.1.2) (2018-01-02)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.1.1...v3.1.2)
@@ -189,18 +192,18 @@
 
 **Merged pull requests:**
 
-- Update @feathersjs/feathers to the latest version 🚀 [\#227](https://github.com/feathersjs/client/pull/227) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update semistandard to the latest version 🚀 [\#226](https://github.com/feathersjs/client/pull/226) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#227](https://github.com/feathersjs/client/pull/227) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update semistandard to the latest version 🚀 [\#226](https://github.com/feathersjs/client/pull/226) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.1.1](https://github.com/feathersjs/client/tree/v3.1.1) (2017-12-05)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.1.0...v3.1.1)
 
 **Merged pull requests:**
 
-- Update @feathersjs/feathers to the latest version 🚀 [\#224](https://github.com/feathersjs/client/pull/224) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-memory to the latest version 🚀 [\#223](https://github.com/feathersjs/client/pull/223) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update @feathersjs/errors to the latest version 🚀 [\#222](https://github.com/feathersjs/client/pull/222) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update @feathersjs/errors to the latest version 🚀 [\#221](https://github.com/feathersjs/client/pull/221) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#224](https://github.com/feathersjs/client/pull/224) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-memory to the latest version 🚀 [\#223](https://github.com/feathersjs/client/pull/223) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update @feathersjs/errors to the latest version 🚀 [\#222](https://github.com/feathersjs/client/pull/222) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update @feathersjs/errors to the latest version 🚀 [\#221](https://github.com/feathersjs/client/pull/221) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v3.1.0](https://github.com/feathersjs/client/tree/v3.1.0) (2017-11-16)
 [Full Changelog](https://github.com/feathersjs/client/compare/v3.0.0...v3.1.0)
@@ -208,7 +211,7 @@
 **Merged pull requests:**
 
 - Link client packages directly to builds and update all dependencies [\#219](https://github.com/feathersjs/client/pull/219) ([daffl](https://github.com/daffl))
-- Update @feathersjs/feathers to the latest version 🚀 [\#217](https://github.com/feathersjs/client/pull/217) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update @feathersjs/feathers to the latest version 🚀 [\#217](https://github.com/feathersjs/client/pull/217) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 - Update package.json [\#215](https://github.com/feathersjs/client/pull/215) ([frank-dspeed](https://github.com/frank-dspeed))
 
 ## [v3.0.0](https://github.com/feathersjs/client/tree/v3.0.0) (2017-11-01)
@@ -231,18 +234,18 @@
 **Merged pull requests:**
 
 - Upgrade to Feathers v3 \(Buzzard\) and new builds [\#213](https://github.com/feathersjs/client/pull/213) ([daffl](https://github.com/daffl))
-- Update dependencies to enable Greenkeeper 🌴 [\#212](https://github.com/feathersjs/client/pull/212) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-hooks to the latest version 🚀 [\#208](https://github.com/feathersjs/client/pull/208) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers to the latest version 🚀 [\#207](https://github.com/feathersjs/client/pull/207) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update mocha to the latest version 🚀 [\#206](https://github.com/feathersjs/client/pull/206) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update dependencies to enable Greenkeeper 🌴 [\#212](https://github.com/feathersjs/client/pull/212) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-hooks to the latest version 🚀 [\#208](https://github.com/feathersjs/client/pull/208) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers to the latest version 🚀 [\#207](https://github.com/feathersjs/client/pull/207) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update mocha to the latest version 🚀 [\#206](https://github.com/feathersjs/client/pull/206) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 - update script src deps example [\#205](https://github.com/feathersjs/client/pull/205) ([crobinson42](https://github.com/crobinson42))
-- Update feathers to the latest version 🚀 [\#204](https://github.com/feathersjs/client/pull/204) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-hooks to the latest version 🚀 [\#203](https://github.com/feathersjs/client/pull/203) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-hooks to the latest version 🚀 [\#202](https://github.com/feathersjs/client/pull/202) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers to the latest version 🚀 [\#201](https://github.com/feathersjs/client/pull/201) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-hooks to the latest version 🚀 [\#200](https://github.com/feathersjs/client/pull/200) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update feathers to the latest version 🚀 [\#204](https://github.com/feathersjs/client/pull/204) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-hooks to the latest version 🚀 [\#203](https://github.com/feathersjs/client/pull/203) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-hooks to the latest version 🚀 [\#202](https://github.com/feathersjs/client/pull/202) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers to the latest version 🚀 [\#201](https://github.com/feathersjs/client/pull/201) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-hooks to the latest version 🚀 [\#200](https://github.com/feathersjs/client/pull/200) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 - Update TypeScript definition for service.patch [\#199](https://github.com/feathersjs/client/pull/199) ([kfatehi](https://github.com/kfatehi))
-- Update feathers-errors to the latest version 🚀 [\#197](https://github.com/feathersjs/client/pull/197) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update feathers-errors to the latest version 🚀 [\#197](https://github.com/feathersjs/client/pull/197) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v2.4.0](https://github.com/feathersjs/client/tree/v2.4.0) (2017-09-02)
 [Full Changelog](https://github.com/feathersjs/client/compare/v2.3.0...v2.4.0)
@@ -254,14 +257,14 @@
 
 **Merged pull requests:**
 
-- Update feathers to the latest version 🚀 [\#195](https://github.com/feathersjs/client/pull/195) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update feathers to the latest version 🚀 [\#195](https://github.com/feathersjs/client/pull/195) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 - Add default export to TypeScript definition [\#194](https://github.com/feathersjs/client/pull/194) ([jonlambert](https://github.com/jonlambert))
-- Update ws to the latest version 🚀 [\#193](https://github.com/feathersjs/client/pull/193) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-errors to the latest version 🚀 [\#192](https://github.com/feathersjs/client/pull/192) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-errors to the latest version 🚀 [\#191](https://github.com/feathersjs/client/pull/191) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update ws to the latest version 🚀 [\#193](https://github.com/feathersjs/client/pull/193) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-errors to the latest version 🚀 [\#192](https://github.com/feathersjs/client/pull/192) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-errors to the latest version 🚀 [\#191](https://github.com/feathersjs/client/pull/191) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 - fix\(package\): update feathers to version 2.1.7 [\#190](https://github.com/feathersjs/client/pull/190) ([daffl](https://github.com/daffl))
-- Update feathers-hooks to the latest version 🚀 [\#187](https://github.com/feathersjs/client/pull/187) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-errors to the latest version 🚀 [\#186](https://github.com/feathersjs/client/pull/186) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update feathers-hooks to the latest version 🚀 [\#187](https://github.com/feathersjs/client/pull/187) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-errors to the latest version 🚀 [\#186](https://github.com/feathersjs/client/pull/186) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v2.3.0](https://github.com/feathersjs/client/tree/v2.3.0) (2017-07-04)
 [Full Changelog](https://github.com/feathersjs/client/compare/v2.2.0...v2.3.0)
@@ -275,20 +278,20 @@
 
 **Merged pull requests:**
 
-- Update feathers-rest to the latest version 🚀 [\#185](https://github.com/feathersjs/client/pull/185) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-rest to the latest version 🚀 [\#184](https://github.com/feathersjs/client/pull/184) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update feathers-rest to the latest version 🚀 [\#185](https://github.com/feathersjs/client/pull/185) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-rest to the latest version 🚀 [\#184](https://github.com/feathersjs/client/pull/184) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 - Remove IE edge again since it does not seem to be running on Saucelabs [\#183](https://github.com/feathersjs/client/pull/183) ([daffl](https://github.com/daffl))
-- Update feathers to the latest version 🚀 [\#182](https://github.com/feathersjs/client/pull/182) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-rest to the latest version 🚀 [\#180](https://github.com/feathersjs/client/pull/180) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-errors to the latest version 🚀 [\#178](https://github.com/feathersjs/client/pull/178) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers to the latest version 🚀 [\#176](https://github.com/feathersjs/client/pull/176) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-primus to the latest version 🚀 [\#175](https://github.com/feathersjs/client/pull/175) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-socketio to the latest version 🚀 [\#173](https://github.com/feathersjs/client/pull/173) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers to the latest version 🚀 [\#171](https://github.com/feathersjs/client/pull/171) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update socket.io-client to the latest version 🚀 [\#170](https://github.com/feathersjs/client/pull/170) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-errors to the latest version 🚀 [\#169](https://github.com/feathersjs/client/pull/169) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-errors to the latest version 🚀 [\#168](https://github.com/feathersjs/client/pull/168) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update feathers-hooks to the latest version 🚀 [\#167](https://github.com/feathersjs/client/pull/167) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update feathers to the latest version 🚀 [\#182](https://github.com/feathersjs/client/pull/182) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-rest to the latest version 🚀 [\#180](https://github.com/feathersjs/client/pull/180) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-errors to the latest version 🚀 [\#178](https://github.com/feathersjs/client/pull/178) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers to the latest version 🚀 [\#176](https://github.com/feathersjs/client/pull/176) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-primus to the latest version 🚀 [\#175](https://github.com/feathersjs/client/pull/175) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-socketio to the latest version 🚀 [\#173](https://github.com/feathersjs/client/pull/173) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers to the latest version 🚀 [\#171](https://github.com/feathersjs/client/pull/171) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update socket.io-client to the latest version 🚀 [\#170](https://github.com/feathersjs/client/pull/170) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-errors to the latest version 🚀 [\#169](https://github.com/feathersjs/client/pull/169) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-errors to the latest version 🚀 [\#168](https://github.com/feathersjs/client/pull/168) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update feathers-hooks to the latest version 🚀 [\#167](https://github.com/feathersjs/client/pull/167) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 - Add IE Edge instead of IE 9 [\#166](https://github.com/feathersjs/client/pull/166) ([daffl](https://github.com/daffl))
 
 ## [v2.2.0](https://github.com/feathersjs/client/tree/v2.2.0) (2017-04-25)
@@ -296,9 +299,9 @@
 
 **Merged pull requests:**
 
-- Update feathers-errors to the latest version 🚀 [\#165](https://github.com/feathersjs/client/pull/165) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update feathers-errors to the latest version 🚀 [\#165](https://github.com/feathersjs/client/pull/165) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 - Add feathers-errors test [\#164](https://github.com/feathersjs/client/pull/164) ([christopherjbaker](https://github.com/christopherjbaker))
-- Update semistandard to the latest version 🚀 [\#163](https://github.com/feathersjs/client/pull/163) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update semistandard to the latest version 🚀 [\#163](https://github.com/feathersjs/client/pull/163) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 
 ## [v2.1.0](https://github.com/feathersjs/client/tree/v2.1.0) (2017-04-18)
 [Full Changelog](https://github.com/feathersjs/client/compare/v2.0.0...v2.1.0)
@@ -309,8 +312,8 @@
 
 **Merged pull requests:**
 
-- Update feathers-hooks to the latest version 🚀 [\#162](https://github.com/feathersjs/client/pull/162) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
-- Update dependencies to enable Greenkeeper 🌴 [\#161](https://github.com/feathersjs/client/pull/161) ([greenkeeper[bot]](https://github.com/apps/greenkeeper))
+- Update feathers-hooks to the latest version 🚀 [\#162](https://github.com/feathersjs/client/pull/162) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
+- Update dependencies to enable Greenkeeper 🌴 [\#161](https://github.com/feathersjs/client/pull/161) ([greenkeeper[bot]](https://github.com/marketplace/greenkeeper))
 - Added generics to typescript definition. [\#158](https://github.com/feathersjs/client/pull/158) ([noah79](https://github.com/noah79))
 
 ## [v2.0.0](https://github.com/feathersjs/client/tree/v2.0.0) (2017-04-11)
